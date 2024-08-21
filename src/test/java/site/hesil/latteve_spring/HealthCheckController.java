@@ -1,4 +1,4 @@
-package site.hesil.lattev_spring;
+package site.hesil.latteve_spring;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
