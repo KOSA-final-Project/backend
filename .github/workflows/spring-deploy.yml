@@ -54,7 +54,7 @@ jobs:
           cp ./Dockerfile ./deploy/
           cp ./scripts/*.sh ./deploy/
           cp ./build/libs/*.jar ./deploy/
-          zip -r -qq -j ./lattev-spring-build.zip ./deploy
+          zip -r -qq -j ./latteve-spring-build.zip ./deploy
           
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -67,11 +67,11 @@ jobs:
         run: |
           aws s3 cp \
             --region ap-northeast-2 \
-            ./lattev-spring-build.zip s3://latteve-cicd-test
+            ./latteve-spring-build.zip s3://latteve-cicd-test
 
       # 추가
       - name: Code Deploy
         run: aws deploy create-deployment --application-name cicd-test-deploy
           --deployment-config-name CodeDeployDefault.OneAtATime
           --deployment-group-name cicd-test-deploy-group
-          --s3-location bucket=latteve-cicd-test,bundleType=zip,key=lattev-spring-build.zip
+          --s3-location bucket=latteve-cicd-test,bundleType=zip,key=latteve-spring-build.zip
