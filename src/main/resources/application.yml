@@ -10,7 +10,7 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        #dialect: org.hibernate.dialect.MySQLDialect // mysql 은 자동으로 Dialect 설정된다함
+        dialect: org.hibernate.dialect.MySQLDialect
         show-sql: true
         format_sql: true
         default_batch_fetch_size: 100
