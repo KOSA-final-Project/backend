@@ -1,3 +1,20 @@
 spring:
   application:
     name: latteve_spring
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        show-sql: true
+        format_sql: true
+        default_batch_fetch_size: 100
+
+
+  config:
+    import: application-secret.yml
