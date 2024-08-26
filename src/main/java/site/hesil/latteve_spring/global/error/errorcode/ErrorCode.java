@@ -40,7 +40,8 @@ public enum ErrorCode {
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "E02", "게이트웨이 또는 프록시 서버가 잘못된 응답을 받았습니다."),
     // -------------------------------- 여기부턴 커스텀 에러 -----------------------------------------
     // 커스텀 예외 생성시 code 90번부터 지정 -> ex) REQUIRE_MORE_COFFEE(HttpStatus.SERVICE_UNAVAILABLE, "E90", "더 많은 커피가 필요합니다.")
-    REQUIRE_MORE_COFFEE(HttpStatus.SERVICE_UNAVAILABLE, "E90", "커피가 부족 합니다.")
+    REQUIRE_MORE_COFFEE(HttpStatus.SERVICE_UNAVAILABLE, "E90", "커피가 부족 합니다."),
+    S3_IMAGE_UPLOAD_FAIL(HttpStatus.SERVICE_UNAVAILABLE, "E91", "S3 버킷에 이미지를 업로드하는데 실패하였습니다.")
     ;
 
     private final HttpStatus status;

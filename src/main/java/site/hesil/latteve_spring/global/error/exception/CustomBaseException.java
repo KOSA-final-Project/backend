@@ -32,4 +32,14 @@ public class CustomBaseException extends RuntimeException{
         super(message);
         this.responseCode = ErrorCode.INTERNAL_SERVER_ERROR;
     }
+
+    public CustomBaseException(String message, Throwable cause, ErrorCode errorCode) {
+        super(message, cause);
+        this.responseCode = errorCode;
+    }
+
+    public CustomBaseException(ErrorCode errorCode,Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.responseCode = errorCode;
+    }
 }
