@@ -1,8 +1,14 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
+import site.hesil.latteve_spring.domains.project.service.ProjectService;
+
+import java.util.Map;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.controller
@@ -17,10 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController("/api/projects")
+@RequiredArgsConstructor
 public class ProjectController {
 
+    private final ProjectService projectService;
+
     @GetMapping("/{projectId}")
-    public void getProjectDetail(@PathVariable Long projectId) {
-        System.out.println("Hello");
+    public ResponseEntity<ProjectDetailResponse> getProjectDetail(@PathVariable Long projectId) {
+
     }
 }
