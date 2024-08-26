@@ -38,7 +38,7 @@ public class OpenSearchConfig {
 
 
     @Bean
-    public OpenSearchClient openSearchConfig(){
+    public OpenSearchClient openSearchClient(){
         // 사용자 이름과 비밀번호 설정
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(
@@ -46,7 +46,7 @@ public class OpenSearchConfig {
                 new UsernamePasswordCredentials(username, password)
         );
 
-        RestClient restClient = RestClient.builder(new HttpHost("localhost", 9200, "https"))
+        RestClient restClient = RestClient.builder(new HttpHost(host,  443, "https"))
                 .setHttpClientConfigCallback(
                     httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider))
                 .build();
