@@ -37,6 +37,7 @@ public class Project extends BaseTimeEntity {
     private int duration;
     private int cycle;
     private LocalDateTime deletedAt;
+    private LocalDateTime startedAt;
 
     @Builder
     public Project(String name, String description, String imgUrl, int status, int duration, int cycle) {
