@@ -2,8 +2,8 @@ package site.hesil.latteve_spring.domains.project.dto.project.response;
 
 import lombok.Builder;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.dto.project.response
@@ -20,15 +20,36 @@ import java.util.Map;
 @Builder
 public record ProjectDetailResponse(
         Long projectId,
-        String title,
+        String name,
         String description,
         String projectImg,
-        Map<String, Object> leader,
-        Map<String, Object> members,
-        Map<String, Object> techStack,
+        List<String> projectTechStack,
         int status,
-        LocalDateTime createdAt,
+        LocalDate createdAt,
+        LocalDate startedAt,
         int duration,
-        int cycle
+        int cycle,
+        Leader leader,
+        List<Recruitment> recruitments
 ) {
+    public record Leader(
+            Long memberId,
+            String memberNickname,
+            String memberImg,
+            List<String> techStack
+    ) {}
+
+    public record Recruitment(
+            Long jobId,
+            String jobName,
+            int jobCount,
+            List<Member> members
+    ) {}
+
+    public record Member(
+            Long memberId,
+            String memberNickname,
+            String memberImg,
+            List<String> techStack
+    ) {}
 }
