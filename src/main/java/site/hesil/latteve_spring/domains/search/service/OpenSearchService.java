@@ -32,4 +32,6 @@ public class OpenSearchService {
             return "Failed to connect to OpenSearch: " + e.getMessage();
         }
     }
+
+  
 }
