@@ -31,9 +31,7 @@ public class ProjectController {
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectDetailResponse> getProjectDetail(@PathVariable Long projectId) {
         ProjectDetailResponse projectDetailResponse = projectService.getProjectDetail(projectId);
-        if(projectDetailResponse == null) {
-            return ResponseEntity.notFound().build();
-        }
+
         return ResponseEntity.ok(projectDetailResponse);
     }
 }
