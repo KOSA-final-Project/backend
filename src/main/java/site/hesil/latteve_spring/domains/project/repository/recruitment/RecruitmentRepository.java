@@ -1,6 +1,8 @@
 package site.hesil.latteve_spring.domains.project.repository.recruitment;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
 
 /**
@@ -16,6 +18,6 @@ import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
  */
 public interface RecruitmentRepository extends JpaRepository <Recruitment, Long> {
 
-
-    Integer findMemberCountByProject_ProjectId(Long projectId);
+    @Query("SELECT COUNT(r) FROM Recruitment r WHERE r.project.projectId = :projectId")
+    Integer findMemberCountByProject_ProjectId(@Param("projectId") Long projectId);
 }

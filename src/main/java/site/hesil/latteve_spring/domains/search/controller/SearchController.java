@@ -3,8 +3,16 @@ package site.hesil.latteve_spring.domains.search.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
 import site.hesil.latteve_spring.domains.search.service.OpenSearchService;
+import site.hesil.latteve_spring.domains.search.service.SearchService;
+
+import java.io.IOException;
+import java.util.*;
 
 
 /**
@@ -21,11 +29,13 @@ import site.hesil.latteve_spring.domains.search.service.OpenSearchService;
 
 
 @Slf4j
-@RestController("/api/search")
+@RestController
+@RequestMapping("/api/search")
 @RequiredArgsConstructor
 public class SearchController {
 
     private final OpenSearchService openSearchService;
+    private final SearchService searchService;
 
     @GetMapping("/test-opensearch")
     public String testOpenSearchConnection() {
@@ -34,5 +44,19 @@ public class SearchController {
 
     }
 
+    @GetMapping("/members")
+    public List<MemberDocumentReq> searchMembers(@RequestParam String keyword) throws IOException {
+        return searchService.searchMembersByKeyword(keyword);
+    }
+
+    @GetMapping("/projects")
+    public List<ProjectDocumentReq> searchProjects(@RequestParam String keyword) throws IOException {
+        return searchService.searchProjectsByKeyword(keyword);
+    }
+
+    @GetMapping("/all")
+    public Map<String, Object> searchAll(@RequestParam String keyword) throws IOException {
+        return searchService.searchAllByKeyword(keyword);
+    }
 
 }
