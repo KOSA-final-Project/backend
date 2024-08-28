@@ -1,8 +1,12 @@
 package site.hesil.latteve_spring.domains.search.service;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.IndexRequest;
+import org.opensearch.client.opensearch.core.SearchRequest;
+import org.opensearch.client.opensearch.core.SearchResponse;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -41,6 +45,12 @@ public class SearchService {
     private final ProjectMemberRepository projectMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
 
+
+    // 나중에 삭제 -> 데이터 동기화
+    @PostConstruct
+    public void init() throws IOException {
+        indexProjectsToOpenSearch();
+    }
 
 
     public void indexProjectsToOpenSearch() throws IOException {
@@ -85,4 +95,22 @@ public class SearchService {
 
 
     }
+
+    public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword) throws IOException {
+        SearchRequest searchRequest = new SearchRequest.Builder()
+                .index("projects")
+                .query(QueryBuilders.multiMatch()
+                        .fields("name") // 검색할 필드들
+                        .query(keyword)
+                        .build())
+                .build();
+
+        SearchResponse<ProjectDocumentReq> response = openSearchClient.search(searchRequest, ProjectDocumentReq.class);
+
+        return response.hits().hits().stream()
+                .map(Hit::source)
+                .collect(Collectors.toList());
+    }
+
+
 }
