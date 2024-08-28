@@ -1,4 +1,4 @@
-package site.hesil.latteve_spring.domains.search;
+package site.hesil.latteve_spring.domains.search.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
