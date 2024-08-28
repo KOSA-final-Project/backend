@@ -56,10 +56,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(project.projectId.eq(projectId))
                 .fetchOne();
 
-        if (projectInfo == null) {
-            return null;
-        }
-
         // 프로젝트 기술 스택 조회
         List<String> projectTechStack = queryFactory
                 .select(new CaseBuilder()
@@ -70,7 +66,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(projectStack.project.projectId.eq(projectId))
                 .fetch();
 
-        // 리더 정보 조회
+        // 리더 정보 조회 //
+        // 리더 기본 정보 조회
         Tuple leaderInfo = queryFactory
                 .select(projectMember.member.memberId,
                         member.nickname,
@@ -80,6 +77,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(projectMember.project.projectId.eq(projectId).and(projectMember.isLeader.eq(true)))
                 .fetchOne();
 
+        // 리더 기술 스택 조회
         List<String> leaderTechStack = queryFactory
                 .select(new CaseBuilder()
                         .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
@@ -89,6 +87,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(memberStack.member.memberId.eq(leaderInfo.get(projectMember.member.memberId)))
                 .fetch();
 
+        // 최종 Leader 객체 생성
         ProjectDetailResponse.Leader leader = new ProjectDetailResponse.Leader(
                 leaderInfo.get(projectMember.member.memberId),
                 leaderInfo.get(member.nickname),
@@ -96,24 +95,26 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 leaderTechStack
         );
 
-        // 모집 정보 및 멤버 조회
+        // 모집 정보 및 멤버 조회 //
+        // 모집 정보 조회
         List<Tuple> recruitmentTuples = queryFactory
                 .select(recruitment.job.jobId,
                         job.name,
-                        recruitment.count.intValue())
+                        recruitment.count.intValue())   // Integer를 int로 변환
                 .from(recruitment)
                 .join(job).on(recruitment.job.jobId.eq(job.jobId))
                 .where(recruitment.project.projectId.eq(projectId)
-                        .and(recruitment.job.jobId.ne(1L)))
+                        .and(recruitment.job.jobId.ne(1L))) // jobId가 1이 아닌 경우만 조회
                 .fetch();
 
+        // 멤버 조회
         List<ProjectDetailResponse.Recruitment> recruitments = new ArrayList<>();
-
         for (Tuple tuple : recruitmentTuples) {
             Long jobId = tuple.get(recruitment.job.jobId);
             String jobName = tuple.get(job.name);
-            int jobCount = tuple.get(2, Integer.class);
+            int jobCount = Optional.ofNullable(tuple.get(2, Integer.class)).orElse(0);  // index로 접근하고 Integer로 가져온 후 자동 언박싱
 
+            // 각 멤버 기본 정보
             List<Tuple> memberTuples = queryFactory
                     .select(member.memberId,
                             member.nickname,
@@ -122,11 +123,12 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                     .join(member).on(projectMember.member.memberId.eq(member.memberId))
                     .where(projectMember.project.projectId.eq(projectId)
                             .and(projectMember.job.jobId.eq(jobId))
-                            .and(projectMember.acceptStatus.eq(1)))
+                            .and(projectMember.acceptStatus.eq(1))) // 프로젝트 참여가 승인된 멤버만 가져옴
                     .fetch();
 
             List<ProjectDetailResponse.Member> members = new ArrayList<>();
 
+            // 각 멤버의 기술 스택
             for (Tuple memberTuple : memberTuples) {
                 Long memberId = memberTuple.get(member.memberId);
                 String nickname = memberTuple.get(member.nickname);
@@ -153,15 +155,15 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .description(projectInfo.get(project.description))
                 .projectImg(projectInfo.get(project.imgUrl))
                 .projectTechStack(projectTechStack)
-                .status(Optional.ofNullable(projectInfo.get(project.status)).orElse(0))
+                .status(Optional.ofNullable(projectInfo.get(project.status)).orElse(-1))
                 .createdAt(Optional.ofNullable(projectInfo.get(project.createdAt))
                         .map(LocalDateTime::toLocalDate)
                         .orElse(null))
                 .startedAt(Optional.ofNullable(projectInfo.get(project.startedAt))
                         .map(LocalDateTime::toLocalDate)
                         .orElse(null))
-                .duration(Optional.ofNullable(projectInfo.get(project.duration)).orElse(0))
-                .cycle(Optional.ofNullable(projectInfo.get(project.cycle)).orElse(0))
+                .duration(Optional.ofNullable(projectInfo.get(project.duration)).orElse(-1))
+                .cycle(Optional.ofNullable(projectInfo.get(project.cycle)).orElse(-1))
                 .leader(leader)
                 .recruitments(recruitments)
                 .build();
