@@ -21,7 +21,7 @@ import site.hesil.latteve_spring.domains.search.service.OpenSearchService;
 
 
 @Slf4j
-@RestController
+@RestController("/api/search")
 @RequiredArgsConstructor
 public class SearchController {
 
@@ -33,4 +33,6 @@ public class SearchController {
         return openSearchService.checkConnection();
 
     }
+
+   
 }

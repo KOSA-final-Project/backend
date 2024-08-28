@@ -1,4 +1,4 @@
-package site.hesil.latteve_spring.domains.project.repository.custom;
+package site.hesil.latteve_spring.domains.project.repository.project.custom;
 
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 

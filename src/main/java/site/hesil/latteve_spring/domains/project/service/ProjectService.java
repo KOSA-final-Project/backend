@@ -3,7 +3,7 @@ package site.hesil.latteve_spring.domains.project.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
-import site.hesil.latteve_spring.domains.project.repository.ProjectRepository;
+import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 
