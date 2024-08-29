@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.search.service;
 
 
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
  * -----------------------------------------------------------
  * 2024-08-28        Heeseon       최초 생성
  */
+
 @Service
 @RequiredArgsConstructor
 public class SearchService {
@@ -52,10 +54,9 @@ public class SearchService {
     private final ProjectRepository projectRepository;
     private final OpenSearchClient openSearchClient;
     private final ProjectStackRepository projectStackRepository;
-    private final TechStackRepository techStackRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
-
+    private final TechStackRepository techStackRepository;
 
     // 나중에 삭제 -> 데이터 동기화
     @PostConstruct
@@ -65,19 +66,28 @@ public class SearchService {
     }
 
     /** project search */
+    @Transactional
     public void indexProjectsToOpenSearch() throws IOException {
         List<Project> projects = projectRepository.findAll();
         //Project -> Index
         for(Project project : projects) {
             // 프로젝트에 연관된 기술 스택  정보 가져옴
             List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
-            // 기술 스택 이미지 저장
-            List<String> techStackImgUrls= projectTechStacks.stream()
-                    .map(projectStack -> techStackRepository.findById(projectStack.getTechStack().getTechStackId()))
-                    .filter(Optional::isPresent)  // Optional이 비어있지 않은 경우에만 처리
+
+            // techStack 이름과 이미지 URL을 Map으로 저장
+            // TechStackRepository를 직접 사용하여 techStack의 이름과 이미지 URL을 가져옴
+
+            Map<String, String> techStackMap = projectTechStacks.stream()
+                    .map(projectStack -> {
+                        Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
+                        return techStackOpt.map(techStack -> {
+                            String value = techStack.getImgUrl() != null ? techStack.getImgUrl() : projectStack.getCustomStack();
+                            return Map.entry(projectStack.getCustomStack(), value);
+                        });
+                    })
+                    .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .map(TechStack::getImgUrl)
-                    .toList();
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             // 프로젝트에 필요한 인원
             Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
@@ -90,7 +100,7 @@ public class SearchService {
                     .name(project.getName())
                     .imgUrl(project.getImgUrl()) // 대표 이미지
                     .duration(project.getDuration())
-                    .projectTechStack(techStackImgUrls)
+                    .projectTechStack(techStackMap)
                     .teamCnt(requiredMemberCount)
                     .currentCnt(currentMemberCount)
                     .build();
@@ -111,7 +121,7 @@ public class SearchService {
     public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword) throws IOException {
         // Query 객체를 생성하여 multi_match 쿼리를 구성
         Query query = QueryBuilders.multiMatch()
-                .fields("name",  "projectTechStack")  // 검색할 필드들
+                .fields("name",  "projectTechStack^2")  // 검색할 필드들
                 .query(keyword)  // 검색할 키워드
                 .build()._toQuery();
 
@@ -132,24 +142,31 @@ public class SearchService {
 
 
     /**Member search */
+    @Transactional
     public void indexMembersToOpenSearch() throws IOException {
         List<Member> members = memberRepository.findAll();
         // Member -> Index
         for (Member member : members) {
             // 멤버에 연관된 기술 스택 정보 가져옴
             List<MemberStack> memberStacks = memberStackRepository.findAllByMember_MemberId(member.getMemberId());
-            List<String> techStackImgUrls = memberStacks.stream()
-                    .map(memberStack -> techStackRepository.findById(memberStack.getTechStack().getTechStackId()))
+            // techStack 이름과 이미지 URL을 Map으로 저장
+            Map<String, String> techStackMap = memberStacks.stream()
+                    .map(memberStack -> {
+                        Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
+                        return techStackOpt.map(techStack -> {
+                            String value = techStack.getImgUrl() != null ? techStack.getImgUrl() : memberStack.getCustomStack();
+                            return Map.entry(memberStack.getCustomStack(), value);
+                        });
+                    })
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .map(TechStack::getImgUrl)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             // MemberDocument 생성
             MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
                     .nickname(member.getNickname())
                     .imgUrl(member.getImgUrl())
-                    .techStacks(techStackImgUrls)
+                    .techStacks(techStackMap)
                     .career(member.getCareer())
                     .build();
 
@@ -166,7 +183,7 @@ public class SearchService {
     public List<MemberDocumentReq> searchMembersByKeyword(String keyword) throws IOException {
         // Query 객체를 생성하여 multi_match 쿼리를 구성
         Query query = QueryBuilders.multiMatch()
-                .fields("nickname", "techStack", "career")  // 검색할 필드들
+                .fields("nickname", "techStacks.key","career")  // 검색할 필드들
                 .query(keyword)  // 검색할 키워드
                 .build()._toQuery();
 

@@ -3,6 +3,7 @@ package site.hesil.latteve_spring.domains.search.dto.project.request;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.search.dto.project.request
@@ -20,7 +21,7 @@ public record ProjectDocumentReq (
     String name,
     String imgUrl,
     int duration,
-    List<String> projectTechStack,
+    Map<String, String> projectTechStack,
     Long like, // 좋아요 수
     int currentCnt, // 현재 모인 팀원 수
     int teamCnt, // 모집 인원

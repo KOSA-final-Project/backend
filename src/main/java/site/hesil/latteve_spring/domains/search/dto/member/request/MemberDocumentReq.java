@@ -3,6 +3,7 @@ package site.hesil.latteve_spring.domains.search.dto.member.request;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.search.dto.member.request
@@ -19,6 +20,6 @@ import java.util.List;
 public record MemberDocumentReq (
         String nickname,
         String imgUrl,
-        List<String> techStacks,
+        Map<String, String> techStacks,
         String career
 ){}
