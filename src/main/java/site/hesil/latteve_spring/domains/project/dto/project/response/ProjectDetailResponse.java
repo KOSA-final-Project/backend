@@ -36,6 +36,7 @@ public record ProjectDetailResponse(
             Long memberId,
             String memberNickname,
             String memberImg,
+            String memberGithub,
             List<String> techStack
     ) {}
 
@@ -50,6 +51,7 @@ public record ProjectDetailResponse(
             Long memberId,
             String memberNickname,
             String memberImg,
+            String memberGithub,
             List<String> techStack
     ) {}
 }
