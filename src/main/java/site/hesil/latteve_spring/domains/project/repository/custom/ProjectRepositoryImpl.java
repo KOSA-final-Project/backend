@@ -71,7 +71,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         Tuple leaderInfo = queryFactory
                 .select(projectMember.member.memberId,
                         member.nickname,
-                        member.imgUrl)
+                        member.imgUrl,
+                        member.github)
                 .from(projectMember)
                 .join(member).on(projectMember.member.memberId.eq(member.memberId))
                 .where(projectMember.project.projectId.eq(projectId).and(projectMember.isLeader.eq(true)))
@@ -92,6 +93,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 leaderInfo.get(projectMember.member.memberId),
                 leaderInfo.get(member.nickname),
                 leaderInfo.get(member.imgUrl),
+                leaderInfo.get(member.github),
                 leaderTechStack
         );
 
@@ -118,7 +120,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
             List<Tuple> memberTuples = queryFactory
                     .select(member.memberId,
                             member.nickname,
-                            member.imgUrl)
+                            member.imgUrl,
+                            member.github)
                     .from(projectMember)
                     .join(member).on(projectMember.member.memberId.eq(member.memberId))
                     .where(projectMember.project.projectId.eq(projectId)
@@ -133,6 +136,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 Long memberId = memberTuple.get(member.memberId);
                 String nickname = memberTuple.get(member.nickname);
                 String imgUrl = memberTuple.get(member.imgUrl);
+                String github = memberTuple.get(member.github);
 
                 List<String> memberTechStack = queryFactory
                         .select(new CaseBuilder()
@@ -143,7 +147,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                         .where(memberStack.member.memberId.eq(memberId))
                         .fetch();
 
-                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, memberTechStack));
+                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, memberTechStack));
             }
 
             recruitments.add(new ProjectDetailResponse.Recruitment(jobId, jobName, jobCount, members));
