@@ -1,16 +1,22 @@
 package site.hesil.latteve_spring.domains.search.service;
 
-
+import org.opensearch.client.opensearch._types.FieldValue;
+import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.CreateIndexResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.mapping.Property;
+import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch._types.query_dsl.QueryBuilders;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
+import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
@@ -61,9 +67,50 @@ public class SearchService {
     // 나중에 삭제 -> 데이터 동기화
     @PostConstruct
     public void init() throws IOException {
-        indexProjectsToOpenSearch();
-        indexMembersToOpenSearch();
+//        createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
+//        createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
+        indexProjectsToOpenSearch();  // 프로젝트 데이터 인덱싱
+        indexMembersToOpenSearch(); // 멤버 데이터 인덱싱
     }
+    private void createOrRecreateIndexWithMapping(String indexName) throws IOException {
+        // 인덱스 존재 여부 확인
+        boolean exists = openSearchClient.indices().exists(e -> e.index(indexName)).value();
+
+        if (exists) {
+            // 인덱스가 존재할 경우 삭제
+            openSearchClient.indices().delete(new DeleteIndexRequest.Builder().index(indexName).build());
+        }
+
+        // 인덱스별 매핑 설정
+        TypeMapping mapping = createTechStackMapping();
+
+        // 인덱스 생성 요청
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
+                .index(indexName)
+                .mappings(mapping)
+                .build();
+
+        // 인덱스 생성
+        CreateIndexResponse createIndexResponse = openSearchClient.indices().create(createIndexRequest);
+
+        if (!createIndexResponse.acknowledged()) {
+            throw new RuntimeException("Failed to create OpenSearch index with mappings.");
+        }
+    }
+
+    private TypeMapping createTechStackMapping() {
+        Property techStackProperty = Property.of(b -> b
+                .object(o -> o
+                        .properties("key", Property.of(pb -> pb.text(t -> t)))
+                        .properties("value", Property.of(pb -> pb.text(t -> t)))
+                )
+        );
+
+        return TypeMapping.of(mb -> mb
+                .properties("techStack", techStackProperty)
+        );
+    }
+
 
     /** project search */
     @Transactional
@@ -75,30 +122,27 @@ public class SearchService {
             List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
 
             // techStack 이름과 이미지 URL을 Map으로 저장
-            // TechStackRepository를 직접 사용하여 techStack의 이름과 이미지 URL을 가져옴
-
-            Map<String, String> techStackMap = projectTechStacks.stream()
-                    .map(projectStack -> {
-                        Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
-                        return techStackOpt.map(techStack -> {
-                            String value = techStack.getImgUrl() != null ? techStack.getImgUrl() : projectStack.getCustomStack();
-                            return Map.entry(projectStack.getCustomStack(), value);
-                        });
-                    })
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, String> techStackMap = new HashMap<>();
+            for (ProjectStack projectStack : projectTechStacks) {
+                Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
+                if (techStackOpt.isPresent()) {
+                    TechStack techStack = techStackOpt.get();
+                    String key = techStack.getName();
+                    String value = techStack.getImgUrl() != null ? techStack.getImgUrl() :
+                            (projectStack.getCustomStack() != null ? projectStack.getCustomStack() : key);
+                    techStackMap.put(key, value);
+                }
+            }
 
             // 프로젝트에 필요한 인원
             Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
             // 프로젝트에 지원한 인원
             Integer currentMemberCount = projectMemberRepository.findMemberCountByProject_ProjectId(project.getProjectId());
 
-
-            // ProjectDocument 생성
+            // ProjectDocumentReq 생성
             ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
                     .name(project.getName())
-                    .imgUrl(project.getImgUrl()) // 대표 이미지
+                    .imgUrl(project.getImgUrl())
                     .duration(project.getDuration())
                     .projectTechStack(techStackMap)
                     .teamCnt(requiredMemberCount)
@@ -113,15 +157,12 @@ public class SearchService {
                     .build();
             openSearchClient.index(indexRequest);
         }
-
-
-
     }
 
     public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword) throws IOException {
         // Query 객체를 생성하여 multi_match 쿼리를 구성
         Query query = QueryBuilders.multiMatch()
-                .fields("name",  "projectTechStack^2")  // 검색할 필드들
+                .fields("name",  "projectTechStack.key")  // 검색할 필드들
                 .query(keyword)  // 검색할 키워드
                 .build()._toQuery();
 
@@ -140,7 +181,6 @@ public class SearchService {
                 .collect(Collectors.toList());
     }
 
-
     /**Member search */
     @Transactional
     public void indexMembersToOpenSearch() throws IOException {
@@ -150,19 +190,17 @@ public class SearchService {
             // 멤버에 연관된 기술 스택 정보 가져옴
             List<MemberStack> memberStacks = memberStackRepository.findAllByMember_MemberId(member.getMemberId());
             // techStack 이름과 이미지 URL을 Map으로 저장
-            Map<String, String> techStackMap = memberStacks.stream()
-                    .map(memberStack -> {
-                        Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
-                        return techStackOpt.map(techStack -> {
-                            String value = techStack.getImgUrl() != null ? techStack.getImgUrl() : memberStack.getCustomStack();
-                            return Map.entry(memberStack.getCustomStack(), value);
-                        });
-                    })
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            // MemberDocument 생성
+            Map<String, String> techStackMap = new HashMap<>();
+            for (MemberStack memberStack : memberStacks) {
+                Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
+                if (techStackOpt.isPresent()) {
+                    TechStack techStack = techStackOpt.get();
+                    String key = techStack.getName();
+                    String value = techStack.getImgUrl() != null ? techStack.getImgUrl() : (memberStack.getCustomStack() != null ? memberStack.getCustomStack() : key);
+                    techStackMap.put(key, value);
+                }
+            }
+            // MemberDocumentReq 생성
             MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
                     .nickname(member.getNickname())
                     .imgUrl(member.getImgUrl())
@@ -181,19 +219,21 @@ public class SearchService {
     }
 
     public List<MemberDocumentReq> searchMembersByKeyword(String keyword) throws IOException {
-        // Query 객체를 생성하여 multi_match 쿼리를 구성
-        Query query = QueryBuilders.multiMatch()
-                .fields("nickname", "techStacks.key","career")  // 검색할 필드들
-                .query(keyword)  // 검색할 키워드
+        // Query 객체를 생성
+        // 여러 필드에 대해 should 절 사용
+        Query boolQuery = QueryBuilders.bool()
+                .should(QueryBuilders.match().field("nickname").query(FieldValue.of(keyword)).build()._toQuery())
+                .should(QueryBuilders.exists().field("techStacks." + keyword).build()._toQuery())
+                .should(QueryBuilders.match().field("career").query(FieldValue.of(keyword)).build()._toQuery())
+                .minimumShouldMatch(String.valueOf(1))
                 .build()._toQuery();
 
-        // SearchRequest 빌더에 쿼리 추가
+        // SearchRequest 빌더에 결합된 쿼리 추가
         SearchRequest searchRequest = new SearchRequest.Builder()
                 .index("members")  // 검색할 인덱스 이름
-                .query(query)  // 위에서 구성한 쿼리
+                .query(boolQuery)  // 결합된 쿼리
                 .build();
 
-        // OpenSearch 클라이언트를 사용하여 검색 요청 실행
         SearchResponse<MemberDocumentReq> response = openSearchClient.search(searchRequest, MemberDocumentReq.class);
 
         // 검색 결과를 MemberDocumentReq 리스트로 변환하여 반환
@@ -214,5 +254,33 @@ public class SearchService {
         return result;
     }
 
+    //member에서 techstack keyword로 검색되는지 확인
+    public List<MemberDocumentReq> searchMembersByTechStack(String techStackKey) throws IOException {
+        // 특정 키 존재 여부 확인 쿼리 생성
+        Query query = createTechStackExistsQuery(techStackKey);
 
+        // SearchRequest 빌더에 결합된 쿼리 추가
+        SearchRequest searchRequest = new SearchRequest.Builder()
+                .index("members")  // 검색할 인덱스 이름
+                .query(query)  // 결합된 쿼리
+                .build();
+
+        // OpenSearch 클라이언트를 사용하여 검색 요청 실행
+        SearchResponse<MemberDocumentReq> response = openSearchClient.search(searchRequest, MemberDocumentReq.class);
+
+        // 검색 결과를 MemberDocumentReq 리스트로 변환하여 반환
+        return response.hits().hits().stream()
+                .map(Hit::source)
+                .collect(Collectors.toList());
+    }
+
+    // 특정 키 존재 여부 확인 메서드
+    public Query createTechStackExistsQuery(String techStackKey) {
+        // exists 쿼리 작성
+        return QueryBuilders.bool()
+                .should(QueryBuilders.exists()
+                        .field("techStacks." + techStackKey)
+                        .build()._toQuery())
+                .build()._toQuery();
+    }
 }

@@ -33,7 +33,6 @@ import java.util.*;
 @RequestMapping("/api/search")
 @RequiredArgsConstructor
 public class SearchController {
-
     private final OpenSearchService openSearchService;
     private final SearchService searchService;
 
@@ -41,7 +40,6 @@ public class SearchController {
     public String testOpenSearchConnection() {
         log.info("controller : test opensearch connection");
         return openSearchService.checkConnection();
-
     }
 
     @GetMapping("/members")
@@ -57,6 +55,11 @@ public class SearchController {
     @GetMapping("/all")
     public Map<String, Object> searchAll(@RequestParam String keyword) throws IOException {
         return searchService.searchAllByKeyword(keyword);
+    }
+
+    @GetMapping("/members/tech")
+    public List<MemberDocumentReq> searchMembersByTech(@RequestParam String techStackKey) throws IOException {
+        return searchService.searchMembersByTechStack(techStackKey);
     }
 
 }
