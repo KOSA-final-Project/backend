@@ -37,10 +37,7 @@ import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepositor
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -234,22 +231,25 @@ public class SearchService {
             // 멤버에 연관된 기술 스택 정보 가져옴
             List<MemberStack> memberStacks = memberStackRepository.findAllByMember_MemberId(member.getMemberId());
             // techStack 이름과 이미지 URL을 Map으로 저장
-            Map<String, String> techStackMap = new HashMap<>();
+            List<MemberDocumentReq.TechStack> techStackList = new ArrayList<>();
             for (MemberStack memberStack : memberStacks) {
                 Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
                 if (techStackOpt.isPresent()) {
                     TechStack techStack = techStackOpt.get();
-                    String key = techStack.getName();
-                    String value = techStack.getImgUrl() != null ? techStack.getImgUrl() : (memberStack.getCustomStack() != null ? memberStack.getCustomStack() : key);
-                    techStackMap.put(key, value);
+                    String name = techStack.getName();
+                    String imgUrl = techStack.getImgUrl() != null ? techStack.getImgUrl() : (memberStack.getCustomStack() != null ? memberStack.getCustomStack() : name);
+
+                    // TechStack 객체를 리스트에 추가
+                    techStackList.add(new MemberDocumentReq.TechStack(name, imgUrl));
                 }
             }
             // MemberDocumentReq 생성
             MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
+                    .memberId(member.getMemberId())
                     .memberNickname(member.getNickname())
                     .memberImg(member.getImgUrl())
                     .memberGithub(member.getGithub())
-                    .(techStackMap)
+                    .techStack(techStackList)  // TechStack 리스트 전달
                     .career(member.getCareer())
                     .createdAt(formatLocalDateTime(member.getCreatedAt()))
                     .build();
