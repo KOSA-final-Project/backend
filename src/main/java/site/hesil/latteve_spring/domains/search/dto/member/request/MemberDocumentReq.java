@@ -1,7 +1,9 @@
 package site.hesil.latteve_spring.domains.search.dto.member.request;
 
 import lombok.Builder;
+import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -18,8 +20,11 @@ import java.util.Map;
  */
 @Builder
 public record MemberDocumentReq (
-        String nickname,
-        String imgUrl,
-        Map<String, String> techStacks,
-        String career
+        Long memberId,
+        String memberNickname,
+        String memberImg,
+        String memberGithub,
+        TechStack techStacks,
+        String career,
+        String createdAt
 ){}

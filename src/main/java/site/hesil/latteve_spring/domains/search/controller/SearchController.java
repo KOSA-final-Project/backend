@@ -41,15 +41,17 @@ public class SearchController {
         log.info("controller : test opensearch connection");
         return openSearchService.checkConnection();
     }
-
+/*
     @GetMapping("/members")
     public List<MemberDocumentReq> searchMembers(@RequestParam String keyword) throws IOException {
-        return searchService.searchMembersByKeyword(keyword);
+        return searchService.searchMembersByKeyword(keyword );
     }
-
+*/
     @GetMapping("/projects")
-    public List<ProjectDocumentReq> searchProjects(@RequestParam String keyword) throws IOException {
-        return searchService.searchProjectsByKeyword(keyword);
+    public List<ProjectDocumentReq> searchProjects(@RequestParam String keyword,
+                                                   @RequestParam(required = false) String status,
+                                                   @RequestParam(required = false) String sort) throws IOException {
+        return searchService.searchProjectsByKeyword(keyword, status, sort);
     }
 
     @GetMapping("/all")

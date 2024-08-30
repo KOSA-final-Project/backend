@@ -1,22 +1,23 @@
 package site.hesil.latteve_spring.domains.search.service;
 
 import org.opensearch.client.opensearch._types.FieldValue;
+import org.opensearch.client.opensearch._types.SortOptions;
+import org.opensearch.client.opensearch._types.SortOrder;
+import org.opensearch.client.opensearch._types.query_dsl.*;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
-import org.opensearch.client.opensearch._types.query_dsl.Query;
-import org.opensearch.client.opensearch._types.query_dsl.QueryBuilders;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
+import org.springframework.data.web.config.SortHandlerMethodArgumentResolverCustomizer;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
@@ -34,6 +35,8 @@ import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,12 +66,13 @@ public class SearchService {
     private final ProjectMemberRepository projectMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
     private final TechStackRepository techStackRepository;
+    private final SortHandlerMethodArgumentResolverCustomizer sortCustomizer;
 
     // 나중에 삭제 -> 데이터 동기화
     @PostConstruct
     public void init() throws IOException {
-//        createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
-//        createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
+        createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
+        createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
         indexProjectsToOpenSearch();  // 프로젝트 데이터 인덱싱
         indexMembersToOpenSearch(); // 멤버 데이터 인덱싱
     }
@@ -134,6 +138,9 @@ public class SearchService {
                 }
             }
 
+            String statusToString = convertStatusToString(project.getStatus());
+
+
             // 프로젝트에 필요한 인원
             Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
             // 프로젝트에 지원한 인원
@@ -147,6 +154,8 @@ public class SearchService {
                     .projectTechStack(techStackMap)
                     .teamCnt(requiredMemberCount)
                     .currentCnt(currentMemberCount)
+                    .status(statusToString)
+                    .createdAt( formatLocalDateTime(project.getCreatedAt()))
                     .build();
 
             // Elasticsearch에 인덱싱
@@ -159,21 +168,56 @@ public class SearchService {
         }
     }
 
-    public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword) throws IOException {
-        // Query 객체를 생성하여 multi_match 쿼리를 구성
-        Query query = QueryBuilders.multiMatch()
-                .fields("name",  "projectTechStack.key")  // 검색할 필드들
-                .query(keyword)  // 검색할 키워드
-                .build()._toQuery();
+    private String convertStatusToString(int status) {
+        switch (status) {
+            case 0: return "모집중";
+            case 1: return "진행중";
+            case 2: return "종료";
+            default: return "Unknown";
+        }
+    }
 
-        // SearchRequest 빌더에 쿼리 추가
-        SearchRequest searchRequest = new SearchRequest.Builder()
+    public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword, String status, String sort) throws IOException {
+
+        // keyword로 검색 후 status로 필터링
+        BoolQuery boolQuery = BoolQuery.of(b -> {
+            b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)))._toQuery())
+                    .should(ExistsQuery.of(e -> e.field("projectTechStacks." + keyword))._toQuery())
+                    .minimumShouldMatch(String.valueOf(1));
+
+            // project 상태로 필터링
+            if (status != null && !status.isEmpty()) {
+                b.filter(TermQuery.of(t -> t.field("status").value(FieldValue.of(status)))._toQuery());
+            }
+            return b;
+        });
+
+        // SearchRequest 빌드
+        SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .index("projects")  // 검색할 인덱스 이름
-                .query(query)  // 위에서 구성한 쿼리
-                .build();
+                .query(boolQuery._toQuery());  // 위에서 구성한 쿼리
+
+        // 정렬 기준 설정
+        if (sort != null && !sort.isEmpty()) {
+            if ("cntLike".equalsIgnoreCase(sort)) {
+                searchRequest.sort(SortOptions.of(s -> s
+                        .field(f -> f
+                                .field("cntLike")  // 좋아요 수로 정렬
+                                .order(SortOrder.Desc)  // 내림차순 (많이 받은 순)
+                        )
+                ));
+            } else if ("latest".equalsIgnoreCase(sort)) {
+                searchRequest.sort(SortOptions.of(s -> s
+                        .field(f -> f
+                                .field("createdAt")  // 생성일자로 정렬
+                                .order(SortOrder.Desc)  // 내림차순 (최신순)
+                        )
+                ));
+            }
+        }
 
         // OpenSearch 클라이언트를 사용하여 검색 요청 실행
-        SearchResponse<ProjectDocumentReq> response = openSearchClient.search(searchRequest, ProjectDocumentReq.class);
+        SearchResponse<ProjectDocumentReq> response = openSearchClient.search(searchRequest.build(), ProjectDocumentReq.class);
 
         // 검색 결과를 ProjectDocumentReq 리스트로 변환하여 반환
         return response.hits().hits().stream()
@@ -206,6 +250,7 @@ public class SearchService {
                     .imgUrl(member.getImgUrl())
                     .techStacks(techStackMap)
                     .career(member.getCareer())
+                    .createdAt(formatLocalDateTime(member.getCreatedAt()))
                     .build();
 
             // Elasticsearch에 인덱싱
@@ -218,23 +263,48 @@ public class SearchService {
         }
     }
 
-    public List<MemberDocumentReq> searchMembersByKeyword(String keyword) throws IOException {
-        // Query 객체를 생성
-        // 여러 필드에 대해 should 절 사용
-        Query boolQuery = QueryBuilders.bool()
-                .should(QueryBuilders.match().field("nickname").query(FieldValue.of(keyword)).build()._toQuery())
-                .should(QueryBuilders.exists().field("techStacks." + keyword).build()._toQuery())
-                .should(QueryBuilders.match().field("career").query(FieldValue.of(keyword)).build()._toQuery())
+    public List<MemberDocumentReq> searchMembersByKeyword(String keyword , String sort) throws IOException {
+
+        BoolQuery boolQuery = BoolQuery.of(b -> b
+                .should(MatchQuery.of(m -> m.field("nickname").query(FieldValue.of(keyword)))._toQuery())
+                .should(ExistsQuery.of(e -> e.field("techStacks." + keyword))._toQuery())
+                .should(MatchQuery.of(m -> m.field("career").query(FieldValue.of(keyword)))._toQuery())
                 .minimumShouldMatch(String.valueOf(1))
-                .build()._toQuery();
+        );
 
         // SearchRequest 빌더에 결합된 쿼리 추가
-        SearchRequest searchRequest = new SearchRequest.Builder()
+        SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .index("members")  // 검색할 인덱스 이름
-                .query(boolQuery)  // 결합된 쿼리
-                .build();
+                .query( boolQuery._toQuery());  // 결합된 쿼리
 
-        SearchResponse<MemberDocumentReq> response = openSearchClient.search(searchRequest, MemberDocumentReq.class);
+        // 정렬 기준 설정
+        if (sort != null && !sort.isEmpty()) {
+            if ("latest".equalsIgnoreCase(sort)) {
+                searchRequest.sort(SortOptions.of(s -> s
+                        .field(f -> f
+                                .field("createdAt")  // 최신순 정렬
+                                .order(SortOrder.Desc)  // 내림차순
+                        )
+                ));
+            } else if ("career".equalsIgnoreCase(sort)) {
+                searchRequest.sort(SortOptions.of(s -> s
+                        .field(f -> f
+                                .field("career")  // 경력 기준 정렬
+                                .order(SortOrder.Desc)  // 내림차순 (경력 많은 순)
+                        )
+                ));
+            }
+        } else {
+            // 기본 정렬: 이름순 정렬 (오름차순)
+            searchRequest.sort(SortOptions.of(s -> s
+                    .field(f -> f
+                            .field("nickname")  // 이름순 정렬
+                            .order(SortOrder.Asc)  // 오름차순
+                    )
+            ));
+        }
+
+        SearchResponse<MemberDocumentReq> response = openSearchClient.search(searchRequest.build(), MemberDocumentReq.class);
 
         // 검색 결과를 MemberDocumentReq 리스트로 변환하여 반환
         return response.hits().hits().stream()
@@ -244,12 +314,10 @@ public class SearchService {
 
     // 통합 검색 메서드
     public Map<String, Object> searchAllByKeyword(String keyword) throws IOException {
-        List<MemberDocumentReq> members = searchMembersByKeyword(keyword);
-        List<ProjectDocumentReq> projects = searchProjectsByKeyword(keyword);
-
+//        List<MemberDocumentReq> members = searchMembersByKeyword(keyword);
         Map<String, Object> result = new HashMap<>();
-        result.put("members", members);
-        result.put("projects", projects);
+//        result.put("members", members);
+//        result.put("projects", projects);
 
         return result;
     }
@@ -282,5 +350,11 @@ public class SearchService {
                         .field("techStacks." + techStackKey)
                         .build()._toQuery())
                 .build()._toQuery();
+    }
+
+
+    public String formatLocalDateTime(LocalDateTime localDateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        return localDateTime.format(formatter);
     }
 }
