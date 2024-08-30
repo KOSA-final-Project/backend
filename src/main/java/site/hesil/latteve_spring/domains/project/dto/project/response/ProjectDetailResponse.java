@@ -23,12 +23,12 @@ public record ProjectDetailResponse(
         String name,
         String description,
         String projectImg,
-        List<String> projectTechStack,
         int status,
         LocalDate createdAt,
         LocalDate startedAt,
         int duration,
         int cycle,
+        List<TechStack> projectTechStack,
         Leader leader,
         List<Recruitment> recruitments
 ) {
@@ -37,7 +37,7 @@ public record ProjectDetailResponse(
             String memberNickname,
             String memberImg,
             String memberGithub,
-            List<String> techStack
+            List<TechStack> techStack
     ) {}
 
     public record Recruitment(
@@ -52,6 +52,11 @@ public record ProjectDetailResponse(
             String memberNickname,
             String memberImg,
             String memberGithub,
-            List<String> techStack
+            List<TechStack> techStack
+    ) {}
+
+    public record TechStack(
+            String name,
+            String imgUrl
     ) {}
 }
