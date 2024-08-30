@@ -246,9 +246,10 @@ public class SearchService {
             }
             // MemberDocumentReq 생성
             MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
-                    .nickname(member.getNickname())
-                    .imgUrl(member.getImgUrl())
-                    .techStacks(techStackMap)
+                    .memberNickname(member.getNickname())
+                    .memberImg(member.getImgUrl())
+                    .memberGithub(member.getGithub())
+                    .(techStackMap)
                     .career(member.getCareer())
                     .createdAt(formatLocalDateTime(member.getCreatedAt()))
                     .build();

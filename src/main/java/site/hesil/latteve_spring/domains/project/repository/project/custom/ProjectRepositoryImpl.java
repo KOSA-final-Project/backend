@@ -57,42 +57,62 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .fetchOne();
 
         // 프로젝트 기술 스택 조회
-        List<String> projectTechStack = queryFactory
+        List<ProjectDetailResponse.TechStack> projectTechStacks = new ArrayList<>();
+        List<Tuple> projectTechStackTuples = queryFactory
                 .select(new CaseBuilder()
                         .when(projectStack.techStack.techStackId.eq(1L)).then(projectStack.customStack)
-                        .otherwise(techStack.imgUrl))
+                        .otherwise(techStack.name),
+                        techStack.imgUrl)
                 .from(projectStack)
                 .leftJoin(techStack).on(projectStack.techStack.techStackId.eq(techStack.techStackId))
                 .where(projectStack.project.projectId.eq(projectId))
                 .fetch();
+
+        for(Tuple tuple : projectTechStackTuples) {
+            String techStackName = tuple.get(0, String.class);
+            String techStackImg = tuple.get(techStack.imgUrl);
+
+            projectTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
+        }
 
         // 리더 정보 조회 //
         // 리더 기본 정보 조회
         Tuple leaderInfo = queryFactory
                 .select(projectMember.member.memberId,
                         member.nickname,
-                        member.imgUrl)
+                        member.imgUrl,
+                        member.github)
                 .from(projectMember)
                 .join(member).on(projectMember.member.memberId.eq(member.memberId))
                 .where(projectMember.project.projectId.eq(projectId).and(projectMember.isLeader.eq(true)))
                 .fetchOne();
 
         // 리더 기술 스택 조회
-        List<String> leaderTechStack = queryFactory
+        List<ProjectDetailResponse.TechStack> leaderTechStacks = new ArrayList<>();
+        List<Tuple> leaderTechStackTuples = queryFactory
                 .select(new CaseBuilder()
                         .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
-                        .otherwise(techStack.imgUrl))
+                        .otherwise(techStack.name),
+                        techStack.imgUrl)
                 .from(memberStack)
                 .leftJoin(techStack).on(memberStack.techStack.techStackId.eq(techStack.techStackId))
                 .where(memberStack.member.memberId.eq(leaderInfo.get(projectMember.member.memberId)))
                 .fetch();
+
+        for(Tuple tuple : leaderTechStackTuples) {
+            String techStackName = tuple.get(0, String.class);
+            String techStackImg = tuple.get(techStack.imgUrl);
+
+            leaderTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
+        }
 
         // 최종 Leader 객체 생성
         ProjectDetailResponse.Leader leader = new ProjectDetailResponse.Leader(
                 leaderInfo.get(projectMember.member.memberId),
                 leaderInfo.get(member.nickname),
                 leaderInfo.get(member.imgUrl),
-                leaderTechStack
+                leaderInfo.get(member.github),
+                leaderTechStacks
         );
 
         // 모집 정보 및 멤버 조회 //
@@ -118,7 +138,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
             List<Tuple> memberTuples = queryFactory
                     .select(member.memberId,
                             member.nickname,
-                            member.imgUrl)
+                            member.imgUrl,
+                            member.github)
                     .from(projectMember)
                     .join(member).on(projectMember.member.memberId.eq(member.memberId))
                     .where(projectMember.project.projectId.eq(projectId)
@@ -133,17 +154,27 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 Long memberId = memberTuple.get(member.memberId);
                 String nickname = memberTuple.get(member.nickname);
                 String imgUrl = memberTuple.get(member.imgUrl);
+                String github = memberTuple.get(member.github);
 
-                List<String> memberTechStack = queryFactory
+                List<ProjectDetailResponse.TechStack> memberTechStacks = new ArrayList<>();
+                List<Tuple> memberTechStackTuples = queryFactory
                         .select(new CaseBuilder()
                                 .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
-                                .otherwise(techStack.imgUrl))
+                                .otherwise(techStack.name),
+                                techStack.imgUrl)
                         .from(memberStack)
                         .leftJoin(techStack).on(memberStack.techStack.techStackId.eq(techStack.techStackId))
                         .where(memberStack.member.memberId.eq(memberId))
                         .fetch();
 
-                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, memberTechStack));
+                for(Tuple tuple2 : memberTechStackTuples) {
+                    String techStackName = tuple2.get(0, String.class);
+                    String techStackImg = tuple2.get(techStack.imgUrl);
+
+                    memberTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
+                }
+
+                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, memberTechStacks));
             }
 
             recruitments.add(new ProjectDetailResponse.Recruitment(jobId, jobName, jobCount, members));
@@ -154,7 +185,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .name(projectInfo.get(project.name))
                 .description(projectInfo.get(project.description))
                 .projectImg(projectInfo.get(project.imgUrl))
-                .projectTechStack(projectTechStack)
+                .projectTechStack(projectTechStacks)
                 .status(Optional.ofNullable(projectInfo.get(project.status)).orElse(-1))
                 .createdAt(Optional.ofNullable(projectInfo.get(project.createdAt))
                         .map(LocalDateTime::toLocalDate)

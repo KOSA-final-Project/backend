@@ -36,6 +36,8 @@ jobs:
           cd ./resources
           touch ./application-secret.yml
           echo "${{ secrets.APPLICATION_SECRET }}" > ./application-secret.yml
+          touch ./application-oauth.yml
+          echo "${{ secrets.APPLICATION_OAUTH }}" > ./application-oauth.yml
         shell: bash
         
       - name: Grant execute permission for gradlew

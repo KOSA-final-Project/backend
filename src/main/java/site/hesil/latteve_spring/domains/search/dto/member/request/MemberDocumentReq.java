@@ -1,11 +1,9 @@
 package site.hesil.latteve_spring.domains.search.dto.member.request;
 
 import lombok.Builder;
-import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.search.dto.member.request
@@ -24,7 +22,12 @@ public record MemberDocumentReq (
         String memberNickname,
         String memberImg,
         String memberGithub,
-        TechStack techStacks,
+        List<TechStack> techStack,
         String career,
         String createdAt
-){}
+){
+    public record TechStack(
+        String name,
+        String imgUrl
+    ){}
+}
