@@ -19,8 +19,11 @@ import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.springframework.data.web.config.SortHandlerMethodArgumentResolverCustomizer;
 import org.springframework.stereotype.Service;
+import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.member.domain.Member;
+import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.domains.member.repository.memberjob.MemberJobRepository;
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -63,6 +66,7 @@ public class SearchService {
     private final ProjectMemberRepository projectMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
     private final TechStackRepository techStackRepository;
+    private final MemberJobRepository memberJobRepository;
     private final SortHandlerMethodArgumentResolverCustomizer sortCustomizer;
 
     // 나중에 삭제 -> 데이터 동기화
@@ -82,8 +86,8 @@ public class SearchService {
             openSearchClient.indices().delete(new DeleteIndexRequest.Builder().index(indexName).build());
         }
 
-        // 인덱스별 매핑 설정
-        TypeMapping mapping = createTechStackMapping();
+        // 인덱스별 techStack 매핑 설정
+        TypeMapping mapping = createTechStackMapping(indexName);
 
         // 인덱스 생성 요청
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
@@ -99,16 +103,27 @@ public class SearchService {
         }
     }
 
-    private TypeMapping createTechStackMapping() {
+
+    private TypeMapping createTechStackMapping(String indexName) {
+        String filedName;
         Property techStackProperty = Property.of(b -> b
-                .object(o -> o
+                .nested(o -> o
                         .properties("key", Property.of(pb -> pb.text(t -> t)))
                         .properties("value", Property.of(pb -> pb.text(t -> t)))
                 )
         );
 
+
+        if("projects".equals(indexName)) {
+            filedName = "projectTechStack";
+        }else if("members".equals(indexName)){
+            filedName = "techStack";
+        }else {
+            throw new IllegalArgumentException("Unknown index name: " + indexName);
+        }
+        // 매핑 생성
         return TypeMapping.of(mb -> mb
-                .properties("techStack", techStackProperty)
+                .properties(filedName, techStackProperty)
         );
     }
 
@@ -122,16 +137,16 @@ public class SearchService {
             // 프로젝트에 연관된 기술 스택  정보 가져옴
             List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
 
-            // techStack 이름과 이미지 URL을 Map으로 저장
-            Map<String, String> techStackMap = new HashMap<>();
+            // techStack list로 저장
+            List<ProjectDocumentReq.TechStack> techStackList= new ArrayList<>();
             for (ProjectStack projectStack : projectTechStacks) {
                 Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
                 if (techStackOpt.isPresent()) {
                     TechStack techStack = techStackOpt.get();
-                    String key = techStack.getName();
-                    String value = techStack.getImgUrl() != null ? techStack.getImgUrl() :
-                            (projectStack.getCustomStack() != null ? projectStack.getCustomStack() : key);
-                    techStackMap.put(key, value);
+                    String name = techStack.getName();
+                    String imgUrl = techStack.getImgUrl() != null ? techStack.getImgUrl() :
+                            (projectStack.getCustomStack() != null ? projectStack.getCustomStack() : name);
+                    techStackList.add(new ProjectDocumentReq.TechStack(name, imgUrl));
                 }
             }
 
@@ -148,7 +163,7 @@ public class SearchService {
                     .name(project.getName())
                     .imgUrl(project.getImgUrl())
                     .duration(project.getDuration())
-                    .projectTechStack(techStackMap)
+                    .projectTechStack(techStackList)
                     .teamCnt(requiredMemberCount)
                     .currentCnt(currentMemberCount)
                     .status(statusToString)
@@ -176,11 +191,22 @@ public class SearchService {
 
     public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword, String status, String sort) throws IOException {
 
-        // keyword로 검색 후 status로 필터링
+        // keyword로 검색
         BoolQuery boolQuery = BoolQuery.of(b -> {
-            b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)))._toQuery())
-                    .should(ExistsQuery.of(e -> e.field("projectTechStacks." + keyword))._toQuery())
-                    .minimumShouldMatch(String.valueOf(1));
+            // 프로젝트 이름에 대한 검색
+            b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)))._toQuery());
+            //기술 스택 이름에 대한 검색
+            b.should(NestedQuery.of(n -> n
+                    .path("projectTechStack")  // nested 필드의 경로 지정
+                    .query(q -> q
+                            .match(m -> m
+                                    .field("projectTechStack.name")
+                                    .query(FieldValue.of(keyword))
+                            )
+                    )
+            )._toQuery());
+            // 최소 매칭 조건 : 이름이나 기술스택에 대해 하나라도 일치
+            b.minimumShouldMatch(String.valueOf(1));
 
             // project 상태로 필터링
             if (status != null && !status.isEmpty()) {
@@ -192,7 +218,7 @@ public class SearchService {
         // SearchRequest 빌드
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .index("projects")  // 검색할 인덱스 이름
-                .query(boolQuery._toQuery());  // 위에서 구성한 쿼리
+                .query(boolQuery._toQuery());
 
         // 정렬 기준 설정
         if (sort != null && !sort.isEmpty()) {
@@ -230,7 +256,7 @@ public class SearchService {
         for (Member member : members) {
             // 멤버에 연관된 기술 스택 정보 가져옴
             List<MemberStack> memberStacks = memberStackRepository.findAllByMember_MemberId(member.getMemberId());
-            // techStack 이름과 이미지 URL을 Map으로 저장
+            // techStack list로 저장
             List<MemberDocumentReq.TechStack> techStackList = new ArrayList<>();
             for (MemberStack memberStack : memberStacks) {
                 Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
@@ -243,6 +269,15 @@ public class SearchService {
                     techStackList.add(new MemberDocumentReq.TechStack(name, imgUrl));
                 }
             }
+            // 멤버의 직무 정보 가져옴
+            List<MemberJob> memberJobs = memberJobRepository.findAllByMember_MemberId(member.getMemberId());
+
+            List<String> jobList = new ArrayList<>();
+            // 멤버의 직무 이름 list로 저장
+            for(MemberJob memberJob : memberJobs) {
+                jobList.add(memberJob.getJob().getName());
+            }
+
             // MemberDocumentReq 생성
             MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
                     .memberId(member.getMemberId())
@@ -250,7 +285,7 @@ public class SearchService {
                     .memberImg(member.getImgUrl())
                     .memberGithub(member.getGithub())
                     .techStack(techStackList)  // TechStack 리스트 전달
-                    .career(member.getCareer())
+                    .memberJob(jobList)
                     .createdAt(formatLocalDateTime(member.getCreatedAt()))
                     .build();
 
@@ -266,12 +301,28 @@ public class SearchService {
 
     public List<MemberDocumentReq> searchMembersByKeyword(String keyword , String sort) throws IOException {
 
-        BoolQuery boolQuery = BoolQuery.of(b -> b
-                .should(MatchQuery.of(m -> m.field("nickname").query(FieldValue.of(keyword)))._toQuery())
-                .should(ExistsQuery.of(e -> e.field("techStacks." + keyword))._toQuery())
-                .should(MatchQuery.of(m -> m.field("career").query(FieldValue.of(keyword)))._toQuery())
-                .minimumShouldMatch(String.valueOf(1))
-        );
+        BoolQuery boolQuery = BoolQuery.of(b -> {
+            // 라떼버 이름으로 검색
+            b.should(MatchQuery.of(m -> m.field("nickname").query(FieldValue.of(keyword)))._toQuery());
+            // 기술 스택 이름으로 검색
+            b.should(NestedQuery.of(n -> n
+                    .path("techStack")  // nested 필드의 경로 지정
+                    .query(q -> q
+                            .match(m -> m
+                                    .field("techStack.name")
+                                    .query(FieldValue.of(keyword))
+                            )
+                    )
+            )._toQuery());
+            // 경력으로 검색
+            b.should(MatchQuery.of(m -> m.field("career").query(FieldValue.of(keyword)))._toQuery());
+            // 최소 매칭 조건
+            b.minimumShouldMatch(String.valueOf(1));
+
+
+
+            return b;
+        });
 
         // SearchRequest 빌더에 결합된 쿼리 추가
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()

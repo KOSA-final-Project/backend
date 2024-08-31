@@ -29,7 +29,6 @@ public record ProjectDocumentReq (
         int currentCnt, // 현재 모인 팀원 수
         int teamCnt, // 모집 인원
         String status,
-        Long cnt,
         String createdAt
 ){
     public record TechStack(

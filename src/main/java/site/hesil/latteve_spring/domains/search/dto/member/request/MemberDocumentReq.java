@@ -1,6 +1,7 @@
 package site.hesil.latteve_spring.domains.search.dto.member.request;
 
 import lombok.Builder;
+import site.hesil.latteve_spring.domains.job.domain.Job;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public record MemberDocumentReq (
         String memberImg,
         String memberGithub,
         List<TechStack> techStack,
-        String career,
+        List<String> memberJob,
         String createdAt
 ){
     public record TechStack(

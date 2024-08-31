@@ -17,7 +17,7 @@ spring:
 
 
   config:
-    import: application-secret.yml, application-oauth.yml
+    import: application-secret.yml
 
 
 logging:
