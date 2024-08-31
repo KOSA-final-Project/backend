@@ -37,6 +37,8 @@ public record ProjectDetailResponse(
             String memberNickname,
             String memberImg,
             String memberGithub,
+            int ongoingProjectCount,
+            int completedProjectCount,
             List<TechStack> techStack
     ) {}
 
@@ -52,6 +54,8 @@ public record ProjectDetailResponse(
             String memberNickname,
             String memberImg,
             String memberGithub,
+            int ongoingProjectCount,
+            int completedProjectCount,
             List<TechStack> techStack
     ) {}
 
