@@ -5,7 +5,6 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.QJob;
-import site.hesil.latteve_spring.domains.member.domain.QMember;
 import site.hesil.latteve_spring.domains.memberStack.domain.QMemberStack;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.QProject;
@@ -14,6 +13,8 @@ import site.hesil.latteve_spring.domains.project.domain.recruitment.QRecruitment
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.projectStack.domain.QProjectStack;
 import site.hesil.latteve_spring.domains.techStack.domain.QTechStack;
+import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
+import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QProjectStack projectStack = QProjectStack.projectStack;
         QTechStack techStack = QTechStack.techStack;
         QProjectMember projectMember = QProjectMember.projectMember;
-        QMember member = QMember.member;
         QMemberStack memberStack = QMemberStack.memberStack;
         QRecruitment recruitment = QRecruitment.recruitment;
         QJob job = QJob.job;
@@ -57,19 +57,21 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(project.projectId.eq(projectId))
                 .fetchOne();
 
+        if(projectInfo == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
+
         // 프로젝트 기술 스택 조회
         List<ProjectDetailResponse.TechStack> projectTechStacks = new ArrayList<>();
         List<Tuple> projectTechStackTuples = queryFactory
                 .select(new CaseBuilder()
-                        .when(projectStack.techStack.techStackId.eq(1L)).then(projectStack.customStack)
-                        .otherwise(techStack.name),
+                                .when(projectStack.techStack.techStackId.eq(1L)).then(projectStack.customStack)
+                                .otherwise(techStack.name),
                         techStack.imgUrl)
                 .from(projectStack)
                 .leftJoin(techStack).on(projectStack.techStack.techStackId.eq(techStack.techStackId))
                 .where(projectStack.project.projectId.eq(projectId))
                 .fetch();
 
-        for(Tuple tuple : projectTechStackTuples) {
+        for (Tuple tuple : projectTechStackTuples) {
             String techStackName = tuple.get(0, String.class);
             String techStackImg = tuple.get(techStack.imgUrl);
 
@@ -80,27 +82,37 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         // 리더 기본 정보 조회
         Tuple leaderInfo = queryFactory
                 .select(projectMember.member.memberId,
-                        member.nickname,
-                        member.imgUrl,
-                        member.github)
+                        projectMember.member.nickname,
+                        projectMember.member.imgUrl,
+                        projectMember.member.github,
+                        projectMember.project.status.when(1).then(1).otherwise(0).sum().as("ongoingProjectCount"),
+                        projectMember.project.status.when(2).then(1).otherwise(0).sum().as("completedProjectCount"))
                 .from(projectMember)
-                .join(member).on(projectMember.member.memberId.eq(member.memberId))
-                .where(projectMember.project.projectId.eq(projectId).and(projectMember.isLeader.eq(true)))
+                .join(projectMember.member)
+                .join(projectMember.project)
+                .where(projectMember.isLeader.isTrue()
+                        .and(projectMember.project.projectId.eq(projectId)))
+                .groupBy(projectMember.member.memberId,
+                        projectMember.member.nickname,
+                        projectMember.member.imgUrl,
+                        projectMember.member.github)
                 .fetchOne();
+
+        if (leaderInfo == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
 
         // 리더 기술 스택 조회
         List<ProjectDetailResponse.TechStack> leaderTechStacks = new ArrayList<>();
         List<Tuple> leaderTechStackTuples = queryFactory
                 .select(new CaseBuilder()
-                        .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
-                        .otherwise(techStack.name),
+                                .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
+                                .otherwise(techStack.name),
                         techStack.imgUrl)
                 .from(memberStack)
                 .leftJoin(techStack).on(memberStack.techStack.techStackId.eq(techStack.techStackId))
                 .where(memberStack.member.memberId.eq(leaderInfo.get(projectMember.member.memberId)))
                 .fetch();
 
-        for(Tuple tuple : leaderTechStackTuples) {
+        for (Tuple tuple : leaderTechStackTuples) {
             String techStackName = tuple.get(0, String.class);
             String techStackImg = tuple.get(techStack.imgUrl);
 
@@ -109,10 +121,12 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
         // 최종 Leader 객체 생성
         ProjectDetailResponse.Leader leader = new ProjectDetailResponse.Leader(
-                leaderInfo.get(projectMember.member.memberId),
-                leaderInfo.get(member.nickname),
-                leaderInfo.get(member.imgUrl),
-                leaderInfo.get(member.github),
+                leaderInfo.get(projectMember.projectMemberId.memberId),
+                leaderInfo.get(projectMember.member.nickname),
+                leaderInfo.get(projectMember.member.imgUrl),
+                leaderInfo.get(projectMember.member.github),
+                Optional.ofNullable(leaderInfo.get(4, Integer.class)).orElse(0),
+                Optional.ofNullable(leaderInfo.get(5, Integer.class)).orElse(0),
                 leaderTechStacks
         );
 
@@ -137,12 +151,14 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
             // 각 멤버 기본 정보
             List<Tuple> memberTuples = queryFactory
-                    .select(member.memberId,
-                            member.nickname,
-                            member.imgUrl,
-                            member.github)
+                    .select(projectMember.member.memberId,
+                            projectMember.member.nickname,
+                            projectMember.member.imgUrl,
+                            projectMember.member.github,
+                            projectMember.project.status.when(1).then(1).otherwise(0).sum(),
+                            projectMember.project.status.when(2).then(1).otherwise(0).sum())
                     .from(projectMember)
-                    .join(member).on(projectMember.member.memberId.eq(member.memberId))
+                    .join(projectMember.member)
                     .where(projectMember.project.projectId.eq(projectId)
                             .and(projectMember.job.jobId.eq(jobId))
                             .and(projectMember.acceptStatus.eq(1))) // 프로젝트 참여가 승인된 멤버만 가져옴
@@ -152,30 +168,32 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
             // 각 멤버의 기술 스택
             for (Tuple memberTuple : memberTuples) {
-                Long memberId = memberTuple.get(member.memberId);
-                String nickname = memberTuple.get(member.nickname);
-                String imgUrl = memberTuple.get(member.imgUrl);
-                String github = memberTuple.get(member.github);
+                Long memberId = memberTuple.get(projectMember.member.memberId);
+                String nickname = memberTuple.get(projectMember.member.nickname);
+                String imgUrl = memberTuple.get(projectMember.member.imgUrl);
+                String github = memberTuple.get(projectMember.member.github);
+                int ongoingProjectCont = Optional.ofNullable(memberTuple.get(4, Integer.class)).orElse(0);
+                int completedProjectCount = Optional.ofNullable(memberTuple.get(5, Integer.class)).orElse(0);
 
                 List<ProjectDetailResponse.TechStack> memberTechStacks = new ArrayList<>();
                 List<Tuple> memberTechStackTuples = queryFactory
                         .select(new CaseBuilder()
-                                .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
-                                .otherwise(techStack.name),
+                                        .when(memberStack.techStack.techStackId.eq(1L)).then(memberStack.customStack)
+                                        .otherwise(techStack.name),
                                 techStack.imgUrl)
                         .from(memberStack)
                         .leftJoin(techStack).on(memberStack.techStack.techStackId.eq(techStack.techStackId))
                         .where(memberStack.member.memberId.eq(memberId))
                         .fetch();
 
-                for(Tuple tuple2 : memberTechStackTuples) {
+                for (Tuple tuple2 : memberTechStackTuples) {
                     String techStackName = tuple2.get(0, String.class);
                     String techStackImg = tuple2.get(techStack.imgUrl);
 
                     memberTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
                 }
 
-                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, memberTechStacks));
+                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, ongoingProjectCont, completedProjectCount, memberTechStacks));
             }
 
             recruitments.add(new ProjectDetailResponse.Recruitment(jobId, jobName, jobCount, members));
