@@ -25,11 +25,17 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
 
+    // 프로젝트 상세 페이지 정보
     public ProjectDetailResponse getProjectDetail(Long projectId) {
         ProjectDetailResponse projectDetailResponse = projectRepository.getProjectDetail(projectId);
         if (projectDetailResponse == null) {
             throw new CustomBaseException(ErrorCode.NOT_FOUND);
         }
         return projectDetailResponse;
+    }
+
+    // 프로젝트 지원
+    public void applyProject(Long projectId, Long memberId, Long jobId) {
+
     }
 }
