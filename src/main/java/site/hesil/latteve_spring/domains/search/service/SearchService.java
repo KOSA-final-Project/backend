@@ -188,15 +188,6 @@ public class SearchService {
                 .collect(Collectors.toList());
     }
 
-    // 통합 검색 메서드
-    public Map<String, Object> searchAllByKeyword(String keyword) throws IOException {
-//        List<MemberDocumentReq> members = searchMembersByKeyword(keyword);
-        Map<String, Object> result = new HashMap<>();
-//        result.put("members", members);
-//        result.put("projects", projects);
-
-        return result;
-    }
 
     //member에서 techstack keyword로 검색되는지 확인
     public List<MemberDocumentReq> searchMembersByTechStack(String techStackKey) throws IOException {
