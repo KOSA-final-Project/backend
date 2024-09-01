@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
 import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
-import site.hesil.latteve_spring.domains.search.service.OpenSearchService;
+import site.hesil.latteve_spring.domains.search.service.OpenSearchIndexService;
 import site.hesil.latteve_spring.domains.search.service.SearchService;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
@@ -36,7 +36,7 @@ import java.util.*;
 @RequestMapping("/api/search")
 @RequiredArgsConstructor
 public class SearchController {
-    private final OpenSearchService openSearchService;
+    private final OpenSearchIndexService openSearchService;
     private final SearchService searchService;
 
     @GetMapping("/test-opensearch")
