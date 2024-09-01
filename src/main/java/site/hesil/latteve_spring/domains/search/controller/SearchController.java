@@ -48,6 +48,9 @@ public class SearchController {
     @GetMapping("/members")
     public List<MemberDocumentReq> searchMembers(@RequestParam String keyword,
                                                  @RequestParam(required = false) String sortby) throws IOException {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new CustomBaseException("검색어를 입력하세요.", ErrorCode.INVALID_INPUT_VALUE);
+        }
         return searchService.searchMembersByKeyword(keyword, sortby );
     }
 

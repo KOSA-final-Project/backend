@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.QJob;
 import site.hesil.latteve_spring.domains.member.domain.QMember;
 import site.hesil.latteve_spring.domains.memberStack.domain.QMemberStack;
+import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.QProject;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.QProjectMember;
 import site.hesil.latteve_spring.domains.project.domain.recruitment.QRecruitment;
@@ -198,5 +199,34 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .leader(leader)
                 .recruitments(recruitments)
                 .build();
+    }
+
+    @Override
+    public List<Project> findProjectsByMemberIdAndStatus(Long memberId, int status) {
+        QProject project = QProject.project;
+        QProjectMember projectMember = QProjectMember.projectMember;
+
+        return queryFactory.select(project)
+                .from(projectMember)
+                .join(projectMember.project, project)
+                .where(projectMember.member.memberId.eq(memberId)
+                        .and(project.status.eq(status)))
+                .fetch();
+    }
+
+    @Override
+    public int countProjectsByMemberIdAndStatus(Long memberId, int status) {
+        QProject project = QProject.project;
+        QProjectMember projectMember = QProjectMember.projectMember;
+
+        Long count = queryFactory.select(project.count())
+                .from(projectMember)
+                .join(projectMember.project, project)
+                .where(projectMember.member.memberId.eq(memberId)
+                        .and(project.status.eq(status)))
+                .fetchOne();
+
+
+        return count != null ? count.intValue() : 0;
     }
 }

@@ -25,7 +25,11 @@ public record MemberDocumentReq (
         String memberGithub,
         List<TechStack> techStack,
         List<String> memberJob,
-        String createdAt
+        int ongoingProjectCount,
+        int completedProjectCount,
+        String createdAt,
+        String career,
+        int careerSortValue
 ){
     public record TechStack(
         String name,

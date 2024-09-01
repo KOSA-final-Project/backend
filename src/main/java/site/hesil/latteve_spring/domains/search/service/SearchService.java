@@ -20,6 +20,7 @@ import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.springframework.data.web.config.SortHandlerMethodArgumentResolverCustomizer;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.job.domain.Job;
+import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
@@ -27,6 +28,7 @@ import site.hesil.latteve_spring.domains.member.repository.memberjob.MemberJobRe
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.repository.projectlike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectmember.ProjectMemberRepository;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
@@ -67,6 +69,8 @@ public class SearchService {
     private final RecruitmentRepository recruitmentRepository;
     private final TechStackRepository techStackRepository;
     private final MemberJobRepository memberJobRepository;
+    private final JobRepository jobRepository;
+    private final ProjectLikeRepository projectLikeRepository;
     private final SortHandlerMethodArgumentResolverCustomizer sortCustomizer;
 
     // 나중에 삭제 -> 데이터 동기화
@@ -87,7 +91,7 @@ public class SearchService {
         }
 
         // 인덱스별 techStack 매핑 설정
-        TypeMapping mapping = createTechStackMapping(indexName);
+        TypeMapping mapping = createMapping(indexName);
 
         // 인덱스 생성 요청
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
@@ -104,7 +108,7 @@ public class SearchService {
     }
 
 
-    private TypeMapping createTechStackMapping(String indexName) {
+    private TypeMapping createMapping(String indexName) {
         String filedName;
         Property techStackProperty = Property.of(b -> b
                 .nested(o -> o
@@ -112,21 +116,28 @@ public class SearchService {
                         .properties("value", Property.of(pb -> pb.text(t -> t)))
                 )
         );
-
-
+        Map<String, Property> properties = new HashMap<>();
         if("projects".equals(indexName)) {
-            filedName = "projectTechStack";
+            properties.put("projectTechStack", techStackProperty);
+            // project의 name 필드에 keyword 서브 필드 추가
+            properties.put("name", createTextFieldWithKeyword());
         }else if("members".equals(indexName)){
-            filedName = "techStack";
+            properties.put("techStack", techStackProperty);
+            // memberNickname 필드에 keyword 서브 필드 추가
+            properties.put("memberNickname", createTextFieldWithKeyword());
         }else {
             throw new IllegalArgumentException("Unknown index name: " + indexName);
         }
         // 매핑 생성
         return TypeMapping.of(mb -> mb
-                .properties(filedName, techStackProperty)
+                .properties(properties)
         );
     }
 
+    // text 타입인 필드에 keyword 서브 필드 추가
+    private Property createTextFieldWithKeyword(){
+        return Property.of(b-> b.text(t -> t.fields("keyword", Property.of(pb->pb.keyword(k -> k )))));
+    }
 
     /** project search */
     @Transactional
@@ -153,6 +164,9 @@ public class SearchService {
             String statusToString = convertStatusToString(project.getStatus());
 
 
+            // 좋아요 수
+            Long cntLike = projectLikeRepository.countProjectLikeByProject_ProjectId(project.getProjectId());
+
             // 프로젝트에 필요한 인원
             Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
             // 프로젝트에 지원한 인원
@@ -160,12 +174,14 @@ public class SearchService {
 
             // ProjectDocumentReq 생성
             ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
+                    .projectId(project.getProjectId())
                     .name(project.getName())
                     .imgUrl(project.getImgUrl())
                     .duration(project.getDuration())
                     .projectTechStack(techStackList)
                     .teamCnt(requiredMemberCount)
                     .currentCnt(currentMemberCount)
+                    .cntLike(cntLike)
                     .status(statusToString)
                     .createdAt( formatLocalDateTime(project.getCreatedAt()))
                     .build();
@@ -275,8 +291,17 @@ public class SearchService {
             List<String> jobList = new ArrayList<>();
             // 멤버의 직무 이름 list로 저장
             for(MemberJob memberJob : memberJobs) {
-                jobList.add(memberJob.getJob().getName());
+                Optional<Job> jobOpt = jobRepository.findById(memberJob.getJob().getJobId());
+                jobOpt.ifPresent(job -> jobList.add(job.getName()));
+
             }
+
+            // Member가 참여한 프로젝트 개수
+            int ongoingProjectCount = projectRepository.countProjectsByMemberIdAndStatus(member.getMemberId(), 1);
+            int completedProjectCount = projectRepository.countProjectsByMemberIdAndStatus(member.getMemberId(), 2);
+
+            // careerSortValue 계산
+            int careerSortValue = calculateCareerSortValue(Collections.singletonList(member.getCareer()));
 
             // MemberDocumentReq 생성
             MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
@@ -285,7 +310,11 @@ public class SearchService {
                     .memberImg(member.getImgUrl())
                     .memberGithub(member.getGithub())
                     .techStack(techStackList)  // TechStack 리스트 전달
+                    .ongoingProjectCount(ongoingProjectCount)
+                    .completedProjectCount(completedProjectCount)
                     .memberJob(jobList)
+                    .career(member.getCareer())
+                    .careerSortValue(careerSortValue)
                     .createdAt(formatLocalDateTime(member.getCreatedAt()))
                     .build();
 
@@ -299,11 +328,22 @@ public class SearchService {
         }
     }
 
+    private int calculateCareerSortValue(List<String> career) {
+        // 경력 직무에 따라 정수 값 설정 (예시: 시니어 3, 주니어 2, 신입 1)
+        if (career.contains("시니어")) {
+            return 3;
+        } else if (career.contains("주니어")) {
+            return 2;
+        } else if (career.contains("신입")) {
+            return 1;
+        }
+        return 0; // 기타 또는 알 수 없는 경우
+    }
     public List<MemberDocumentReq> searchMembersByKeyword(String keyword , String sort) throws IOException {
 
         BoolQuery boolQuery = BoolQuery.of(b -> {
             // 라떼버 이름으로 검색
-            b.should(MatchQuery.of(m -> m.field("nickname").query(FieldValue.of(keyword)))._toQuery());
+            b.should(MatchQuery.of(m -> m.field("memberNickname").query(FieldValue.of(keyword)))._toQuery());
             // 기술 스택 이름으로 검색
             b.should(NestedQuery.of(n -> n
                     .path("techStack")  // nested 필드의 경로 지정
@@ -315,11 +355,9 @@ public class SearchService {
                     )
             )._toQuery());
             // 경력으로 검색
-            b.should(MatchQuery.of(m -> m.field("career").query(FieldValue.of(keyword)))._toQuery());
+            b.should(MatchQuery.of(m -> m.field("memberJob").query(FieldValue.of(keyword)))._toQuery());
             // 최소 매칭 조건
             b.minimumShouldMatch(String.valueOf(1));
-
-
 
             return b;
         });
@@ -341,7 +379,7 @@ public class SearchService {
             } else if ("career".equalsIgnoreCase(sort)) {
                 searchRequest.sort(SortOptions.of(s -> s
                         .field(f -> f
-                                .field("career")  // 경력 기준 정렬
+                                .field("careerSortValue")  // 경력 기준 정렬
                                 .order(SortOrder.Desc)  // 내림차순 (경력 많은 순)
                         )
                 ));
@@ -350,7 +388,7 @@ public class SearchService {
             // 기본 정렬: 이름순 정렬 (오름차순)
             searchRequest.sort(SortOptions.of(s -> s
                     .field(f -> f
-                            .field("nickname")  // 이름순 정렬
+                            .field("memberNickname.keyword")  // 이름순 정렬
                             .order(SortOrder.Asc)  // 오름차순
                     )
             ));
