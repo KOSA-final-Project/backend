@@ -1,8 +1,9 @@
-package site.hesil.latteve_spring.domains.project.repository;
+package site.hesil.latteve_spring.domains.project.repository.project;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import site.hesil.latteve_spring.domains.project.domain.Project;
-import site.hesil.latteve_spring.domains.project.repository.custom.ProjectRepositoryCustom;
+import site.hesil.latteve_spring.domains.project.repository.project.custom.ProjectRepositoryCustom;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository
@@ -17,4 +18,5 @@ import site.hesil.latteve_spring.domains.project.repository.custom.ProjectReposi
  */
 
 public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
+
 }
