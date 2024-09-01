@@ -65,10 +65,7 @@ public class SearchController {
         return ResponseEntity.ok(searchService.searchProjectsByKeyword(keyword,status, sortby));
     }
 
-    @GetMapping("/all")
-    public Map<String, Object> searchAll(@RequestParam String keyword) throws IOException {
-        return searchService.searchAllByKeyword(keyword);
-    }
+  
 
     @GetMapping("/members/tech")
     public List<MemberDocumentReq> searchMembersByTech(@RequestParam String techStackKey) throws IOException {
