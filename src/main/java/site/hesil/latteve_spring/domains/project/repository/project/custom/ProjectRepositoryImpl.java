@@ -121,7 +121,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
         // 최종 Leader 객체 생성
         ProjectDetailResponse.Leader leader = new ProjectDetailResponse.Leader(
-                leaderInfo.get(projectMember.projectMemberId.memberId),
+                leaderInfo.get(projectMember.member.memberId),
                 leaderInfo.get(projectMember.member.nickname),
                 leaderInfo.get(projectMember.member.imgUrl),
                 leaderInfo.get(projectMember.member.github),
