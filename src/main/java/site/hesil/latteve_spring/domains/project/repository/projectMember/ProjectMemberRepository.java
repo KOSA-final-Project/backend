@@ -1,9 +1,8 @@
-package site.hesil.latteve_spring.domains.project.repository.projectmember;
+package site.hesil.latteve_spring.domains.project.repository.projectMember;
 
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMemberId;
 

@@ -10,13 +10,13 @@ import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
-import site.hesil.latteve_spring.domains.member.repository.memberjob.MemberJobRepository;
+import site.hesil.latteve_spring.domains.member.repository.memberJob.MemberJobRepository;
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
-import site.hesil.latteve_spring.domains.project.repository.projectlike.ProjectLikeRepository;
-import site.hesil.latteve_spring.domains.project.repository.projectmember.ProjectMemberRepository;
+import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
+import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
@@ -152,6 +152,7 @@ public class SearchIndexingService {
             }
             // 멤버의 직무 정보 가져옴
             List<MemberJob> memberJobs = memberJobRepository.findAllByMember_MemberId(member.getMemberId());
+
 
             List<String> jobList = new ArrayList<>();
             // 멤버의 직무 이름 list로 저장

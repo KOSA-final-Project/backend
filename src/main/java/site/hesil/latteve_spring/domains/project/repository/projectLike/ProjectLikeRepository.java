@@ -1,4 +1,4 @@
-package site.hesil.latteve_spring.domains.project.repository.projectlike;
+package site.hesil.latteve_spring.domains.project.repository.projectLike;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;

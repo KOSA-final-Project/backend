@@ -1,4 +1,4 @@
-package site.hesil.latteve_spring.domains.member.repository.memberjob;
+package site.hesil.latteve_spring.domains.member.repository.memberJob;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
