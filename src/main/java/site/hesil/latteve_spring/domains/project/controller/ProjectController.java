@@ -27,6 +27,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
+    // 프로젝트 상세 정보 조회
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectDetailResponse> getProjectDetail(@PathVariable Long projectId) {
 
@@ -35,6 +36,7 @@ public class ProjectController {
         return ResponseEntity.ok(projectDetailResponse);
     }
 
+    // 프로젝트 지원
     @PostMapping("/{projectId}/applications")
     public ResponseEntity<Void> applyProject(@PathVariable Long projectId, @RequestBody ProjectApplyRequest projectApplyRequest) {
 
