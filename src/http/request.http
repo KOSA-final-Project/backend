@@ -1,0 +1,46 @@
+### 프로젝트 생성 요청
+POST http://localhost:8080/api/projects
+Content-Type: application/json
+request_timeout: 5000  # 타임아웃을 5000ms (5초)로 설정
+
+{
+  "projectName": "테스트3",
+  "projectImage": "https://image.yes24.com/goods/110126993/XL",
+  "recruitmentRoles": [
+    {
+      "jobId": 1,
+      "count": 1
+    },
+    {
+      "jobId": 2,
+      "count": 3
+    },
+    {
+      "jobId": 6,
+      "count": 4
+    }
+  ],
+  "content": "<h1>피자좋아</h1>",
+  "techStack": [
+    {
+      "techStackId": 3,
+      "name": "spring"
+    },
+    {
+      "techStackId": 2,
+      "name": "react"
+    },
+    {
+      "techStackId": 1,
+      "name": "node"
+    }
+  ],
+  "duration": 4,
+  "cycle": 2
+}
+
+> {%
+client.test("프로젝트 생성에 성공한다.", function() {
+    client.assert(response.status === 201, "응답코드가 201아니면 실패");
+});
+%}

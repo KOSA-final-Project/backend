@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.project.domain.recruitment;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -38,4 +39,10 @@ public class Recruitment {
     private Job job;
 
     private int count;
+    @Builder
+    public Recruitment(Project project, Job job, int count) {
+        this.project = project;
+        this.job = job;
+        this.count = count;
+    }
 }
