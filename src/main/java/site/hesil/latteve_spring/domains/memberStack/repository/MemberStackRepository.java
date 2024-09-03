@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.memberStack.repository

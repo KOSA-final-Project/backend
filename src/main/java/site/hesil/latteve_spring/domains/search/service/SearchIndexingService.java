@@ -10,7 +10,7 @@ import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
-import site.hesil.latteve_spring.domains.member.repository.memberjob.MemberJobRepository;
+import site.hesil.latteve_spring.domains.member.repository.memberJob.MemberJobRepository;
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;

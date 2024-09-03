@@ -17,10 +17,18 @@ spring:
 
 
   config:
-    import: application-secret.yml, application-oauth.yml
+    import: "classpath:application-secret.yml, classpath:application-oauth.yml"
 
+  profiles:
+    active: secret, oauth
 
 logging:
   level:
     root: INFO
     site.hesil: DEBUG
+
+app:
+  oauth2:
+    authorized-redirect-uris:
+      - http://localhost:3000/oauth2/redirect
+      - https://latteve.site/oauth2/redirect

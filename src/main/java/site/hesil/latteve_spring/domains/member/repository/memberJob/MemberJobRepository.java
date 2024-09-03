@@ -1,4 +1,4 @@
-package site.hesil.latteve_spring.domains.member.repository.memberjob;
+package site.hesil.latteve_spring.domains.member.repository.memberJob;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
@@ -6,7 +6,7 @@ import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 import java.util.List;
 
 /**
- * packageName    : site.hesil.latteve_spring.domains.member.repository.memberjob
+ * packageName    : site.hesil.latteve_spring.domains.member.repository.memberJob
  * fileName       : MemberJobRepository
  * author         : Heeseon
  * date           : 2024-08-31

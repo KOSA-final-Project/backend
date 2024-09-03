@@ -67,4 +67,13 @@ public class Member extends BaseTimeEntity {
             this.github = github;
         }
     }
+
+    public void updateProvider(String provider, String providerId) {
+        if (provider != null) {
+            this.provider = provider;
+        }
+        if (providerId != null) {
+            this.providerId = providerId;
+        }
+    }
 }
