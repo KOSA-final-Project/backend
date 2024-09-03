@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.index.Indexed;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-29           yunbin           최초 생성
+ * 2024-09-03           yunbin           memberId 추가
  */
 @Getter
 @AllArgsConstructor
@@ -24,6 +25,8 @@ public class Token {
 
     @Id
     private String id;
+
+    private Long memberId;
 
     private String refreshToken;
 

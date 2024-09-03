@@ -18,6 +18,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import site.hesil.latteve_spring.domains.member.domain.Member;
+import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 import site.hesil.latteve_spring.global.error.exception.TokenException;
 
 import javax.crypto.SecretKey;
@@ -39,12 +42,13 @@ import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_I
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-29           yunbin           최초 생성
+ * 2024-09-03           yunbin           토큰에 memberId 추가
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class TokenProvider {
-
+    private final MemberRepository memberRepository;
     @Value("${jwt.key}")
     private String key;
     private SecretKey secretKey;
@@ -69,6 +73,9 @@ public class TokenProvider {
     }
 
     private String generateToken(Authentication authentication, long expireTime) {
+        Member member = memberRepository.findByEmail(authentication.getName())
+                .orElseThrow(NotFoundException::new);
+
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + expireTime);
 
@@ -79,6 +86,7 @@ public class TokenProvider {
         return Jwts.builder()
                 .subject(authentication.getName())
                 .claim(KEY_ROLE, authorities)
+                .claim("memberId", member.getMemberId())
                 .issuedAt(now)
                 .expiration(expiredDate)
                 .signWith(secretKey, Jwts.SIG.HS512)
