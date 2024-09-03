@@ -32,7 +32,8 @@ import org.springframework.retry.support.RetryTemplate;
 @Configuration
 public class MQConfig {
 
-    @Value("${rabbitmq.host}")
+
+    @Value("${spring.rabbitmq.host}")
     private String host;
 
     @Value("${spring.rabbitmq.port}")
