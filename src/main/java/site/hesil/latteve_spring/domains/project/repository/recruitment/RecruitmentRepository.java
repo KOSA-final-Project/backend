@@ -33,9 +33,7 @@ public interface RecruitmentRepository extends JpaRepository <Recruitment, Recru
 
 
     default void saveAllRecruitments(List<RecruitmentRoles> roles, Long projectId) {
-        for (RecruitmentRoles role : roles) {
-            saveRecruitment(projectId, role.jobId(), role.count());
-        }
+        roles.forEach(i->saveRecruitment(projectId, i.jobId(), i.count()));
     }
 
 }

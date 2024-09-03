@@ -1,5 +1,10 @@
 package site.hesil.latteve_spring.domains.project.service;
 
+
+import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +19,15 @@ import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
+import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.service
@@ -45,6 +53,9 @@ public class ProjectService {
     private final AlarmRepository alarmRepository;
     private final ProjectStackRepository projectStackRepository;
     private final RecruitmentRepository recruitmentRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final MemberStackRepository memberStackRepository;
+
 
     // 프로젝트 상세 페이지 정보
     public ProjectDetailResponse getProjectDetail(Long projectId) {
@@ -59,7 +70,17 @@ public class ProjectService {
         projectStackRepository.saveAllProjectStacks(projectSaveRequest.techStack(), projectId);
     }
 
-    // 프로젝트 지원
+
+    @Transactional(readOnly = true)
+    public List<ApplicationResponse> getApplicationsByProjectId(long projectId){
+        return projectMemberRepository.findByProjectId(projectId).stream()
+                .map(pm->{
+                    List<String> techStacks = memberStackRepository.findTechStackNamesByMemberId(pm.getMember().getMemberId());
+                    return ApplicationResponse.of(pm.getMember().getMemberId(), pm.getJob().getName(), techStacks);
+                }).toList();
+    }
+    
+  // 프로젝트 지원
     public void applyProject(Long projectId, Long memberId, Long jobId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
@@ -79,5 +100,6 @@ public class ProjectService {
         Alarm alarm = Alarm.createAlarm(project, member, job, 0);
 
         alarmRepository.save(alarm);
+
     }
 }

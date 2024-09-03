@@ -1,14 +1,19 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
+import com.amazonaws.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
 import lombok.extern.log4j.Log4j2;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
+import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.controller
@@ -54,4 +59,10 @@ public class ProjectController {
         projectService.saveProject(projectSaveRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @GetMapping("/{projectId}/applications")
+    public ResponseEntity<List<ApplicationResponse>> projectRecruit(@PathVariable Long projectId) {
+        return ResponseEntity.ok(projectService.getApplicationsByProjectId(projectId));
+    }
+
 }

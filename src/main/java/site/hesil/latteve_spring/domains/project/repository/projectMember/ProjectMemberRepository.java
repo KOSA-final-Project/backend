@@ -3,6 +3,7 @@ package site.hesil.latteve_spring.domains.project.repository.projectMember;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMemberId;
 
@@ -18,8 +19,9 @@ import java.util.List;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-28        Heeseon       최초 생성
+ * 2024-09-02        Yeong-Huns    projectId 를 통한 조회
  */
-
+@Repository
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, ProjectMemberId> {
 
     @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.project.projectId = :projectId")
@@ -31,7 +33,8 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     @Query("SELECT pm.project.projectId FROM ProjectMember pm WHERE pm.member.memberId = :memberId")
     List<Long> findProjectIdsByMemberId(@Param("memberId") Long memberId);
 
-
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.projectMemberId.projectId = :projectId")
+    List<ProjectMember> findByProjectId(@Param("projectId") Long projectId);
 
 }
 
