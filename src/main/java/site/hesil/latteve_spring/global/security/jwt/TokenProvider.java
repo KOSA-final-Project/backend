@@ -27,6 +27,7 @@ import javax.crypto.SecretKey;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.INVALID_JWT_SIGNATURE;
@@ -43,6 +44,7 @@ import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_I
  * -----------------------------------------------------------
  * 2024-08-29           yunbin           최초 생성
  * 2024-09-03           yunbin           토큰에 memberId 추가
+ * 2024-09-03           Yeong-Huns       토큰Parser 추가
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -168,4 +170,11 @@ public class TokenProvider {
 
         response.addCookie(cookie);
     }
+
+    // YH - MemberId 받아오기.
+    public Optional<Long> getMemberId(String token) {
+        Claims claims = parseClaims(token);
+        return Optional.ofNullable(claims.get("memberId", Long.class));
+    }
+
 }

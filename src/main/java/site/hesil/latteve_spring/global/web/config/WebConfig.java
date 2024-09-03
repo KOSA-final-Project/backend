@@ -1,8 +1,13 @@
 package site.hesil.latteve_spring.global.web.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import site.hesil.latteve_spring.global.security.ArgumentResolver.AuthMemberResolver;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.global.web.config
@@ -15,8 +20,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * -----------------------------------------------------------
  * 2024-08-27           yunbin           최초 생성
  */
+@RequiredArgsConstructor
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private final AuthMemberResolver authMemberResolver;
     private final long MAX_AGE_SECS = 3600;
 
     @Override
@@ -33,4 +40,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 .maxAge(MAX_AGE_SECS);
     }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(authMemberResolver);
+    }
+
 }

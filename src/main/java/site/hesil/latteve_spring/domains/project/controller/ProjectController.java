@@ -12,6 +12,7 @@ import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDet
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
+import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.util.List;
 
@@ -53,10 +54,11 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("")
-    public ResponseEntity<Void> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest) {
+    @PostMapping
+    public ResponseEntity<Void> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest, @AuthMemberId Long memberId) {
         log.info("projectSaveRequest: {}", projectSaveRequest);
-        projectService.saveProject(projectSaveRequest);
+        log.info("memberId: {}", memberId);
+        projectService.saveProject(projectSaveRequest, memberId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
