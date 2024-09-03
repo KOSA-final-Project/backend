@@ -134,11 +134,18 @@ public class SearchService {
                                 .order(SortOrder.Desc)  // 내림차순
                         )
                 ));
-            } else if ("career".equalsIgnoreCase(sort)) {
+            } else if ("career_desc".equalsIgnoreCase(sort)) {
                 searchRequest.sort(SortOptions.of(s -> s
                         .field(f -> f
                                 .field("careerSortValue")  // 경력 기준 정렬
                                 .order(SortOrder.Desc)  // 내림차순 (경력 많은 순)
+                        )
+                ));
+            }else if ("career_asc".equalsIgnoreCase(sort)) {
+                searchRequest.sort(SortOptions.of(s -> s
+                        .field(f -> f
+                                .field("careerSortValue")  // 경력 기준 정렬
+                                .order(SortOrder.Asc)  //오름차순 (경력 적은 순)
                         )
                 ));
             }
