@@ -46,4 +46,16 @@ public class Alarm {
 
     @Column(columnDefinition = "TINYINT(1)")
     private boolean isRead;
+
+    private Alarm(Project project, Member member, Job job, Integer type) {
+        this.project = project;
+        this.member = member;
+        this.job = job;
+        this.type = type;
+        this.isRead = false;
+    }
+
+    public static Alarm createAlarm(Project project, Member member, Job job, Integer type) {
+        return new Alarm(project, member, job, type);
+    }
 }
