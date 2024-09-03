@@ -75,8 +75,7 @@ public class SearchIndexingService {
                 if (techStackOpt.isPresent()) {
                     TechStack techStack = techStackOpt.get();
                     String name = techStack.getName();
-                    String imgUrl = techStack.getImgUrl() != null ? techStack.getImgUrl() :
-                            (projectStack.getCustomStack() != null ? projectStack.getCustomStack() : name);
+                    String imgUrl = techStack.getImgUrl();
                     techStackList.add(new ProjectDocumentReq.TechStack(name, imgUrl));
                 }
             }
@@ -144,7 +143,7 @@ public class SearchIndexingService {
                 if (techStackOpt.isPresent()) {
                     TechStack techStack = techStackOpt.get();
                     String name = techStack.getName();
-                    String imgUrl = techStack.getImgUrl() != null ? techStack.getImgUrl() : (memberStack.getCustomStack() != null ? memberStack.getCustomStack() : name);
+                    String imgUrl = techStack.getImgUrl();
 
                     // TechStack 객체를 리스트에 추가
                     techStackList.add(new MemberDocumentReq.TechStack(name, imgUrl));
