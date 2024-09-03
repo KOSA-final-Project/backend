@@ -1,16 +1,15 @@
 package site.hesil.latteve_spring.domains.member.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.global.audit.entity.BaseTimeEntity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.member.domain

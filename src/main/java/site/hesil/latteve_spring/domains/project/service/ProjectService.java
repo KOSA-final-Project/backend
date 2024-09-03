@@ -1,17 +1,21 @@
 package site.hesil.latteve_spring.domains.project.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import site.hesil.latteve_spring.domains.job.repository.JobRepository;
+import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
+import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
+import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
+import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
-import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.service
@@ -33,6 +37,9 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectStackRepository projectStackRepository;
     private final RecruitmentRepository recruitmentRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final MemberStackRepository memberStackRepository;
+
 
     public ProjectDetailResponse getProjectDetail(Long projectId) {
         ProjectDetailResponse projectDetailResponse = projectRepository.getProjectDetail(projectId);
@@ -49,4 +56,12 @@ public class ProjectService {
         projectStackRepository.saveAllProjectStacks(projectSaveRequest.techStack(), projectId);
     }
 
+    @Transactional(readOnly = true)
+    public List<ApplicationResponse> getApplicationsByProjectId(long projectId){
+        return projectMemberRepository.findByProjectId(projectId).stream()
+                .map(pm->{
+                    List<String> techStacks = memberStackRepository.findTechStackNamesByMemberId(pm.getMember().getMemberId());
+                    return ApplicationResponse.of(pm.getMember().getMemberId(), pm.getJob().getName(), techStacks);
+                }).toList();
+    }
 }

@@ -30,8 +30,6 @@ public interface ProjectStackRepository extends JpaRepository<ProjectStack, Long
     void saveProjectStack(@Param("projectId") Long projectId, @Param("techStackId") Long techStackId, @Param("customStack") String customStack);
 
     default void saveAllProjectStacks(List<TechStack> techStacks, Long projectId) {
-        for (TechStack stack : techStacks) {
-            saveProjectStack(projectId, stack.techStackId(), stack.techStackId() == 1 ? stack.name() : null);
-        }
+        techStacks.forEach(i->saveProjectStack(projectId,i.techStackId(),i.name()));
     }
 }

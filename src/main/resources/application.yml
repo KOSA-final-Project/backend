@@ -29,3 +29,6 @@ logging:
   level:
     root: INFO
     site.hesil: DEBUG
+    org.hibernate:
+      type:
+        descriptor.sql: trace
