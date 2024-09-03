@@ -2,7 +2,7 @@ package site.hesil.latteve_spring.domains.job.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import site.hesil.latteve_spring.domains.job.dto.resposne.GetAllJobResponse;
+import site.hesil.latteve_spring.domains.job.dto.response.GetAllJobResponse;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 
 import java.util.List;
