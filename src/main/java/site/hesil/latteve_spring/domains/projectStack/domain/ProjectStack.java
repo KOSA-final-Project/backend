@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.projectStack.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -37,4 +38,10 @@ public class ProjectStack {
     private TechStack techStack;
 
     private String customStack;
+    @Builder
+    public ProjectStack(Project project, TechStack techStack, String customStack) {
+        this.project = project;
+        this.techStack = techStack;
+        this.customStack = customStack;
+    }
 }

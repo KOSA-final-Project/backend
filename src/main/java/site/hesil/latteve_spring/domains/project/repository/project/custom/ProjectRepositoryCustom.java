@@ -4,6 +4,7 @@ import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.custom
@@ -18,8 +19,8 @@ import java.util.List;
  */
 
 public interface ProjectRepositoryCustom {
-    ProjectDetailResponse getProjectDetail(Long projectId);
 
+    Optional<ProjectDetailResponse> getProjectDetail(Long projectId);
     List<Project> findProjectsByMemberIdAndStatus(Long memberId, int status);
 
     int countProjectsByMemberIdAndStatus(Long memberId, int status);
