@@ -23,6 +23,7 @@ import site.hesil.latteve_spring.domains.project.repository.recruitment.Recruitm
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
+import site.hesil.latteve_spring.global.security.jwt.TokenProvider;
 
 import java.util.List;
 
@@ -60,10 +61,11 @@ public class ProjectService {
     }
 
     @Transactional
-    public void saveProject(ProjectSaveRequest projectSaveRequest) {
+    public void saveProject(ProjectSaveRequest projectSaveRequest, long memberId) {
         long projectId = projectRepository.save(projectSaveRequest.toEntity()).getProjectId();
         recruitmentRepository.saveAllRecruitments(projectSaveRequest.recruitmentRoles(), projectId);
         projectStackRepository.saveAllProjectStacks(projectSaveRequest.techStack(), projectId);
+        projectMemberRepository.registerProjectLeader(projectId, memberId);
     }
 
 
