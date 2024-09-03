@@ -19,8 +19,8 @@ import java.util.Optional;
  */
 
 public interface ProjectRepositoryCustom {
-    ProjectDetailResponse  getProjectDetail(Long projectId);
 
+    Optional<ProjectDetailResponse> getProjectDetail(Long projectId);
     List<Project> findProjectsByMemberIdAndStatus(Long memberId, int status);
 
     int countProjectsByMemberIdAndStatus(Long memberId, int status);

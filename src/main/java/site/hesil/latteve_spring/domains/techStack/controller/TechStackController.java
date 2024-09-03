@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import site.hesil.latteve_spring.domains.techStack.dto.response.GetAllTechStackResponse;
+import org.springframework.web.bind.annotation.RestController;
+import site.hesil.latteve_spring.domains.techStack.dto.response.ResponseTechStack;
 import site.hesil.latteve_spring.domains.techStack.service.TechStackService;
 
 import java.util.List;
@@ -21,13 +23,14 @@ import java.util.List;
  * -----------------------------------------------------------
  * 2024-09-01        Yeong-Huns       최초 생성
  */
+
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/tech-stack")
-@Controller
+@RequestMapping("/api/tech-stacks")
 public class TechStackController {
     private final TechStackService techStackService;
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<List<GetAllTechStackResponse>> getAllTechStacks(){
         return ResponseEntity.ok(techStackService.getAllTechStack());
     }

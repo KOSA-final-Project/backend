@@ -2,11 +2,12 @@ package site.hesil.latteve_spring.domains.project.controller;
 
 import com.amazonaws.Response;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
+import lombok.extern.log4j.Log4j2;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
@@ -34,12 +35,22 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
-
+    // 프로젝트 상세 정보 조회
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectDetailResponse> getProjectDetail(@PathVariable Long projectId) {
+
         ProjectDetailResponse projectDetailResponse = projectService.getProjectDetail(projectId);
 
         return ResponseEntity.ok(projectDetailResponse);
+    }
+
+    // 프로젝트 지원
+    @PostMapping("/{projectId}/applications")
+    public ResponseEntity<Void> applyProject(@PathVariable Long projectId, @RequestBody ProjectApplyRequest projectApplyRequest) {
+
+        projectService.applyProject(projectId, projectApplyRequest.memberId(), projectApplyRequest.jobId());
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("")
@@ -53,4 +64,5 @@ public class ProjectController {
     public ResponseEntity<List<ApplicationResponse>> projectRecruit(@PathVariable Long projectId) {
         return ResponseEntity.ok(projectService.getApplicationsByProjectId(projectId));
     }
+
 }

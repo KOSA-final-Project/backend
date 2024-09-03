@@ -22,8 +22,10 @@ spring:
 
 
   config:
-    import: application-secret.yml
+    import: "classpath:application-secret.yml, classpath:application-oauth.yml"
 
+  profiles:
+    active: secret, oauth
 
 logging:
   level:
@@ -32,3 +34,9 @@ logging:
     org.hibernate:
       type:
         descriptor.sql: trace
+
+app:
+  oauth2:
+    authorized-redirect-uris:
+      - http://localhost:3000/oauth2/redirect
+      - https://latteve.site/oauth2/redirect

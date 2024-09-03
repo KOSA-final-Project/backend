@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.memberStack.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.member.domain.Member;
@@ -37,4 +38,11 @@ public class MemberStack {
     private TechStack techStack;
 
     private String customStack;
+
+    @Builder
+    public MemberStack(Member member, TechStack techStack, String customStack) {
+        this.member = member;
+        this.techStack = techStack;
+        this.customStack = customStack;
+    }
 }

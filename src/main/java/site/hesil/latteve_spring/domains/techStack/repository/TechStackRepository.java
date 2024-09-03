@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

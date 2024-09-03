@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.member.domain.memberJob;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -36,4 +37,11 @@ public class MemberJob {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
+
+    @Builder
+    public MemberJob(Member member, Job job) {
+        this.member = member;
+        this.job = job;
+        this.memberJobId = new MemberJobId(member.getMemberId(), job.getJobId());
+    }
 }

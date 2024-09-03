@@ -2,11 +2,10 @@ package site.hesil.latteve_spring.domains.job.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import site.hesil.latteve_spring.domains.job.dto.resposne.GetAllJobResponse;
+import site.hesil.latteve_spring.domains.job.dto.response.GetAllJobResponse;
 import site.hesil.latteve_spring.domains.job.service.JobService;
 
 import java.util.List;
@@ -22,12 +21,12 @@ import java.util.List;
  * 2024-09-02        Yeong-Huns       최초 생성
  */
 @RequiredArgsConstructor
-@RequestMapping("/api/job")
 @RestController
+@RequestMapping("/api/jobs")
 public class JobController {
     private final JobService jobService;
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<List<GetAllJobResponse>> getAllJobs() {
         return ResponseEntity.ok(jobService.getAllJobs());
     }
