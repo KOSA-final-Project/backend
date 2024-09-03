@@ -27,6 +27,7 @@ import java.nio.file.AccessDeniedException;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-22        Yeong-Huns       최초 생성
+ * 2024-08-30        yunbin           IllegalArgumentException handler 추가
  */
 @Log4j2
 @ControllerAdvice(annotations = RestController.class)
@@ -41,7 +42,7 @@ public class  GlobalExceptionHandler {
     @ExceptionHandler(CustomBaseException.class)
     protected ResponseEntity<ErrorResponse> handle(CustomBaseException e){
         log.error("Response: {}", ErrorResponse.of(e.getResponseCode(),  " [Detail Message] : "+e.getMessage()));
-        return createErrorResponse(e.getResponseCode());
+        return createErrorResponse(e.getResponseCode(), e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -90,10 +91,20 @@ public class  GlobalExceptionHandler {
         return createErrorResponse(e.getResponseCode());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<ErrorResponse> handle(IllegalArgumentException e) {
+        log.error("Response: {}", ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE, " 🥲[상세 메세지] : " + e.getMessage()));
+        return createErrorResponse(ErrorCode.INVALID_INPUT_VALUE, e.getMessage());
+    }
 
     private ResponseEntity<ErrorResponse> createErrorResponse(ErrorCode errorCode){
         return new ResponseEntity<>(
                 ErrorResponse.of(errorCode),
+                errorCode.getStatus());
+    }
+    private ResponseEntity<ErrorResponse> createErrorResponse(ErrorCode errorCode, String message){
+        return new ResponseEntity<>(
+                ErrorResponse.of(errorCode, message),
                 errorCode.getStatus());
     }
 }

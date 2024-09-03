@@ -1,4 +1,4 @@
-package site.hesil.latteve_spring.domains.job.dto.resposne;
+package site.hesil.latteve_spring.domains.job.dto.response;
 
 import lombok.Builder;
 import site.hesil.latteve_spring.domains.job.domain.Job;

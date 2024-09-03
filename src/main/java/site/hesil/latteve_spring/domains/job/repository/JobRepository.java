@@ -13,9 +13,6 @@ import site.hesil.latteve_spring.domains.job.domain.Job;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-31        Heeseon       최초 생성
- */public interface JobRepository extends JpaRepository<Job, Long> {
-
-
-
-
+ */
+public interface JobRepository extends JpaRepository<Job, Long> {
 }
