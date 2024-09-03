@@ -51,6 +51,7 @@ public class SearchController {
         if (keyword == null || keyword.trim().isEmpty()) {
             throw new CustomBaseException("검색어를 입력하세요.", ErrorCode.INVALID_INPUT_VALUE);
         }
+
         return ResponseEntity.ok(searchService.searchMembersByKeyword(keyword, sortby ));
     }
 
@@ -62,6 +63,7 @@ public class SearchController {
         if (keyword == null || keyword.trim().isEmpty()) {
             throw new CustomBaseException("검색어를 입력하세요.", ErrorCode.INVALID_INPUT_VALUE);
         }
+
         return ResponseEntity.ok(searchService.searchProjectsByKeyword(keyword,status, sortby));
     }
 

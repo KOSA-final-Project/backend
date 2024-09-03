@@ -56,7 +56,7 @@ public class SearchService {
             b.minimumShouldMatch(String.valueOf(1));
 
             // project 상태로 필터링
-            if (status != null && !status.isEmpty()) {
+            if (status != null && !status.isEmpty() && !status.equals("전체")) {
                 b.filter(TermQuery.of(t -> t.field("status").value(FieldValue.of(status)))._toQuery());
             }
             return b;

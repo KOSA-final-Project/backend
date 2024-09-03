@@ -71,14 +71,19 @@ public class SearchIndexingService {
             // techStack list로 저장
             List<ProjectDocumentReq.TechStack> techStackList= new ArrayList<>();
             for (ProjectStack projectStack : projectTechStacks) {
-                Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
-                if (techStackOpt.isPresent()) {
-                    TechStack techStack = techStackOpt.get();
-                    String name = techStack.getName();
-                    String imgUrl = techStack.getImgUrl() != null ? techStack.getImgUrl() :
-                            (projectStack.getCustomStack() != null ? projectStack.getCustomStack() : name);
-                    techStackList.add(new ProjectDocumentReq.TechStack(name, imgUrl));
+                Long techStackId = projectStack.getTechStack().getTechStackId();
+                if(techStackId == 1){
+                   techStackList.add(new ProjectDocumentReq.TechStack(projectStack.getCustomStack(), null));
+                }else{
+                    Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
+                    if (techStackOpt.isPresent()) {
+                        TechStack techStack = techStackOpt.get();
+                        String name = techStack.getName();
+                        String imgUrl = techStack.getImgUrl();
+                        techStackList.add(new ProjectDocumentReq.TechStack(name, imgUrl));
+                    }
                 }
+
             }
 
             String statusToString = convertStatusToString(project.getStatus());
@@ -125,7 +130,7 @@ public class SearchIndexingService {
             case 0: return "모집중";
             case 1: return "진행중";
             case 2: return "종료";
-            default: return "Unknown";
+            default: return "unknown";
         }
     }
 
@@ -140,15 +145,21 @@ public class SearchIndexingService {
             // techStack list로 저장
             List<MemberDocumentReq.TechStack> techStackList = new ArrayList<>();
             for (MemberStack memberStack : memberStacks) {
-                Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
-                if (techStackOpt.isPresent()) {
-                    TechStack techStack = techStackOpt.get();
-                    String name = techStack.getName();
-                    String imgUrl = techStack.getImgUrl() != null ? techStack.getImgUrl() : (memberStack.getCustomStack() != null ? memberStack.getCustomStack() : name);
+                Long techStackId = memberStack.getTechStack().getTechStackId();
+                if(techStackId == 1){
+                    techStackList.add(new MemberDocumentReq.TechStack(memberStack.getCustomStack(), null));
+                }else{
+                    Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
+                    if (techStackOpt.isPresent()) {
+                        TechStack techStack = techStackOpt.get();
+                        String name = techStack.getName();
+                        String imgUrl = techStack.getImgUrl();
 
-                    // TechStack 객체를 리스트에 추가
-                    techStackList.add(new MemberDocumentReq.TechStack(name, imgUrl));
+                        // TechStack 객체를 리스트에 추가
+                        techStackList.add(new MemberDocumentReq.TechStack(name, imgUrl));
+                    }
                 }
+
             }
             // 멤버의 직무 정보 가져옴
             List<MemberJob> memberJobs = memberJobRepository.findAllByMember_MemberId(member.getMemberId());
