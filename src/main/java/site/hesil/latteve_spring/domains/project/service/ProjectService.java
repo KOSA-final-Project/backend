@@ -1,20 +1,17 @@
 package site.hesil.latteve_spring.domains.project.service;
 
 
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
@@ -53,7 +50,6 @@ public class ProjectService {
     private final AlarmRepository alarmRepository;
     private final ProjectStackRepository projectStackRepository;
     private final RecruitmentRepository recruitmentRepository;
-    private final ProjectMemberRepository projectMemberRepository;
     private final MemberStackRepository memberStackRepository;
 
 
