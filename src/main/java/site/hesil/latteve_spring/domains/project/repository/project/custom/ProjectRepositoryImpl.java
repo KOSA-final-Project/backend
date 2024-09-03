@@ -4,6 +4,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import site.hesil.latteve_spring.domains.job.domain.QJob;
 import site.hesil.latteve_spring.domains.memberStack.domain.QMemberStack;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -33,6 +34,7 @@ import java.util.Optional;
  * 2024-08-27        JooYoon       최초 생성
  */
 
+@Log4j2
 @RequiredArgsConstructor
 public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
@@ -40,7 +42,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
     // 프로젝트 상세 정보 조회
     @Override
-    public ProjectDetailResponse getProjectDetail(Long projectId) {
+    public Optional<ProjectDetailResponse> getProjectDetail(Long projectId) {
         QProject project = QProject.project;
         QProjectStack projectStack = QProjectStack.projectStack;
         QTechStack techStack = QTechStack.techStack;
@@ -70,6 +72,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .leftJoin(techStack).on(projectStack.techStack.techStackId.eq(techStack.techStackId))
                 .where(projectStack.project.projectId.eq(projectId))
                 .fetch();
+        log.debug("projectTechStackTuples: {}", projectTechStackTuples);
 
         for (Tuple tuple : projectTechStackTuples) {
             String techStackName = tuple.get(0, String.class);
@@ -77,6 +80,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
             projectTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
         }
+        log.debug("projectTechStacks: {}", projectTechStacks);
 
         // 리더 정보 조회 //
         // 리더 기본 정보 조회
@@ -111,6 +115,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .leftJoin(techStack).on(memberStack.techStack.techStackId.eq(techStack.techStackId))
                 .where(memberStack.member.memberId.eq(leaderInfo.get(projectMember.member.memberId)))
                 .fetch();
+        log.debug("leaderTechStackTuples: {}", leaderTechStackTuples);
 
         for (Tuple tuple : leaderTechStackTuples) {
             String techStackName = tuple.get(0, String.class);
@@ -118,10 +123,11 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
             leaderTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
         }
+        log.debug("leaderTechStacks: {}", leaderTechStacks);
 
         // 최종 Leader 객체 생성
         ProjectDetailResponse.Leader leader = new ProjectDetailResponse.Leader(
-                leaderInfo.get(projectMember.projectMemberId.memberId),
+                leaderInfo.get(projectMember.member.memberId),
                 leaderInfo.get(projectMember.member.nickname),
                 leaderInfo.get(projectMember.member.imgUrl),
                 leaderInfo.get(projectMember.member.github),
@@ -129,6 +135,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 Optional.ofNullable(leaderInfo.get(5, Integer.class)).orElse(0),
                 leaderTechStacks
         );
+        log.debug("leader: {}", leader);
 
         // 모집 정보 및 멤버 조회 //
         // 모집 정보 조회
@@ -141,6 +148,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(recruitment.project.projectId.eq(projectId)
                         .and(recruitment.job.jobId.ne(1L))) // jobId가 1이 아닌 경우만 조회
                 .fetch();
+
+        log.debug("recruitmentTuples: {}", recruitmentTuples);
 
         // 멤버 조회
         List<ProjectDetailResponse.Recruitment> recruitments = new ArrayList<>();
@@ -163,11 +172,18 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                             .and(projectMember.job.jobId.eq(jobId))
                             .and(projectMember.acceptStatus.eq(1))) // 프로젝트 참여가 승인된 멤버만 가져옴
                     .fetch();
+            log.debug("memberTuples: {}", memberTuples);
 
             List<ProjectDetailResponse.Member> members = new ArrayList<>();
 
             // 각 멤버의 기술 스택
             for (Tuple memberTuple : memberTuples) {
+                // 모집 직무에 대한 참여 멤버가 없으면 기술 스택 가져오는 과정을 생략하여
+                // memberTechStackTuples 구할 때 memberId를 null과 비교하는 문제 회피
+                if (memberTuple.get(projectMember.member.memberId) == null) {
+                    continue;
+                }
+
                 Long memberId = memberTuple.get(projectMember.member.memberId);
                 String nickname = memberTuple.get(projectMember.member.nickname);
                 String imgUrl = memberTuple.get(projectMember.member.imgUrl);
@@ -195,11 +211,13 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
                 members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, ongoingProjectCont, completedProjectCount, memberTechStacks));
             }
+            log.debug("members: {}", members);
 
             recruitments.add(new ProjectDetailResponse.Recruitment(jobId, jobName, jobCount, members));
         }
+        log.debug("recruitments: {}", recruitments);
 
-        return ProjectDetailResponse.builder()
+        return Optional.ofNullable(ProjectDetailResponse.builder()
                 .projectId(projectInfo.get(project.projectId))
                 .name(projectInfo.get(project.name))
                 .description(projectInfo.get(project.description))
@@ -216,7 +234,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .cycle(Optional.ofNullable(projectInfo.get(project.cycle)).orElse(-1))
                 .leader(leader)
                 .recruitments(recruitments)
-                .build();
+                .build());
     }
 
     @Override
