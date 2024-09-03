@@ -93,8 +93,7 @@ public class S3Service {
     }
 
     private void uploadToS3(InputStream inputStream, String keyName, ObjectMetadata metadata) { // S3 에 업로드
-        amazonS3.putObject(new PutObjectRequest(bucket, keyName, inputStream, metadata)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+        amazonS3.putObject(new PutObjectRequest(bucket, keyName, inputStream, metadata));
     }
 
     private String generateFileName(String originalFileName) { // UUID 고유 파일명 생성

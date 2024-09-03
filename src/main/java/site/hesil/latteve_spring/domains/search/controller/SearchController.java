@@ -46,12 +46,12 @@ public class SearchController {
     }
 
     @GetMapping("/members")
-    public List<MemberDocumentReq> searchMembers(@RequestParam String keyword,
+    public ResponseEntity<List<MemberDocumentReq>> searchMembers(@RequestParam String keyword,
                                                  @RequestParam(required = false) String sortby) throws IOException {
         if (keyword == null || keyword.trim().isEmpty()) {
             throw new CustomBaseException("검색어를 입력하세요.", ErrorCode.INVALID_INPUT_VALUE);
         }
-        return searchService.searchMembersByKeyword(keyword, sortby );
+        return ResponseEntity.ok(searchService.searchMembersByKeyword(keyword, sortby ));
     }
 
     @GetMapping("/projects")
@@ -65,11 +65,22 @@ public class SearchController {
         return ResponseEntity.ok(searchService.searchProjectsByKeyword(keyword,status, sortby));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<Map<String, Object>> search(@RequestParam String keyword) throws IOException {
+        List<ProjectDocumentReq> projects = searchService.searchProjectsByKeyword(keyword,null, null);
+        List<MemberDocumentReq> members = searchService.searchMembersByKeyword(keyword, null );
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("projects", projects);
+        response.put("members", members);
 
-    @GetMapping("/members/tech")
-    public List<MemberDocumentReq> searchMembersByTech(@RequestParam String techStackKey) throws IOException {
-        return searchService.searchMembersByTechStack(techStackKey);
+        return ResponseEntity.ok(response);
     }
+
+
+//    @GetMapping("/members/tech")
+//    public List<MemberDocumentReq> searchMembersByTech(@RequestParam String techStackKey) throws IOException {
+//        return searchService.searchMembersByTechStack(techStackKey);
+//    }
 
 }

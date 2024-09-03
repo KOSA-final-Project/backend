@@ -42,7 +42,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
     // 프로젝트 상세 정보 조회
     @Override
-    public ProjectDetailResponse getProjectDetail(Long projectId) {
+    public Optional<ProjectDetailResponse> getProjectDetail(Long projectId) {
         QProject project = QProject.project;
         QProjectStack projectStack = QProjectStack.projectStack;
         QTechStack techStack = QTechStack.techStack;
@@ -217,7 +217,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         }
         log.debug("recruitments: {}", recruitments);
 
-        return ProjectDetailResponse.builder()
+        return Optional.ofNullable(ProjectDetailResponse.builder()
                 .projectId(projectInfo.get(project.projectId))
                 .name(projectInfo.get(project.name))
                 .description(projectInfo.get(project.description))
@@ -234,7 +234,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .cycle(Optional.ofNullable(projectInfo.get(project.cycle)).orElse(-1))
                 .leader(leader)
                 .recruitments(recruitments)
-                .build();
+                .build());
     }
 
     @Override
