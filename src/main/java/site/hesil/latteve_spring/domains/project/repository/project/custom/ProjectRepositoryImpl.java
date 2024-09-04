@@ -5,6 +5,9 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import site.hesil.latteve_spring.domains.job.domain.QJob;
 import site.hesil.latteve_spring.domains.memberStack.domain.QMemberStack;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -238,22 +241,31 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     }
 
     @Override
-    public List<Project> findProjectsByMemberIdAndStatus(Long memberId, int status) {
+    public Page<Project> findProjectsByMemberIdAndStatus(Long memberId, int status, Pageable pageable) {
         QProject project = QProject.project;
         QProjectMember projectMember = QProjectMember.projectMember;
 
-        return queryFactory.select(project)
+        List<Project> projects = queryFactory.select(project)
                 .from(projectMember)
                 .join(projectMember.project, project)
                 .where(projectMember.member.memberId.eq(memberId)
                         .and(project.status.eq(status)))
+                .offset(pageable.getOffset()) // 페이지의 시작점 설정
+                .limit(pageable.getPageSize()) // 페이지 크기 설정
                 .fetch();
+
+        // 전체 개수 조회
+        long total = queryFactory.select(project.count())
+                .from(projectMember)
+                .join(projectMember.project, project)
+                .where(projectMember.member.memberId.eq(memberId)
+                        .and(project.status.eq(status)))
+                .fetchOne();
+
+        // Page 객체로 반환
+        return new PageImpl<>(projects, pageable, total);
     }
 
-    @Override
-    public List<Project> findProjectsByMemberIdAndLikeId(Long memberId, Long LikeId) {
-        return List.of();
-    }
 
     @Override
     public int countProjectsByMemberIdAndStatus(Long memberId, int status) {

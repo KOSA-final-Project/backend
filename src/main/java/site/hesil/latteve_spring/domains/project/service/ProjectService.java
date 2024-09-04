@@ -4,6 +4,9 @@ package site.hesil.latteve_spring.domains.project.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
@@ -114,7 +117,7 @@ public class ProjectService {
 
     //프로젝트 카드에 들어갈 내용 조회
     @Transactional(readOnly = true)
-    public List<ProjectCardResponse> getProjectDocuments(List<Project> projectList) {
+    public List<ProjectCardResponse> getProjectCardList(List<Project> projectList) {
         List<ProjectCardResponse> projectDocuments = new ArrayList<>();
 
         for(Project project : projectList){
@@ -166,18 +169,31 @@ public class ProjectService {
     }
     // 사용자가 '좋아요' 누른 프로젝트 조회
     @Transactional(readOnly = true)
-    public List<ProjectCardResponse> getProjectsByMemberAndLike(Long memberId){
-        List<Project> projectList =  projectRepository.findLikedProjectsByMemberId(memberId);
-        return getProjectDocuments(projectList);
-
-
+    public Page<ProjectCardResponse> getProjectsByMemberAndLike(Long memberId, Pageable pageable) {
+        Page<Project> projectPage = projectRepository.findLikedProjectsByMemberId(memberId, pageable);
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }
+
     // 사용자의 프로젝트를 진행 상태별로 조회
     @Transactional(readOnly = true)
-    public List<ProjectCardResponse> getProjectsByMemberAndStatus(Long memberId, Integer status){
-       List<Project > projectList = projectRepository.findProjectsByMemberIdAndStatus(memberId, status);
-        return getProjectDocuments(projectList);
+    public Page<ProjectCardResponse> getProjectsByMemberAndStatus(Long memberId, Integer status, Pageable pageable) {
+
+        Page<Project> projectPage;
+
+        // 모집 중인 프로젝트를 조회하는 경우 (status == 0)
+        if (status == 0) {
+            // 사용자가 리더인 프로젝트만 조회
+            projectPage = projectRepository.findLeaderProjectsByMemberIdAndStatus(memberId, status, pageable);
+        } else {
+            // 일반적으로 memberId로 프로젝트 조회
+            projectPage = projectRepository.findProjectsByMemberIdAndStatus(memberId, status, pageable);
+        }
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
+
     }
+
 
 
 

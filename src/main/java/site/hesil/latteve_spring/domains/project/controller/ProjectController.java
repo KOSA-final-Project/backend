@@ -1,6 +1,9 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,14 +75,21 @@ public class ProjectController {
 
     // 마이페이지에서 프로젝트 조회
     @GetMapping("/my")
-    public ResponseEntity<List<ProjectCardResponse>> getProjectList(@AuthMemberId Long memberId, Integer status) {
-        return ResponseEntity.ok(projectService.getProjectsByMemberAndStatus(memberId, status));
+    public ResponseEntity<Page<ProjectCardResponse>> getProjectList(@AuthMemberId Long memberId, Integer status,
+                                                                    @RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "4") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProjectCardResponse> projectCardResponsePage =  projectService.getProjectsByMemberAndStatus(memberId, status, pageable);
+        return ResponseEntity.ok(projectCardResponsePage);
     }
 
     // 사용자가 '좋아요'한 프로젝트 조회
     @GetMapping("/my/like")
-    public ResponseEntity<List<ProjectCardResponse>> getProjectListByMemberAndLike(@AuthMemberId Long memberId) {
-
-        return ResponseEntity.ok(projectService.getProjectsByMemberAndLike(memberId));
+    public ResponseEntity<Page<ProjectCardResponse>> getProjectListByMemberAndLike(@AuthMemberId Long memberId,
+                                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                                   @RequestParam(defaultValue = "4") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsByMemberAndLike(memberId, pageable);
+        return ResponseEntity.ok(projectPage);
     }
 }
