@@ -71,15 +71,15 @@ public class ProjectController {
     }
 
     // 마이페이지에서 프로젝트 조회
-    @GetMapping("/my-project")
-    public ResponseEntity<List<ProjectCardResponse>> getProjectList(@RequestParam Long memberId,
-                                                                    @RequestParam(required = false) Integer status) {
-        List <ProjectCardResponse> projectList =null ;
-        if(status != null ){
-            projectList = projectService.getProjectsByMemberAndStatus(memberId, status);
-       }else{
-            projectList = projectService.getProjectsByMemberAndLike(memberId);
-       }
-        return ResponseEntity.ok(projectList);
+    @GetMapping("/my")
+    public ResponseEntity<List<ProjectCardResponse>> getProjectList(@AuthMemberId Long memberId, Integer status) {
+        return ResponseEntity.ok(projectService.getProjectsByMemberAndStatus(memberId, status));
+    }
+
+    // 사용자가 '좋아요'한 프로젝트 조회
+    @GetMapping("/my/like")
+    public ResponseEntity<List<ProjectCardResponse>> getProjectListByMemberAndLike(@AuthMemberId Long memberId) {
+
+        return ResponseEntity.ok(projectService.getProjectsByMemberAndLike(memberId));
     }
 }

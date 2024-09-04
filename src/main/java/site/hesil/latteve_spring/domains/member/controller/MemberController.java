@@ -109,8 +109,9 @@ public class MemberController {
         return ResponseEntity.ok(exists);
     }
 
+    //@AuthMemberId Long memberId)
     @GetMapping("/me")
-    public ResponseEntity<ResponseMember> getMemberInfo(@AuthMemberId Long memberId) {
+    public ResponseEntity<ResponseMember> getMemberInfo( @AuthMemberId Long memberId) {
         ResponseMember responseMember = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok(responseMember);
     }
