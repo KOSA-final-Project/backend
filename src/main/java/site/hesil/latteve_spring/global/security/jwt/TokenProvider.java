@@ -122,15 +122,18 @@ public class TokenProvider {
                 return reissueAccessToken;
             }
         }
+        log.info("재발급 실패");
         return null;
     }
 
     public boolean validateToken(String token) {
         if (!StringUtils.hasText(token)) {
+            log.info("토큰 없음");
             return false;
         }
 
         Claims claims = parseClaims(token);
+        log.info("만료일 "+ claims.getExpiration());
         return claims.getExpiration().after(new Date());
     }
 

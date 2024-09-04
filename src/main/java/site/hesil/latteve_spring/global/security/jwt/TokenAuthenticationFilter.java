@@ -46,6 +46,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         } else {
             // 만료되었을 경우 accessToken 재발급
             String reissueAccessToken = tokenProvider.reissueAccessToken(accessToken);
+            log.info("재발급 토큰 " + reissueAccessToken);
 
             if (StringUtils.hasText(reissueAccessToken)) {
                 setAuthentication(reissueAccessToken);
@@ -72,12 +73,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 if ("jwt".equals(cookie.getName())) { // 쿠키 이름을 "jwt"로 가정
                     String cookieToken = cookie.getValue();
                     if (StringUtils.hasText(cookieToken)) {
-                        log.info(cookieToken);
+                        log.info("resolveToken {}",  cookieToken);
                         return cookieToken;
                     }
                 }
             }
         }
+        log.info("토큰전달안됨 {}", request.getRequestURI());
         return null;
     }
 }
