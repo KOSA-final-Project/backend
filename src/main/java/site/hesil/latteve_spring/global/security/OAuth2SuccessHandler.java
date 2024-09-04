@@ -13,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
 import site.hesil.latteve_spring.global.error.exception.BadRequestException;
+import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 import site.hesil.latteve_spring.global.security.jwt.TokenProvider;
 
 import java.io.IOException;
@@ -70,13 +71,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         if (!userExists) {
             // member에 provider, providerId 추가
-            Optional<Member> _newUser = memberRepository.findByEmail(email);
-            if (_newUser.isPresent()) {
-                Member newUser = _newUser.get();
-                newUser.updateProvider(provider, providerId);
-                memberRepository.save(newUser);
+            Member newUser = memberRepository.findByEmail(email).orElseThrow(NotFoundException::new);
+
+            newUser.updateProvider(provider, providerId);
+            memberRepository.save(newUser);
             }
-        }
+
         String targetUrl = determineTargetUrl(request, response, authentication, userExists);
         log.info("targetUrl: {}", targetUrl);
 

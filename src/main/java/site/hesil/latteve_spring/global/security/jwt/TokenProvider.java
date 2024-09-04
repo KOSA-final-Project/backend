@@ -45,6 +45,7 @@ import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_I
  * 2024-08-29           yunbin           최초 생성
  * 2024-09-03           yunbin           토큰에 memberId 추가
  * 2024-09-03           Yeong-Huns       토큰Parser 추가
+ * 2024-09-04           yunbin           토큰, 쿠키 만료 시간 수정
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -55,7 +56,7 @@ public class TokenProvider {
     private String key;
     private SecretKey secretKey;
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30L;
-    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60L * 24;
+    private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;
     private static final String KEY_ROLE = "role";
     private final TokenService tokenService;
 
@@ -65,7 +66,7 @@ public class TokenProvider {
     }
 
     public String generateAccessToken(Authentication authentication) {
-        return generateToken(authentication, ACCESS_TOKEN_EXPIRE_TIME);
+        return generateToken(authentication, ACCESS_TOKEN_EXPIRE_TIME); // access token 발급
     }
 
     // 1. refresh token 발급
@@ -74,7 +75,7 @@ public class TokenProvider {
         tokenService.saveOrUpdate(authentication.getName(), refreshToken, accessToken); // redis에 저장
     }
 
-    private String generateToken(Authentication authentication, long expireTime) {
+    private String generateToken(Authentication authentication, long expireTime) { // 토큰 발급
         Member member = memberRepository.findByEmail(authentication.getName())
                 .orElseThrow(NotFoundException::new);
 
@@ -114,6 +115,7 @@ public class TokenProvider {
         if (StringUtils.hasText(accessToken)) {
             Token token = tokenService.findByAccessTokenOrThrow(accessToken);
             String refreshToken = token.getRefreshToken();
+            log.info("Refresh token: {}", refreshToken);
 
             if (validateToken(refreshToken)) {
                 String reissueAccessToken = generateAccessToken(getAuthentication(refreshToken));
@@ -122,15 +124,20 @@ public class TokenProvider {
                 return reissueAccessToken;
             }
         }
+        log.info("재발급 실패");
         return null;
     }
 
     public boolean validateToken(String token) {
         if (!StringUtils.hasText(token)) {
+            log.info("토큰 없음");
             return false;
         }
 
         Claims claims = parseClaims(token);
+        log.info("만료일 {}", claims.getExpiration());
+        log.info("현재시간 {}", new Date());
+        log.info("{}", claims.getExpiration().after(new Date()));
         return claims.getExpiration().after(new Date());
     }
 
@@ -166,7 +173,7 @@ public class TokenProvider {
         cookie.setHttpOnly(true); // JavaScript를 통해 쿠키에 접근하지 못하도록 설정
         // cookie.setSecure(true); // HTTPS로 통신할 때만 쿠키가 전송되도록 설정
         cookie.setPath("/"); // 쿠키의 유효 경로 설정
-        cookie.setMaxAge(24 * 60 * 60); // 하루 동안 쿠키 유효
+        cookie.setMaxAge(60 * 60); // 1시간 동안 쿠키 유효
 
         response.addCookie(cookie);
     }

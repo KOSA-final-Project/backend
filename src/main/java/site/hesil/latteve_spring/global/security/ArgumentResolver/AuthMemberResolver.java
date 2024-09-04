@@ -11,6 +11,8 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
+import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 import site.hesil.latteve_spring.global.error.exception.TokenException;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 import site.hesil.latteve_spring.global.security.jwt.TokenProvider;
@@ -48,13 +50,12 @@ public class AuthMemberResolver implements HandlerMethodArgumentResolver {
                                   WebDataBinderFactory binderFactory) throws Exception {
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String token = extractTokenFromCookies(request);
-
+        Optional<Long> memberId = Optional.empty();
         if (token != null) {
-            Optional<Long> memberId = tokenProvider.getMemberId(token);
-            return memberId.orElseThrow(()->new TokenException("토큰 내부에서 memberId 를 찾을 수 없습니다."));
+            memberId = tokenProvider.getMemberId(token);
         }
         log.error("resolveArgument 토큰 파싱중 null 반환");
-        return null;
+        return memberId.orElseThrow(()->new CustomBaseException(ErrorCode.TOKEN_NOT_FOUND));
     }
 
     private String extractTokenFromCookies(HttpServletRequest request) {
