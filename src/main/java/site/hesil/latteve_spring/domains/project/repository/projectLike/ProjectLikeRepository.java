@@ -1,6 +1,7 @@
 package site.hesil.latteve_spring.domains.project.repository.projectLike;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
 
@@ -18,4 +19,5 @@ import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
 @Repository
 public interface ProjectLikeRepository extends JpaRepository<ProjectLike, Long> {
     Long countProjectLikeByProject_ProjectId(Long project);
+
 }

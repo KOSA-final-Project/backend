@@ -1,17 +1,18 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
-import com.amazonaws.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.member.controller.MemberController;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
 import lombok.extern.log4j.Log4j2;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
+
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
  * -----------------------------------------------------------
  * 2024-08-26        JooYoon       최초 생성
  * 2024-09-01        Yeong-Huns    프로젝트 생성
+ * 2024-09-04        Heeseon       프로젝트 상태, 멤버별로 조회
  */
 @Log4j2
 @RestController
@@ -35,6 +37,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final MemberController memberController;
 
     // 프로젝트 상세 정보 조회
     @GetMapping("/{projectId}")
@@ -67,4 +70,16 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getApplicationsByProjectId(projectId));
     }
 
+    // 마이페이지에서 프로젝트 조회
+    @GetMapping("/my-project")
+    public ResponseEntity<List<ProjectCardResponse>> getProjectList(@RequestParam Long memberId,
+                                                                    @RequestParam(required = false) Integer status) {
+        List <ProjectCardResponse> projectList =null ;
+        if(status != null ){
+            projectList = projectService.getProjectsByMemberAndStatus(memberId, status);
+       }else{
+            projectList = projectService.getProjectsByMemberAndLike(memberId);
+       }
+        return ResponseEntity.ok(projectList);
+    }
 }

@@ -8,6 +8,7 @@ import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 import site.hesil.latteve_spring.domains.member.dto.request.RequestMember;
+import site.hesil.latteve_spring.domains.member.dto.response.ResponseMember;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
 import site.hesil.latteve_spring.domains.member.repository.memberJob.MemberJobRepository;
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
@@ -77,4 +78,21 @@ public class MemberService {
     public boolean checkNickname(String nickname) {
         return memberRepository.existsByNickname(nickname);
     }
+
+    public ResponseMember getMemberInfo(Long memberId){
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
+
+        ResponseMember responseMember =  ResponseMember.builder()
+                .memberId(member.getMemberId())
+                .imgUrl(member.getImgUrl())
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .github(member.getGithub())
+                .career(member.getCareer()).build();
+
+
+        return responseMember;
+    }
+
 }

@@ -1,5 +1,6 @@
 package site.hesil.latteve_spring.domains.member.controller;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,8 +17,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.dto.request.RequestMember;
+import site.hesil.latteve_spring.domains.member.dto.response.ResponseMember;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
 import site.hesil.latteve_spring.domains.member.service.MemberService;
+import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 import site.hesil.latteve_spring.global.security.jwt.TokenService;
 
 import java.util.HashMap;
@@ -105,4 +108,11 @@ public class MemberController {
         log.info(nickname + " " +exists);
         return ResponseEntity.ok(exists);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<ResponseMember> getMemberInfo(@AuthMemberId Long memberId) {
+        ResponseMember responseMember = memberService.getMemberInfo(memberId);
+        return ResponseEntity.ok(responseMember);
+    }
 }
+
