@@ -3,6 +3,7 @@ package site.hesil.latteve_spring.domains.project.repository.project;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -40,4 +41,3 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
     Page<Project> findLeaderProjectsByMemberIdAndStatus(@Param("memberId") Long memberId,
                                                         @Param("status") Integer status,
                                                         Pageable pageable);
-}

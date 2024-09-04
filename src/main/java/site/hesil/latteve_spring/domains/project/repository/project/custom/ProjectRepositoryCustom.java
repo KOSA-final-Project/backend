@@ -20,6 +20,7 @@ import java.util.Optional;
  * 2024-08-27        JooYoon       최초 생성
  * 2024-09-01        Heeseon       멤버, 상태로 프로젝트 수 조회
  * 2024-09-04        Heeseon       멤버, 상태로 프로젝트 조회
+
  */
 
 public interface ProjectRepositoryCustom {
@@ -27,6 +28,8 @@ public interface ProjectRepositoryCustom {
     Optional<ProjectDetailResponse> getProjectDetail(Long projectId);
 
     int countProjectsByMemberIdAndStatus(Long memberId, int status);
+
     Page<Project> findProjectsByMemberIdAndStatus(Long memberId, int status, Pageable pageable);
+
 
 }

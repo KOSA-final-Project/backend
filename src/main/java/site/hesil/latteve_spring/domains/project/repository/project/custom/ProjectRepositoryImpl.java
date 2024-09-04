@@ -268,6 +268,11 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
 
     @Override
+    public List<Project> findProjectsByMemberIdAndLikeId(Long memberId, Long LikeId) {
+        return List.of();
+    }
+
+    @Override
     public int countProjectsByMemberIdAndStatus(Long memberId, int status) {
         QProject project = QProject.project;
         QProjectMember projectMember = QProjectMember.projectMember;

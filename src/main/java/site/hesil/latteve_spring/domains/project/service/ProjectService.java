@@ -4,9 +4,11 @@ package site.hesil.latteve_spring.domains.project.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
@@ -118,6 +120,7 @@ public class ProjectService {
     //프로젝트 카드에 들어갈 내용 조회
     @Transactional(readOnly = true)
     public List<ProjectCardResponse> getProjectCardList(List<Project> projectList) {
+
         List<ProjectCardResponse> projectDocuments = new ArrayList<>();
 
         for(Project project : projectList){
@@ -193,7 +196,6 @@ public class ProjectService {
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
 
     }
-
 
 
 
