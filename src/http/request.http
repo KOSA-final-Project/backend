@@ -51,6 +51,25 @@ client.test("프로젝트 생성에 성공한다.", function() {
 GET http://localhost:8080/api/projects/{{projectId}}/applications
 
 
+
+### 사용자의 프로젝트 상태별로 조회 - 모집중
+GET http://localhost:8080/api/projects/my?status=0
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0NTEyNDYsImV4cCI6MTcyNTQ1MzA0Nn0.cy2rp0DWEjaIbIvOOX1EXchbs5o-fArVJdMi-1izd8DXB7F1O_7VOjiI4pE--o1urPbuw5bS2HEHh8rHxrDU_A
+
+### 사용자의 프로젝트 상태별로 조회 - 진행중
+GET http://localhost:8080/api/projects/my?status=1
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0NTEyNDYsImV4cCI6MTcyNTQ1MzA0Nn0.cy2rp0DWEjaIbIvOOX1EXchbs5o-fArVJdMi-1izd8DXB7F1O_7VOjiI4pE--o1urPbuw5bS2HEHh8rHxrDU_A
+### 사용자의 프로젝트 상태별로 조회 - 종료
+GET http://localhost:8080/api/projects/my?status=2
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0NTEyNDYsImV4cCI6MTcyNTQ1MzA0Nn0.cy2rp0DWEjaIbIvOOX1EXchbs5o-fArVJdMi-1izd8DXB7F1O_7VOjiI4pE--o1urPbuw5bS2HEHh8rHxrDU_A
+### 사용자가 좋아요 누른 프로젝트 조회
+GET http://localhost:8080/api/projects/my/like
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0NTEyNDYsImV4cCI6MTcyNTQ1MzA0Nn0.cy2rp0DWEjaIbIvOOX1EXchbs5o-fArVJdMi-1izd8DXB7F1O_7VOjiI4pE--o1urPbuw5bS2HEHh8rHxrDU_A
+
+### 마이페이지 멤버 정보 조회
+GET http://localhost:8080/api/users/me
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0NTEyNDYsImV4cCI6MTcyNTQ1MzA0Nn0.cy2rp0DWEjaIbIvOOX1EXchbs5o-fArVJdMi-1izd8DXB7F1O_7VOjiI4pE--o1urPbuw5bS2HEHh8rHxrDU_A
+
 ### 사용자의 프로젝트 상태별로 조회
 GET http://localhost:8080/api/projects/my
 Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0Mzk1MDIsImV4cCI6MTcyNTQ0MTMwMn0.cphTNO-J4afLGrnUABtY6uEpf8iovNToVoJMOKdA2lJiyYACIYX_f8mPevLxIfbyKHb8Mg8iZeondhRdixE0MQ
@@ -63,3 +82,4 @@ Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2x
 ### 마이페이지 멤버 정보 조회
 GET http://localhost:8080/api/users/me
 Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0Mzk1MDIsImV4cCI6MTcyNTQ0MTMwMn0.cphTNO-J4afLGrnUABtY6uEpf8iovNToVoJMOKdA2lJiyYACIYX_f8mPevLxIfbyKHb8Mg8iZeondhRdixE0MQ
+
