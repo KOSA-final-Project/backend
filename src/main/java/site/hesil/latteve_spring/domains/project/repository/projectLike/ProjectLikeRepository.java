@@ -3,6 +3,7 @@ package site.hesil.latteve_spring.domains.project.repository.projectLike;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
+import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLikeId;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.projectlike
@@ -16,6 +17,6 @@ import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
  * 2024-09-01        Heeseon       최초 생성
  */
 @Repository
-public interface ProjectLikeRepository extends JpaRepository<ProjectLike, Long> {
+public interface ProjectLikeRepository extends JpaRepository<ProjectLike, ProjectLikeId> {
     Long countProjectLikeByProject_ProjectId(Long project);
 }

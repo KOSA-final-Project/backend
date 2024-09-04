@@ -5,9 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 import site.hesil.latteve_spring.global.error.exception.TokenException;
-
-import java.util.Optional;
 
 import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_EXPIRED;
 
@@ -36,20 +35,11 @@ public class TokenService {
 
     @Transactional
     public void saveOrUpdate(String email, String refreshToken, String accessToken) {
-        Optional<Member> _member = memberRepository.findByEmail(email);
-
-        Long memberId;
-
-        if (_member.isPresent()) {
-            Member member = _member.get();
-            memberId = member.getMemberId();
-        } else {
-            memberId = 0L;
-        }
+        Member member = memberRepository.findByEmail(email).orElseThrow(NotFoundException::new);
 
         Token token = tokenRepository.findByAccessToken(accessToken)
                 .map(o -> o.updateRefreshToken(refreshToken))
-                .orElseGet(() -> new Token(email, memberId, refreshToken, accessToken));
+                .orElseGet(() -> new Token(email, member.getMemberId(), refreshToken, accessToken));
 
         tokenRepository.save(token);
     }

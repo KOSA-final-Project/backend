@@ -11,9 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * packageName    : site.hesil.latteve_spring.global.security
@@ -50,9 +51,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, oAuth2UserAttributes);
 
         // 5. 같은 이메일인데 다른 소셜 로그인으로 가입 시도했을 경우 -> 가입 x
-        Optional<Member> _existUser = memberRepository.findByEmail(oAuth2UserInfo.email());
-        if (_existUser.isPresent()) {
-            Member existUser = _existUser.get();
+        Supplier<? extends Throwable> NotFoundException;
+        Member existUser = memberRepository.findByEmail(oAuth2UserInfo.email()).orElseThrow(NotFoundException::new);
+
             // 기존 사용자가 존재하고, 다른 소셜 로그인 제공자로 가입된 경우
             if (!existUser.getProvider().equals(registrationId)) {
                 // 예외를 던져서 사용자에게 메시지 반환
@@ -63,14 +64,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                 existUser.getProvider())
                 );
             }
-        }
 
-        // 5. 회원가입 및 로그인
+        // 6. 회원가입 및 로그인
         Member member = getOrSave(oAuth2UserInfo);
 
         PrincipalDetails principalDetails = new PrincipalDetails(member, oAuth2UserAttributes, userNameAttributeName, registrationId);
         log.info(principalDetails.toString());
-        // 6. OAuth2User로 반환
+        // 7. OAuth2User로 반환
         return principalDetails;
     }
 
