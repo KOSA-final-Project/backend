@@ -82,9 +82,9 @@ public class SecurityConfig {
                                         new AntPathRequestMatcher("/api/users/check-auth"),
                                         new AntPathRequestMatcher("/api/users/check-nickname")
                                 ).permitAll()
-//                                .requestMatchers(
-//                                        new AntPathRequestMatcher("/api/users/**")
-//                                ).authenticated()
+                                .requestMatchers(
+                                        new AntPathRequestMatcher("/api/users/**")
+                                ).authenticated()
                                 .requestMatchers(
                                         new AntPathRequestMatcher("/**")                // permitAll fallback
                                 ).permitAll()
