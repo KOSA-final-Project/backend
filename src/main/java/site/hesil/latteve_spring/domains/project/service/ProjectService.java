@@ -23,7 +23,6 @@ import site.hesil.latteve_spring.domains.project.repository.recruitment.Recruitm
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
-import site.hesil.latteve_spring.global.security.jwt.TokenProvider;
 
 import java.util.List;
 
@@ -78,7 +77,7 @@ public class ProjectService {
                 }).toList();
     }
     
-  // 프로젝트 지원
+    // 프로젝트 지원
     public void applyProject(Long projectId, Long memberId, Long jobId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
