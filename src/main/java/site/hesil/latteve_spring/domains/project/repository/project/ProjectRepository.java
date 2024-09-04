@@ -41,3 +41,4 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
     Page<Project> findLeaderProjectsByMemberIdAndStatus(@Param("memberId") Long memberId,
                                                         @Param("status") Integer status,
                                                         Pageable pageable);
+}
