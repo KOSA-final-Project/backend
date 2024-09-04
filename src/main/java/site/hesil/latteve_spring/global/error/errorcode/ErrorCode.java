@@ -47,6 +47,7 @@ public enum ErrorCode {
     REQUIRE_MORE_COFFEE(HttpStatus.SERVICE_UNAVAILABLE, "E90", "커피가 부족 합니다."),
     S3_IMAGE_UPLOAD_FAIL(HttpStatus.SERVICE_UNAVAILABLE, "E91", "S3 버킷에 이미지를 업로드하는데 실패하였습니다."),
     //BAD_REQUEST(HttpStatus.BAD_REQUEST, "D00", "승인되지 않은 리디렉션 URI입니다.")
+    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "D92", "해당 작업은 로그인이 필요합니다."),
     ;
 
     private final HttpStatus status;
