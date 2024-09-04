@@ -17,10 +17,11 @@ import org.springframework.data.redis.core.index.Indexed;
  * -----------------------------------------------------------
  * 2024-08-29           yunbin           최초 생성
  * 2024-09-03           yunbin           memberId 추가
+ * 2024-09-04           yunbin           ttl 수정
  */
 @Getter
 @AllArgsConstructor
-@RedisHash(value = "jwt", timeToLive = 60 * 60 * 24)
+@RedisHash(value = "jwt", timeToLive = 60 * 60 * 24 * 7)
 public class Token {
 
     @Id

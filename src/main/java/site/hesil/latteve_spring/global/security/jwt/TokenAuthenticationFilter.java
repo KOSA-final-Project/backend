@@ -25,6 +25,7 @@ import java.io.IOException;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-29           yunbin           최초 생성
+ * 2024-09-30           yunbin           access token 만료시 재발급된 token이 쿠키에 저장 안되는 문제 해결
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -52,7 +53,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 setAuthentication(reissueAccessToken);
 
                 // 재발급된 accessToken 다시 전달
-                tokenProvider.addJwtCookieToResponse(response, accessToken);
+                tokenProvider.addJwtCookieToResponse(response, reissueAccessToken);
                 log.info("토큰 재발급 완료");
             }
         }
