@@ -31,11 +31,15 @@ spring:
 
 logging:
   level:
+    org.springframework.amqp: DEBUG
+    org.springframework.rabbit: DEBUG
+    com.rabbitmq: DEBUG
     root: INFO
     site.hesil: DEBUG
     org.hibernate:
       type:
         descriptor.sql: trace
+    org.springframework.amqp.rabbit.core.RabbitAdmin: DEBUG
 
 app:
   oauth2:

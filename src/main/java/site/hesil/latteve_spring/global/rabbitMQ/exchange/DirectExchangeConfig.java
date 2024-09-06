@@ -34,7 +34,7 @@ public class DirectExchangeConfig {
     }
     @Bean
     public Binding bindingMemberCreate(@Qualifier("memberDirectExchange") DirectExchange memberDirectExchange, @Qualifier("memberCreateQueue") Queue memberCreateQueue){
-        return BindingBuilder.bind(memberCreateQueue).to(memberDirectExchange).with(MQRouting.MEMBER_CREATE .getRouting());
+        return BindingBuilder.bind(memberCreateQueue).to(memberDirectExchange).with(MQRouting.MEMBER_CREATE.getRouting());
     }
 
     //DeadLetter -> 메세지 실패처리

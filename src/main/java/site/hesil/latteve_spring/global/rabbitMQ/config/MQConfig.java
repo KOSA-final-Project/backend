@@ -4,9 +4,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.rabbitmq.client.ShutdownSignalException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.Connection;
+
+import org.springframework.amqp.rabbit.connection.ConnectionListener;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -29,6 +35,7 @@ import org.springframework.retry.support.RetryTemplate;
  * -----------------------------------------------------------
  * 2024-09-03        Yeong-Huns       최초 생성
  */
+@Log4j2
 @Configuration
 public class MQConfig {
 
@@ -46,6 +53,12 @@ public class MQConfig {
     private String password;
 
 
+    @Bean
+    public RabbitAdmin rabbitAdmin(CachingConnectionFactory connectionFactory) {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+        rabbitAdmin.setAutoStartup(true);
+        return rabbitAdmin;
+    }
 
     @Bean
     public MessageConverter jsonMessageConverter() {
@@ -57,10 +70,13 @@ public class MQConfig {
     }
     @Bean
     public CachingConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(host);
+        log.info("Initializing RabbitMQ Connection Factory...");
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+        connectionFactory.setHost(host);
         connectionFactory.setPort(port);
         connectionFactory.setUsername(username);
         connectionFactory.setPassword(password);
+        log.info("Connection Factory initialized and ready to connect.");
         return connectionFactory;
     }
     @Bean
@@ -69,6 +85,8 @@ public class MQConfig {
         rabbitTemplate.setMessageConverter(jsonMessageConverter());
         return rabbitTemplate;
     }
+
+
     @Bean
     public RetryTemplate retryTemplate() { // 재처리 로직
         RetryTemplate retryTemplate = new RetryTemplate();
