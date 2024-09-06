@@ -5,12 +5,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -36,6 +35,7 @@ import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepositor
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -196,6 +196,15 @@ public class ProjectService {
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
 
     }
+
+    // 신규순으로 조회
+    public Page<ProjectCardResponse> getProjectsByCreatedAt(Pageable pageable) {
+
+        Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(1, pageable);
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
+    }
+
 
 
 

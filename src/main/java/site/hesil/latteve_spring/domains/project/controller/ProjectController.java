@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.controller.MemberController;
+import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
 import lombok.extern.log4j.Log4j2;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
@@ -92,4 +93,20 @@ public class ProjectController {
         Page<ProjectCardResponse> projectPage = projectService.getProjectsByMemberAndLike(memberId, pageable);
         return ResponseEntity.ok(projectPage);
     }
+
+    // top 100  프로젝트 조회
+
+
+    //최근에 생성된 프로젝트 조회
+    // 신규 프로젝트
+    @GetMapping("/new")
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "4") int size) {
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsByCreatedAt(PageRequest.of(page, size));
+        return ResponseEntity.ok(projectPage);
+    }
+
+
+
+
 }
