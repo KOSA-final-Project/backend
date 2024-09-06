@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.member.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
@@ -31,7 +32,10 @@ import java.util.Optional;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-28           yunbin           최초 생성
+ * 2024-09-04           Heeseon          사용자 정보 조회
  */
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -115,7 +119,6 @@ public class MemberService {
         for(MemberJob memberJob : memberJobs) {
             Optional<Job> jobOpt = jobRepository.findById(memberJob.getJob().getJobId());
             jobOpt.ifPresent(job -> jobList.add(job.getName()));
-
         }
 
         ResponseMember responseMember =  ResponseMember.builder()
@@ -125,6 +128,7 @@ public class MemberService {
                 .nickname(member.getNickname())
                 .github(member.getGithub())
                 .career(member.getCareer())
+                .jobs(jobList)
                 .pr(member.getPr())
                 .memberTechStack(techStackList ).build();
 
