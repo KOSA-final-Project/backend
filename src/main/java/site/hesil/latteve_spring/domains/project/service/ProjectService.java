@@ -103,7 +103,7 @@ public class ProjectService {
                 .orElseThrow(() -> new EntityNotFoundException("Job not found"));
 
         // project_member 테이블에 데이터 삽입
-        ProjectMember projectMember = ProjectMember.createMember(project, member, job);
+        ProjectMember projectMember = ProjectMember.of(project, member, job);
 
         projectMemberRepository.save(projectMember);
 
