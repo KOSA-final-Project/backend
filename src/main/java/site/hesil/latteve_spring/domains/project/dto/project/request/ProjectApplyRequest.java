@@ -14,4 +14,4 @@ import lombok.Builder;
  * 2024-09-01        JooYoon       최초 생성
  */
 @Builder
-public record ProjectApplyRequest(Long memberId, Long jobId) {}
+public record ProjectApplyRequest(Long jobId) {}

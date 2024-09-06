@@ -1,6 +1,7 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,13 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.controller.MemberController;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
-import lombok.extern.log4j.Log4j2;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
+import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
-
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.util.List;
@@ -53,9 +53,9 @@ public class ProjectController {
 
     // 프로젝트 지원
     @PostMapping("/{projectId}/applications")
-    public ResponseEntity<Void> applyProject(@PathVariable Long projectId, @RequestBody ProjectApplyRequest projectApplyRequest) {
+    public ResponseEntity<Void> applyProject(@PathVariable Long projectId, @AuthMemberId Long memberId, @RequestBody ProjectApplyRequest projectApplyRequest) {
 
-        projectService.applyProject(projectId, projectApplyRequest.memberId(), projectApplyRequest.jobId());
+        projectService.applyProject(projectId, memberId, projectApplyRequest.jobId());
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -79,7 +79,7 @@ public class ProjectController {
                                                                     @RequestParam(defaultValue = "0") int page,
                                                                     @RequestParam(defaultValue = "4") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProjectCardResponse> projectCardResponsePage =  projectService.getProjectsByMemberAndStatus(memberId, status, pageable);
+        Page<ProjectCardResponse> projectCardResponsePage = projectService.getProjectsByMemberAndStatus(memberId, status, pageable);
         return ResponseEntity.ok(projectCardResponsePage);
     }
 
@@ -91,5 +91,14 @@ public class ProjectController {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProjectCardResponse> projectPage = projectService.getProjectsByMemberAndLike(memberId, pageable);
         return ResponseEntity.ok(projectPage);
+    }
+
+    // 회고 조회
+    @GetMapping("/{projectId}/retrospectives")
+    public ResponseEntity<RetrospectiveResponse> getRetrospective(@PathVariable Long projectId,
+                                                                  @RequestParam Long memberId,
+                                                                  @RequestParam int week) {
+
+        return ResponseEntity.ok(projectService.getRetrospective(projectId, memberId, week));
     }
 }
