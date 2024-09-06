@@ -55,7 +55,7 @@ public class Alarm {
         this.isRead = false;
     }
 
-    public static Alarm createAlarm(Project project, Member member, Job job, Integer type) {
+    public static Alarm of(Project project, Member member, Job job, Integer type) {
         return new Alarm(project, member, job, type);
     }
 }

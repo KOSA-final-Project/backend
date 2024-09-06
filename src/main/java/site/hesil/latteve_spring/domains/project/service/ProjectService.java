@@ -108,7 +108,7 @@ public class ProjectService {
         projectMemberRepository.save(projectMember);
 
         // alarm 테이블에 데이터 삽입
-        Alarm alarm = Alarm.createAlarm(project, member, job, 0);
+        Alarm alarm = Alarm.of(project, member, job, 0);
 
         alarmRepository.save(alarm);
 
