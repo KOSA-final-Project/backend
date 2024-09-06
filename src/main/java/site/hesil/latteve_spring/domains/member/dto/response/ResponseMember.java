@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.member.dto.response;
 
 import lombok.Builder;
 
+
 import java.util.List;
 
 /**
@@ -22,6 +23,7 @@ public record ResponseMember (
     String email,
     String nickname,
     String github,
+    List<String>  jobs,
     String career,
     List<TechStack> memberTechStack,
     String pr // 자기소개
