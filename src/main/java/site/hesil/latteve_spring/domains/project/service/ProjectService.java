@@ -4,12 +4,11 @@ package site.hesil.latteve_spring.domains.project.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.data.domain.*;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -23,19 +22,18 @@ import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCar
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
+import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
-
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -93,7 +91,7 @@ public class ProjectService {
                 }).toList();
     }
     
-  // 프로젝트 지원
+    // 프로젝트 지원
     public void applyProject(Long projectId, Long memberId, Long jobId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
@@ -205,7 +203,11 @@ public class ProjectService {
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }
 
+    // 회고 조회
+    public RetrospectiveResponse getRetrospective(Long projectId, Long memberId, int week) {
 
-
+        return projectRepository.getRetrospective(projectId, memberId, week)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+    }
 
 }

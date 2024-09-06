@@ -4,8 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
+import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,5 +31,5 @@ public interface ProjectRepositoryCustom {
 
     Page<Project> findProjectsByMemberIdAndStatus(Long memberId, int status, Pageable pageable);
 
-
+    Optional<RetrospectiveResponse> getRetrospective(Long projectId, Long memberId, int week);
 }

@@ -15,7 +15,9 @@ import site.hesil.latteve_spring.domains.project.domain.QProject;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.QProjectMember;
 import site.hesil.latteve_spring.domains.project.domain.recruitment.QRecruitment;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
+import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.projectStack.domain.QProjectStack;
+import site.hesil.latteve_spring.domains.retrospective.domain.QRetrospective;
 import site.hesil.latteve_spring.domains.techStack.domain.QTechStack;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
@@ -280,5 +282,30 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
 
         return count != null ? count.intValue() : 0;
+    }
+
+    @Override
+    public Optional<RetrospectiveResponse> getRetrospective(Long projectId, Long memberId, int week) {
+        QRetrospective retrospective = QRetrospective.retrospective;
+
+        Tuple retrospectiveInto = queryFactory.select(
+                retrospective.title,
+                retrospective.content,
+                retrospective.createdAt,
+                retrospective.updatedAt)
+                .from(retrospective)
+                .where(retrospective.project.projectId.eq(projectId)
+                        .and(retrospective.member.memberId.eq(memberId))
+                        .and(retrospective.week.eq(week)))
+                .fetchOne();
+
+        if (retrospectiveInto == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
+
+        return Optional.ofNullable(RetrospectiveResponse.builder()
+                .title(retrospectiveInto.get(retrospective.title))
+                .content(retrospectiveInto.get(retrospective.content))
+                .createdAt(retrospectiveInto.get(retrospective.createdAt))
+                .updatedAt(retrospectiveInto.get(retrospective.updatedAt))
+                .build());
     }
 }
