@@ -16,6 +16,7 @@ import site.hesil.latteve_spring.domains.project.dto.request.projectSave.Project
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
+import site.hesil.latteve_spring.domains.retrospective.dto.CreateRetrospectiveRequest;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.util.List;
@@ -101,4 +102,15 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectService.getRetrospective(projectId, memberId, week));
     }
+
+    // 프로젝트 회고 등록
+    @PostMapping("/{projectId}/retrospectives")
+    public ResponseEntity<Void> saveRetrospective(@PathVariable Long projectId,
+                                                  @AuthMemberId Long memberId,
+                                                  @RequestBody CreateRetrospectiveRequest createRetrospectiveRequest) {
+
+        projectService.saveRetrospective(projectId, memberId, createRetrospectiveRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
 }

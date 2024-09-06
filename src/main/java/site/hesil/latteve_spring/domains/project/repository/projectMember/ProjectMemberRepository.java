@@ -9,6 +9,7 @@ import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMem
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMemberId;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository
@@ -41,5 +42,8 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     @Modifying
     @Query(value = "INSERT INTO project_member (project_id, member_id, job_id, is_leader, accept_status) VALUES (:projectId, :memberId, 1, 1, 1)", nativeQuery = true)
     void registerProjectLeader(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
+
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.projectMemberId.projectId = :projectId AND pm.projectMemberId.memberId = :memberId")
+    Optional<ProjectMember> findByProjectIdAndProjectMemberId(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 }
 

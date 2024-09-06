@@ -29,6 +29,9 @@ import site.hesil.latteve_spring.domains.project.repository.projectMember.Projec
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
+import site.hesil.latteve_spring.domains.retrospective.domain.Retrospective;
+import site.hesil.latteve_spring.domains.retrospective.dto.CreateRetrospectiveRequest;
+import site.hesil.latteve_spring.domains.retrospective.repository.RetrospectiveRepository;
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
@@ -66,6 +69,7 @@ public class ProjectService {
     private final MemberStackRepository memberStackRepository;
     private final TechStackRepository techStackRepository;
     private final ProjectLikeRepository projectLikeRepository;
+    private final RetrospectiveRepository retrospectiveRepository;
 
     // 프로젝트 상세 페이지 정보
     public ProjectDetailResponse getProjectDetail(Long projectId) {
@@ -202,4 +206,27 @@ public class ProjectService {
                 .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
     }
 
+    // 프로젝트 회고 등록
+    public void saveRetrospective(Long projectId, Long memberId, CreateRetrospectiveRequest createRetrospectiveRequest) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        log.debug("project: {}", project);
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        log.debug("member: {}", member);
+
+        ProjectMember projectMember = projectMemberRepository.findByProjectIdAndProjectMemberId(projectId, memberId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        log.debug("projectMember: {}", projectMember);
+
+        Job job = projectMember.getJob();
+
+        Retrospective retrospective = Retrospective.of(project, member, job, createRetrospectiveRequest.title(),
+                createRetrospectiveRequest.content(), createRetrospectiveRequest.week());
+        log.debug("retrospective: {}", retrospective);
+
+        retrospectiveRepository.save(retrospective);
+    }
 }
