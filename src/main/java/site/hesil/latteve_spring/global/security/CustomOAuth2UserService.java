@@ -12,6 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
 import site.hesil.latteve_spring.global.error.exception.NotFoundException;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQExchange;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQRouting;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQueue;
+import site.hesil.latteve_spring.global.rabbitMQ.publisher.MQSender;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -26,6 +30,7 @@ import java.util.function.Supplier;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-23           yunbin           최초 생성
+ * 2024-09-06           Yeong_huns       member 동기화
  */
 @RequiredArgsConstructor
 @Service
@@ -33,7 +38,7 @@ import java.util.function.Supplier;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
-
+    private final MQSender mqSender;
     @Transactional
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -67,7 +72,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 6. 회원가입 및 로그인
         Member member = getOrSave(oAuth2UserInfo);
-
+        mqSender.sendMessage(MQExchange.DIRECT_MEMBER.getExchange(), MQRouting.MEMBER_CREATE.getRouting(), member);
         PrincipalDetails principalDetails = new PrincipalDetails(member, oAuth2UserAttributes, userNameAttributeName, registrationId);
         log.info(principalDetails.toString());
         // 7. OAuth2User로 반환
