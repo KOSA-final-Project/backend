@@ -41,4 +41,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
     Page<Project> findLeaderProjectsByMemberIdAndStatus(@Param("memberId") Long memberId,
                                                         @Param("status") Integer status,
                                                         Pageable pageable);
+
+    // 신규순으로 조회하는 쿼리
+    Page<Project> findAllByStatusOrderByCreatedAtDesc(int status, Pageable pageable);
+
+
+    // 종료된 프로젝트 조회
+    @Query("SELECT p FROM Project p WHERE p.status = 2 AND p.deletedAt IS NULL AND p.startedAt IS NOT NULL")
+    Page<Project> findAllCompletedProjects(Pageable pageable);
+
+
+
+
 }
