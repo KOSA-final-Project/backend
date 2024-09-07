@@ -35,6 +35,7 @@ import java.util.List;
  * 2024-09-01        Yeong-Huns    프로젝트 생성
  * 2024-09-04        Heeseon       프로젝트 상태, 멤버별로 조회
  * 2024-09-07        Yeong-Huns    프로젝트 지원자 승인 / 거절
+ * 2024-09-08        Yeong-Huns    좋아요, 좋아요 취소
  */
 @Log4j2
 @RestController
@@ -116,5 +117,17 @@ public class ProjectController {
                                                                   @RequestParam int week) {
 
         return ResponseEntity.ok(projectService.getRetrospective(projectId, memberId, week));
+    }
+
+    @PostMapping("/{projectId}/like")
+    public ResponseEntity<Void> registerProjectLike(@PathVariable long projectId, @AuthMemberId Long memberId) {
+        projectService.registerProjectLike(projectId,memberId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping("/{projectId}/like")
+    public ResponseEntity<Void> deleteProjectLike(@PathVariable long projectId, @AuthMemberId Long memberId) {
+        projectService.deleteProjectLike(projectId,memberId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
