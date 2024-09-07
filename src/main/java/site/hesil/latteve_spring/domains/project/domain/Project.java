@@ -49,4 +49,8 @@ public class Project extends BaseTimeEntity {
         this.cycle = cycle;
     }
 
+    public void onGoing(){
+        this.status = 1;
+    }
+
 }

@@ -15,9 +15,11 @@ import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackResponse;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
+import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
@@ -33,6 +35,7 @@ import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
+import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +53,7 @@ import java.util.Optional;
  * 2024-08-26        JooYoon       최초 생성
  * 2024-09-01        Yeong-Huns    프로젝트 생성
  * 2024-09-04        Heeseon       프로젝트 조회, 프로젝트 카드 내용 조회
+ * 2024-09-07        Yeong-Huns    프로젝트 지원자 승인 / 거절
  */
 @Slf4j
 @Service
@@ -84,13 +88,33 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getApplicationsByProjectId(long projectId){
-        return projectMemberRepository.findByProjectId(projectId).stream()
+        return projectMemberRepository.findApplicationsByProjectId(projectId).stream()
                 .map(pm->{
-                    List<String> techStacks = memberStackRepository.findTechStackNamesByMemberId(pm.getMember().getMemberId());
-                    return ApplicationResponse.of(pm.getMember().getMemberId(), pm.getJob().getName(), techStacks);
+                    List<MemberStackResponse> techStacks = memberStackRepository.findTechStackNamesByMemberId(pm.projectMemberId());
+                    return ApplicationResponse.of(pm, techStacks);
                 }).toList();
     }
-    
+
+    @Transactional
+    public void updateAcceptStatus(UpdateAcceptStatusRequest updateAcceptStatusRequest, Long memberId){
+        boolean isLeader = projectMemberRepository.isLeader(updateAcceptStatusRequest.projectId(), memberId);
+        if(!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
+        ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.memberId())
+                .orElseThrow(()-> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
+        projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
+        log.info(projectMember.toString());
+    }
+
+    @Transactional
+    public void projectStart(long projectId, Long memberId){
+        boolean isLeader = projectMemberRepository.isLeader(projectId, memberId);
+        if(!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
+        projectRepository.findById(projectId)
+                .orElseThrow(()->new NotFoundException("프로젝트 시작 : 해당 ProjecetId 와 일치하는 Project 가 없습니다."))
+                .onGoing();
+        projectMemberRepository.updateAcceptStatusByProjectId(projectId);
+    }
+
     // 프로젝트 지원
     public void applyProject(Long projectId, Long memberId, Long jobId) {
         Project project = projectRepository.findById(projectId)
