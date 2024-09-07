@@ -42,8 +42,10 @@ import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.service
@@ -224,6 +226,14 @@ public class ProjectService {
 
     }
 
+    // 신규순으로 조회
+    public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable) {
+
+        Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(1, pageable);
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
+    }
+
     // 회고 조회
     public RetrospectiveResponse getRetrospective(Long projectId, Long memberId, int week) {
 
@@ -238,5 +248,33 @@ public class ProjectService {
     public void deleteProjectLike(long projectId, long memberId) {
         projectLikeRepository.deleteProjectLike(projectId, memberId);
     }
+
+    public boolean isProjectLikedByUser(Long projectId, Long memberId) {
+        // 프로젝트와 사용자의 좋아요 기록을 확인
+        return projectLikeRepository.existsByProject_ProjectIdAndMember_MemberId(projectId, memberId);
+    }
+
+    // 최근 종료된 순으로 조회
+    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable) {
+        // 1. 프로젝트 목록 가져오기
+        Page<Project> projects = projectRepository.findAllCompletedProjects(pageable);
+
+        // 2. 프로젝트를 마감일 기준으로 정렬
+        List<Project> sortedProjects = projects.stream()
+                .sorted(Comparator.comparing(Project::getDeadline).reversed())
+                .collect(Collectors.toList());
+
+
+        // 3. getProjectCardList 메서드를 사용하여 ProjectCardResponse 리스트로 변환
+        List<ProjectCardResponse> projectCardResponses = getProjectCardList(sortedProjects);
+
+        return new PageImpl<>(projectCardResponses, pageable, projects.getTotalElements());
+    }
+
+    // 인기 프로젝트 조회
+
+//
+//    // 가중치 계산
+//    public
 
 }

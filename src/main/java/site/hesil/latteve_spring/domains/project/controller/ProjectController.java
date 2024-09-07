@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.controller.MemberController;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
+import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectStartRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
@@ -110,6 +111,27 @@ public class ProjectController {
         return ResponseEntity.ok(projectPage);
     }
 
+
+
+    //최근에 생성된 프로젝트 조회
+    @GetMapping("/new")
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "4") int size) {
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size));
+        return ResponseEntity.ok(projectPage);
+    }
+
+    //최근에 종료된 프로젝트 조회
+    @GetMapping("/done")
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@RequestParam(defaultValue = "0") int page,
+                                                                              @RequestParam(defaultValue = "4") int size) {
+
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size));
+        return ResponseEntity.ok(projectPage);
+    }
+
+
+
     // 회고 조회
     @GetMapping("/{projectId}/retrospectives")
     public ResponseEntity<RetrospectiveResponse> getRetrospective(@PathVariable Long projectId,
@@ -118,6 +140,7 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectService.getRetrospective(projectId, memberId, week));
     }
+
 
     @PostMapping("/{projectId}/like")
     public ResponseEntity<Void> registerProjectLike(@PathVariable long projectId, @AuthMemberId Long memberId) {
@@ -130,4 +153,13 @@ public class ProjectController {
         projectService.deleteProjectLike(projectId,memberId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+//    // 인기 프로젝트 조회
+//    @GetMapping("/popular")
+//    public ResponseEntity<Page<PopularProjectResponse>> getPopularProjectList(@RequestParam(defaultValue = "0") int page,
+//                                                                              @RequestParam(defaultValue = "4") int size){
+//
+//        return ResponseEntity.ok(projectService.getProjectsByScore());
+//    }
+
 }
