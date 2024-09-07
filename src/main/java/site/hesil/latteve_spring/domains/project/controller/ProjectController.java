@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.controller.MemberController;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
+import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
@@ -107,7 +108,7 @@ public class ProjectController {
     @GetMapping("/done")
     public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@RequestParam(defaultValue = "0") int page,
                                                                               @RequestParam(defaultValue = "4") int size) {
-        log.info("종료된 프로젝트 조회");
+
         Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size));
         return ResponseEntity.ok(projectPage);
     }
@@ -122,4 +123,12 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectService.getRetrospective(projectId, memberId, week));
     }
+
+//    // 인기 프로젝트 조회
+//    @GetMapping("/popular")
+//    public ResponseEntity<Page<PopularProjectResponse>> getPopularProjectList(@RequestParam(defaultValue = "0") int page,
+//                                                                              @RequestParam(defaultValue = "4") int size){
+//
+//        return ResponseEntity.ok(projectService.getProjectsByScore());
+//    }
 }

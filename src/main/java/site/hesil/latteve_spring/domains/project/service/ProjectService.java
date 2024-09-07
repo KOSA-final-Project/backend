@@ -217,6 +217,7 @@ public class ProjectService {
         return projectLikeRepository.existsByProject_ProjectIdAndMember_MemberId(projectId, memberId);
     }
 
+    // 최근 종료된 순으로 조회
     public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable) {
         // 1. 프로젝트 목록 가져오기
         Page<Project> projects = projectRepository.findAllCompletedProjects(pageable);
@@ -225,12 +226,18 @@ public class ProjectService {
         List<Project> sortedProjects = projects.stream()
                 .sorted(Comparator.comparing(Project::getDeadline).reversed())
                 .collect(Collectors.toList());
-        log.info("마감일 기준 정렬");
+
 
         // 3. getProjectCardList 메서드를 사용하여 ProjectCardResponse 리스트로 변환
         List<ProjectCardResponse> projectCardResponses = getProjectCardList(sortedProjects);
-        log.info("리스트로 변환");
 
         return new PageImpl<>(projectCardResponses, pageable, projects.getTotalElements());
     }
+
+    // 인기 프로젝트 조회
+
+//
+//    // 가중치 계산
+//    public
+
 }
