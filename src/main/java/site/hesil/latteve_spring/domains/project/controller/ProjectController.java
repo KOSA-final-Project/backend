@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.controller.MemberController;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
+import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectStartRequest;
+import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
@@ -32,6 +34,7 @@ import java.util.List;
  * 2024-08-26        JooYoon       최초 생성
  * 2024-09-01        Yeong-Huns    프로젝트 생성
  * 2024-09-04        Heeseon       프로젝트 상태, 멤버별로 조회
+ * 2024-09-07        Yeong-Huns    프로젝트 지원자 승인 / 거절
  */
 @Log4j2
 @RestController
@@ -71,6 +74,19 @@ public class ProjectController {
     @GetMapping("/{projectId}/applications")
     public ResponseEntity<List<ApplicationResponse>> projectRecruit(@PathVariable Long projectId) {
         return ResponseEntity.ok(projectService.getApplicationsByProjectId(projectId));
+    }
+
+    @PutMapping("/applications")
+    public ResponseEntity<Void> updateAcceptStatus(@RequestBody UpdateAcceptStatusRequest updateAcceptStatusRequest, @AuthMemberId Long memberId){
+        projectService.updateAcceptStatus(updateAcceptStatusRequest, memberId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PostMapping("/start")
+    public ResponseEntity<Void> projectStart(@RequestBody ProjectStartRequest projectStartRequest, @AuthMemberId Long memberId) {
+        log.info("projectStart: {}", projectStartRequest.projectId());
+        projectService.projectStart(projectStartRequest.projectId(), memberId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     // 마이페이지에서 프로젝트 조회

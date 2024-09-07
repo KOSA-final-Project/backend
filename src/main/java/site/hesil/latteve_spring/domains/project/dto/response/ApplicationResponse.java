@@ -1,6 +1,9 @@
 package site.hesil.latteve_spring.domains.project.dto.response;
 
 import lombok.Builder;
+import site.hesil.latteve_spring.domains.member.domain.Member;
+import site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackResponse;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse;
 
 import java.util.List;
 
@@ -13,17 +16,28 @@ import java.util.List;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-09-03        Yeong-Huns       최초 생성
+ * 2024-09-03        Yeong-Huns       projectMemberId -> projectMemberNickname 수정
  */
 @Builder
 public record ApplicationResponse(
-        long projectMemberId,
         String jobName,
-        List<String> techStack
+        long projectMemberId,
+        String projectMemberNickname,
+        String projectMemberGitHub,
+        String projectMemberImgUrl,
+        long ongoingProjectCount,
+        long completedProjectCount,
+        List<MemberStackResponse> techStack
 ) {
-    public static ApplicationResponse of(long projectMemberId, String jobName, List<String> techStack) {
+    public static ApplicationResponse of(ProjectMemberResponse projectMemberResponse, List<MemberStackResponse> techStack) {
         return ApplicationResponse.builder()
-                .projectMemberId(projectMemberId)
-                .jobName(jobName)
+                .projectMemberId(projectMemberResponse.projectMemberId())
+                .projectMemberNickname(projectMemberResponse.projectMemberNickname())
+                .projectMemberGitHub(projectMemberResponse.projectMemberGitHub())
+                .projectMemberImgUrl(projectMemberResponse.projectMemberImgUrl())
+                .jobName(projectMemberResponse.jobName())
+                .ongoingProjectCount(projectMemberResponse.ongoingProjectCount())
+                .completedProjectCount(projectMemberResponse.completedProjectCount())
                 .techStack(techStack)
                 .build();
     }
