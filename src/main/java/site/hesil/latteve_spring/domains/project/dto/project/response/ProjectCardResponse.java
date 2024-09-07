@@ -23,6 +23,7 @@ public record ProjectCardResponse(
         String imgUrl,
         int duration,
         List<TechStack> projectTechStack,
+        boolean isLiked, // 내가 '좋아요' 눌렀는지
         Long cntLike, // 좋아요 수
         int currentCnt, // 현재 모인 팀원 수
         int teamCnt // 모집 인원

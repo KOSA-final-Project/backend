@@ -96,11 +96,19 @@ public class ProjectController {
 
 
     //최근에 생성된 프로젝트 조회
-    // 신규 프로젝트
     @GetMapping("/new")
     public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@RequestParam(defaultValue = "0") int page,
                                                                           @RequestParam(defaultValue = "4") int size) {
-        Page<ProjectCardResponse> projectPage = projectService.getProjectsByCreatedAt(PageRequest.of(page, size));
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size));
+        return ResponseEntity.ok(projectPage);
+    }
+
+    //최근에 종료된 프로젝트 조회
+    @GetMapping("/done")
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@RequestParam(defaultValue = "0") int page,
+                                                                              @RequestParam(defaultValue = "4") int size) {
+        log.info("종료된 프로젝트 조회");
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size));
         return ResponseEntity.ok(projectPage);
     }
 

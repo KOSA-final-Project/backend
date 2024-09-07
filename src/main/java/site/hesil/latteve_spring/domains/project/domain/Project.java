@@ -48,5 +48,11 @@ public class Project extends BaseTimeEntity {
         this.duration = duration;
         this.cycle = cycle;
     }
-
+    // 마감일을 계산하는 메서드
+    public LocalDateTime getDeadline() {
+        if (this.startedAt != null && this.duration > 0) {
+            return this.startedAt.plusDays(this.duration * 7);
+        }
+        return null;
+    }
 }
