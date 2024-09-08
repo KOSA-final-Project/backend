@@ -15,6 +15,7 @@ import site.hesil.latteve_spring.domains.search.service.SearchService;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
+import site.hesil.latteve_spring.global.security.annotation.LoginFilterMemberId;
 
 import java.io.IOException;
 import java.util.*;
@@ -58,7 +59,7 @@ public class SearchController {
     }
 
     @GetMapping("/projects")
-    public ResponseEntity<List<ProjectCardResponse>> searchProjects(@AuthMemberId(required = false) Long memberId,
+    public ResponseEntity<List<ProjectCardResponse>> searchProjects(@LoginFilterMemberId(required = false) Long memberId,
                                                                    @RequestParam String keyword,
                                                                    @RequestParam(required = false) String status,
                                                                    @RequestParam(required = false) String sortby) throws IOException {
@@ -70,7 +71,7 @@ public class SearchController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Map<String, Object>> search(@AuthMemberId(required = false) Long memberId,
+    public ResponseEntity<Map<String, Object>> search(@LoginFilterMemberId(required = false) Long memberId,
                                                       @RequestParam String keyword) throws IOException {
         List<ProjectCardResponse> projects = searchService.searchProjectsByKeyword(memberId, keyword,null, null);
         List<MemberDocumentReq> members = searchService.searchMembersByKeyword(keyword, null );
