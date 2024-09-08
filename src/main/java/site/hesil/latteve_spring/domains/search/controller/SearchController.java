@@ -49,32 +49,32 @@ public class SearchController {
     }
 
     @GetMapping("/members")
-    public ResponseEntity<List<MemberDocumentReq>> searchMembers(@RequestParam String keyword,
-                                                 @RequestParam(required = false) String sortby) throws IOException {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            throw new CustomBaseException("검색어를 입력하세요.", ErrorCode.INVALID_INPUT_VALUE);
-        }
+    public ResponseEntity<List<MemberDocumentReq>> searchMembers(@RequestParam(required=false) String keyword,
+                                                 @RequestParam(required = false) String sortby,
+                                                                 @RequestParam(defaultValue = "50") int size, // 기본값 50으로 설정
+                                                                 @RequestParam(defaultValue = "0") int from) throws IOException {
 
-        return ResponseEntity.ok(searchService.searchMembersByKeyword(keyword, sortby ));
+        return ResponseEntity.ok(searchService.searchMembersByKeyword(keyword, sortby, from, size ));
     }
 
     @GetMapping("/projects")
     public ResponseEntity<List<ProjectCardResponse>> searchProjects(@LoginFilterMemberId(required = false) Long memberId,
-                                                                   @RequestParam String keyword,
+                                                                    @RequestParam(required = false) String keyword,
                                                                    @RequestParam(required = false) String status,
-                                                                   @RequestParam(required = false) String sortby) throws IOException {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            throw new CustomBaseException("검색어를 입력하세요.", ErrorCode.INVALID_INPUT_VALUE);
-        }
+                                                                   @RequestParam(required = false) String sortby,
+                                                                    @RequestParam(defaultValue = "50") int size, // 기본값 50으로 설정
+                                                                    @RequestParam(defaultValue = "0") int from) throws IOException {
+        log.info("keyword = " + keyword);
 
-        return ResponseEntity.ok(searchService.searchProjectsByKeyword(memberId, keyword,status, sortby));
+        return ResponseEntity.ok(searchService.searchProjectsByKeyword(memberId, keyword,status, sortby, from, size));
     }
 
     @GetMapping("/all")
     public ResponseEntity<Map<String, Object>> search(@LoginFilterMemberId(required = false) Long memberId,
-                                                      @RequestParam String keyword) throws IOException {
-        List<ProjectCardResponse> projects = searchService.searchProjectsByKeyword(memberId, keyword,null, null);
-        List<MemberDocumentReq> members = searchService.searchMembersByKeyword(keyword, null );
+                                                      @RequestParam String keyword,@RequestParam(defaultValue = "50") int size, // 기본값 50으로 설정
+                                                      @RequestParam(defaultValue = "0") int from) throws IOException {
+        List<ProjectCardResponse> projects = searchService.searchProjectsByKeyword(memberId, keyword,null, null, from, size);
+        List<MemberDocumentReq> members = searchService.searchMembersByKeyword(keyword, null , from , size);
 
         Map<String, Object> response = new HashMap<>();
         response.put("projects", projects);
