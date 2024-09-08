@@ -58,7 +58,7 @@ public class ProjectMember {
         this.acceptStatus = 2;
     }
 
-    public static ProjectMember createMember(Project project, Member member, Job job) {
+    public static ProjectMember of(Project project, Member member, Job job) {
         return new ProjectMember(project, member, job);
     }
 

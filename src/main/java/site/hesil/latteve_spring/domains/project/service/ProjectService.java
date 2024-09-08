@@ -7,11 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -22,7 +19,6 @@ import site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackRes
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
-import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
 import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
@@ -36,12 +32,14 @@ import site.hesil.latteve_spring.domains.project.repository.projectMember.Projec
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
+import site.hesil.latteve_spring.domains.retrospective.domain.Retrospective;
+import site.hesil.latteve_spring.domains.retrospective.dto.CreateRetrospectiveRequest;
+import site.hesil.latteve_spring.domains.retrospective.repository.RetrospectiveRepository;
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 import site.hesil.latteve_spring.global.error.exception.NotFoundException;
-import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -79,6 +77,7 @@ public class ProjectService {
     private final MemberStackRepository memberStackRepository;
     private final TechStackRepository techStackRepository;
     private final ProjectLikeRepository projectLikeRepository;
+    private final RetrospectiveRepository retrospectiveRepository;
 
     // 프로젝트 상세 페이지 정보
     public ProjectDetailResponse getProjectDetail(Long projectId) {
@@ -137,12 +136,12 @@ public class ProjectService {
                 .orElseThrow(() -> new EntityNotFoundException("Job not found"));
 
         // project_member 테이블에 데이터 삽입
-        ProjectMember projectMember = ProjectMember.createMember(project, member, job);
+        ProjectMember projectMember = ProjectMember.of(project, member, job);
 
         projectMemberRepository.save(projectMember);
 
         // alarm 테이블에 데이터 삽입
-        Alarm alarm = Alarm.createAlarm(project, member, job, 0);
+        Alarm alarm = Alarm.of(project, member, job, 0);
 
         alarmRepository.save(alarm);
 
@@ -401,4 +400,27 @@ public class ProjectService {
     }
 
 
+    // 프로젝트 회고 등록
+    public void saveRetrospective(Long projectId, Long memberId, CreateRetrospectiveRequest createRetrospectiveRequest) {
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        log.debug("project: {}", project);
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        log.debug("member: {}", member);
+
+        ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberId(projectId, memberId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        log.debug("projectMember: {}", projectMember);
+
+        Job job = projectMember.getJob();
+
+        Retrospective retrospective = Retrospective.of(project, member, job, createRetrospectiveRequest.title(),
+                createRetrospectiveRequest.content(), createRetrospectiveRequest.week());
+        log.debug("retrospective: {}", retrospective);
+
+        retrospectiveRepository.save(retrospective);
+    }
 }

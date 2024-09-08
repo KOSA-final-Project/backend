@@ -19,6 +19,7 @@ import site.hesil.latteve_spring.domains.project.dto.request.projectSave.Project
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
+import site.hesil.latteve_spring.domains.retrospective.dto.CreateRetrospectiveRequest;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 import site.hesil.latteve_spring.global.security.annotation.LoginFilterMemberId;
 
@@ -110,9 +111,7 @@ public class ProjectController {
         Page<ProjectCardResponse> projectPage = projectService.getProjectsByMemberAndLike(memberId, pageable);
         return ResponseEntity.ok(projectPage);
     }
-
-
-
+    
     //최근에 생성된 프로젝트 조회
     @GetMapping("/new")
     public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@LoginFilterMemberId(required = false) Long memberId,
@@ -131,9 +130,7 @@ public class ProjectController {
         Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size),memberId);
         return ResponseEntity.ok(projectPage);
     }
-
-
-
+    
     // 회고 조회
     @GetMapping("/{projectId}/retrospectives")
     public ResponseEntity<RetrospectiveResponse> getRetrospective(@PathVariable Long projectId,
@@ -142,7 +139,16 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectService.getRetrospective(projectId, memberId, week));
     }
+    
+    // 프로젝트 회고 등록
+    @PostMapping("/{projectId}/retrospectives")
+    public ResponseEntity<Void> saveRetrospective(@PathVariable Long projectId,
+                                                  @AuthMemberId Long memberId,
+                                                  @RequestBody CreateRetrospectiveRequest createRetrospectiveRequest) {
 
+        projectService.saveRetrospective(projectId, memberId, createRetrospectiveRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 
     @PostMapping("/{projectId}/like")
     public ResponseEntity<Void> registerProjectLike(@PathVariable long projectId, @AuthMemberId Long memberId) {
@@ -162,6 +168,4 @@ public class ProjectController {
         List<PopularProjectResponse> projectList = projectService.getTop10PopularProjects();
         return ResponseEntity.ok(projectList);
     }
-
-
 }

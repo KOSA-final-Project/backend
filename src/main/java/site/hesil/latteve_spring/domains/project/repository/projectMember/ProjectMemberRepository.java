@@ -32,7 +32,6 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     Integer findApprovedMemberCountByProject_ProjectId(@Param("projectId") Long projectId);
 
 
-
     @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.project.projectId = :projectId")
     Integer findMemberCountByProject_ProjectId(@Param("projectId") Long projectId);
 
@@ -47,30 +46,30 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     @Query(value = "INSERT INTO project_member (project_id, member_id, job_id, is_leader, accept_status) VALUES (:projectId, :memberId, 1, 1, 1)", nativeQuery = true)
     void registerProjectLeader(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 
-@Query("""
-    SELECT new site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse(
-        pm.job.name,
-        pm.member.memberId,
-        pm.member.nickname,
-        pm.member.github,
-        pm.member.imgUrl,
-        (SELECT COUNT(p)
-         FROM ProjectMember pm2
-         JOIN pm2.project p
-         WHERE pm2.member.memberId = pm.member.memberId 
-           AND p.status = 1
-           AND pm2.acceptStatus = 1),
-        (SELECT COUNT(p)
-         FROM ProjectMember pm3
-         JOIN pm3.project p
-         WHERE pm3.member.memberId = pm.member.memberId 
-           AND p.status = 2
-           AND pm3.acceptStatus = 1)
-    )
-    FROM ProjectMember pm
-    WHERE pm.project.projectId = :projectId
-      AND pm.acceptStatus = 2
-""")
+    @Query("""
+                SELECT new site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse(
+                    pm.job.name,
+                    pm.member.memberId,
+                    pm.member.nickname,
+                    pm.member.github,
+                    pm.member.imgUrl,
+                    (SELECT COUNT(p)
+                     FROM ProjectMember pm2
+                     JOIN pm2.project p
+                     WHERE pm2.member.memberId = pm.member.memberId 
+                       AND p.status = 1
+                       AND pm2.acceptStatus = 1),
+                    (SELECT COUNT(p)
+                     FROM ProjectMember pm3
+                     JOIN pm3.project p
+                     WHERE pm3.member.memberId = pm.member.memberId 
+                       AND p.status = 2
+                       AND pm3.acceptStatus = 1)
+                )
+                FROM ProjectMember pm
+                WHERE pm.project.projectId = :projectId
+                  AND pm.acceptStatus = 2
+            """)
     List<ProjectMemberResponse> findApplicationsByProjectId(@Param("projectId") Long projectId);
 
     @Query("SELECT pm.isLeader FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId")
@@ -82,5 +81,6 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     @Modifying
     @Query("UPDATE ProjectMember pm SET pm.acceptStatus = 0 WHERE pm.project.projectId = :projectId AND pm.acceptStatus = 2")
     void updateAcceptStatusByProjectId(@Param("projectId") Long projectId);
+
 }
 
