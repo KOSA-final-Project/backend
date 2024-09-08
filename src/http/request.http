@@ -47,7 +47,7 @@ client.test("프로젝트 생성에 성공한다.", function() {
 
 
 ### 프로젝트 요청 목록 조회
-@projectId = 6
+@projectId = 1
 GET http://localhost:8080/api/projects/{{projectId}}/applications
 
 
@@ -70,3 +70,36 @@ Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2x
 GET http://localhost:8080/api/users/me
 Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZGFzdHJhMTEyM0BuYXZlci5jb20iLCJyb2xlIjoiUk9MRV9VU0VSIiwibWVtYmVySWQiOjE5LCJpYXQiOjE3MjU0NTEyNDYsImV4cCI6MTcyNTQ1MzA0Nn0.cy2rp0DWEjaIbIvOOX1EXchbs5o-fArVJdMi-1izd8DXB7F1O_7VOjiI4pE--o1urPbuw5bS2HEHh8rHxrDU_A
 
+### 프로젝트 좋아요
+POST http://localhost:8080/api/projects/{{projectId}}/like
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
+Content-Type: application/json
+
+
+### 프로젝트 좋아요 취소
+DELETE http://localhost:8080/api/projects/{{projectId}}/like
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
+
+### 프로젝트 멤버 승인/거절
+@Project_id = 0
+@Project_memberId = 0
+@Project_isAccepted = 0
+PUT http://localhost:8080/api/projects/applications
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
+Content-Type: application/json
+
+{
+  "projectId": {{Project_id}},
+  "memberId": {{Project_memberId}},
+  "acceptStatus": {{Project_isAccepted}}
+}
+
+### 프로젝트 시작
+
+POST http://localhost:8080/api/projects/start
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
+Content-Type: application/json
+
+{
+  "projectId": {{Project_id}}
+}

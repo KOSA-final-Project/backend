@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMemberId;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,23 +28,59 @@ import java.util.Optional;
 @Repository
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, ProjectMemberId> {
 
+    @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.acceptStatus = 1")
+    Integer findApprovedMemberCountByProject_ProjectId(@Param("projectId") Long projectId);
+
+
     @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.project.projectId = :projectId")
     Integer findMemberCountByProject_ProjectId(@Param("projectId") Long projectId);
 
-//    @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.member.memberId = :memberId")
-//    Long countByMember_MemberId(@Param("memberId") Long memberId);
 
     @Query("SELECT pm.project.projectId FROM ProjectMember pm WHERE pm.member.memberId = :memberId")
     List<Long> findProjectIdsByMemberId(@Param("memberId") Long memberId);
 
-    @Query("SELECT pm FROM ProjectMember pm WHERE pm.projectMemberId.projectId = :projectId")
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.projectMemberId.projectId = :projectId and pm.acceptStatus = 2")
     List<ProjectMember> findByProjectId(@Param("projectId") Long projectId);
 
     @Modifying
     @Query(value = "INSERT INTO project_member (project_id, member_id, job_id, is_leader, accept_status) VALUES (:projectId, :memberId, 1, 1, 1)", nativeQuery = true)
     void registerProjectLeader(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 
-    @Query("SELECT pm FROM ProjectMember pm WHERE pm.projectMemberId.projectId = :projectId AND pm.projectMemberId.memberId = :memberId")
-    Optional<ProjectMember> findByProjectIdAndProjectMemberId(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
+    @Query("""
+                SELECT new site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse(
+                    pm.job.name,
+                    pm.member.memberId,
+                    pm.member.nickname,
+                    pm.member.github,
+                    pm.member.imgUrl,
+                    (SELECT COUNT(p)
+                     FROM ProjectMember pm2
+                     JOIN pm2.project p
+                     WHERE pm2.member.memberId = pm.member.memberId 
+                       AND p.status = 1
+                       AND pm2.acceptStatus = 1),
+                    (SELECT COUNT(p)
+                     FROM ProjectMember pm3
+                     JOIN pm3.project p
+                     WHERE pm3.member.memberId = pm.member.memberId 
+                       AND p.status = 2
+                       AND pm3.acceptStatus = 1)
+                )
+                FROM ProjectMember pm
+                WHERE pm.project.projectId = :projectId
+                  AND pm.acceptStatus = 2
+            """)
+    List<ProjectMemberResponse> findApplicationsByProjectId(@Param("projectId") Long projectId);
+
+    @Query("SELECT pm.isLeader FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId")
+    boolean isLeader(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
+
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId")
+    Optional<ProjectMember> findByProjectIdAndMemberId(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
+
+    @Modifying
+    @Query("UPDATE ProjectMember pm SET pm.acceptStatus = 0 WHERE pm.project.projectId = :projectId AND pm.acceptStatus = 2")
+    void updateAcceptStatusByProjectId(@Param("projectId") Long projectId);
+
 }
 

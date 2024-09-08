@@ -61,4 +61,8 @@ public class ProjectMember {
     public static ProjectMember of(Project project, Member member, Job job) {
         return new ProjectMember(project, member, job);
     }
+
+    public void updateAcceptStatus(int status) {
+        this.acceptStatus = status;
+    }
 }

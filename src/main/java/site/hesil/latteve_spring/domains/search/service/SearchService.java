@@ -1,5 +1,6 @@
 package site.hesil.latteve_spring.domains.search.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
@@ -10,7 +11,9 @@ import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
+import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
 
 import java.io.IOException;
@@ -28,32 +31,36 @@ import java.util.stream.Collectors;
  * -----------------------------------------------------------
  * 2024-08-28        Heeseon       최초 생성
  */
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchService {
 
     private final OpenSearchClient openSearchClient;
+    private final ProjectLikeRepository projectLikeRepository;
 
     /** project search */
-    public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword, String status, String sort) throws IOException {
+    public List<ProjectCardResponse> searchProjectsByKeyword(Long memberId, String keyword, String status, String sort, int from, int size) throws IOException {
 
         // keyword로 검색
         BoolQuery boolQuery = BoolQuery.of(b -> {
-            // 프로젝트 이름에 대한 검색
-            b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)))._toQuery());
-            //기술 스택 이름에 대한 검색
-            b.should(NestedQuery.of(n -> n
-                    .path("projectTechStack")  // nested 필드의 경로 지정
-                    .query(q -> q
-                            .match(m -> m
-                                    .field("projectTechStack.name")
-                                    .query(FieldValue.of(keyword))
-                            )
-                    )
-            )._toQuery());
-            // 최소 매칭 조건 : 이름이나 기술스택에 대해 하나라도 일치
-            b.minimumShouldMatch(String.valueOf(1));
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                // 프로젝트 이름으로 검색
+                b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)))._toQuery());
+                // 기술 스택 이름으로 검색
+                b.should(NestedQuery.of(n -> n
+                        .path("projectTechStack")
+                        .query(q -> q.match(m -> m
+                                .field("projectTechStack.name")
+                                .query(FieldValue.of(keyword))
+                        ))
+                )._toQuery());
+                // 최소 일치 조건: 하나 이상의 필드가 일치해야 함
+                b.minimumShouldMatch(String.valueOf(1));
+            } else {
+                // keyword가 없으면 모든 프로젝트 반환
+                b.must(MatchAllQuery.of(m -> m)._toQuery());
+            }
 
             // project 상태로 필터링
             if (status != null && !status.isEmpty() && !status.equals("전체")) {
@@ -65,7 +72,9 @@ public class SearchService {
         // SearchRequest 빌드
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .index("projects")  // 검색할 인덱스 이름
-                .query(boolQuery._toQuery());
+                .query(boolQuery._toQuery())
+                .from(from * size)  // 시작 인덱스 (예: 첫 번째 페이지)
+                .size(size);  // 페이지 당 size 만큼 반환
 
         // 정렬 기준 설정
         if (sort != null && !sort.isEmpty()) {
@@ -89,33 +98,75 @@ public class SearchService {
         // OpenSearch 클라이언트를 사용하여 검색 요청 실행
         SearchResponse<ProjectDocumentReq> response = openSearchClient.search(searchRequest.build(), ProjectDocumentReq.class);
 
-        // 검색 결과를 ProjectDocumentReq 리스트로 변환하여 반환
-        return response.hits().hits().stream()
-                .map(Hit::source)
+        // 검색된 프로젝트 리스트 가져오기
+        List<ProjectDocumentReq> projects = response.hits().hits().stream()
+                .map(hit -> hit.source())
                 .collect(Collectors.toList());
+
+        // 로그인된 상태일 때, 각 프로젝트의 좋아요 여부를 한 번에 확인
+        if (memberId != null) {
+            List<Long> projectIds = projects.stream()
+                    .map(ProjectDocumentReq::projectId)
+                    .collect(Collectors.toList());
+
+            // 사용자가 좋아요한 프로젝트 ID 조회
+            Set<Long> likedProjectIds = new HashSet<>(projectLikeRepository.findLikedProjectIdsByMemberIdAndProjectIds(memberId, projectIds));
+
+            // 좋아요 여부를 반영하여 ProjectCardResponse로 변환
+            return projects.stream()
+                    .map(project -> mapToProjectCardResponse(project, likedProjectIds.contains(project.projectId())))
+                    .collect(Collectors.toList());
+        }
+
+        // 로그인되지 않은 경우 좋아요 여부 없이 ProjectCardResponse 반환
+        return projects.stream()
+                .map(project -> mapToProjectCardResponse(project, false))
+                .collect(Collectors.toList());
+
+    }
+    // ProjectDocumentReq를 ProjectCardResponse로 변환하는 메서드
+    public static ProjectCardResponse mapToProjectCardResponse(ProjectDocumentReq project, boolean isLiked) {
+        return ProjectCardResponse.builder()
+                .projectId(project.projectId())
+                .name(project.name())
+                .imgUrl(project.imgUrl())
+                .duration(project.duration())
+                .projectTechStack(project.projectTechStack().stream()
+                        .map(tech -> new ProjectCardResponse.TechStack(tech.name(), tech.imgUrl()))
+                        .collect(Collectors.toList()))
+                .isLiked(isLiked)  // 좋아요 여부 추가
+                .cntLike(project.cntLike())  // 좋아요 수
+                .currentCnt(project.currentCnt())
+                .teamCnt(project.teamCnt())
+                .build();
     }
 
-    /**Member search */
 
-    public List<MemberDocumentReq> searchMembersByKeyword(String keyword , String sort) throws IOException {
+    /**Member search */
+    public List<MemberDocumentReq> searchMembersByKeyword(String keyword , String sort, int from , int size) throws IOException {
 
         BoolQuery boolQuery = BoolQuery.of(b -> {
-            // 라떼버 이름으로 검색
-            b.should(MatchQuery.of(m -> m.field("memberNickname").query(FieldValue.of(keyword)))._toQuery());
-            // 기술 스택 이름으로 검색
-            b.should(NestedQuery.of(n -> n
-                    .path("techStack")  // nested 필드의 경로 지정
-                    .query(q -> q
-                            .match(m -> m
-                                    .field("techStack.name")
-                                    .query(FieldValue.of(keyword))
-                            )
-                    )
-            )._toQuery());
-            // 경력으로 검색
-            b.should(MatchQuery.of(m -> m.field("memberJob").query(FieldValue.of(keyword)))._toQuery());
-            // 최소 매칭 조건
-            b.minimumShouldMatch(String.valueOf(1));
+            if (keyword != null && !keyword.trim().isEmpty()){
+                // 라떼버 이름으로 검색
+                b.should(MatchQuery.of(m -> m.field("memberNickname").query(FieldValue.of(keyword)))._toQuery());
+                // 기술 스택 이름으로 검색
+                b.should(NestedQuery.of(n -> n
+                        .path("techStack")  // nested 필드의 경로 지정
+                        .query(q -> q
+                                .match(m -> m
+                                        .field("techStack.name")
+                                        .query(FieldValue.of(keyword))
+                                )
+                        )
+                )._toQuery());
+                // 경력으로 검색
+                b.should(MatchQuery.of(m -> m.field("memberJob").query(FieldValue.of(keyword)))._toQuery());
+                // 최소 매칭 조건
+                b.minimumShouldMatch(String.valueOf(1));
+            }else{
+                // keyword가 없으면 모든 라뗴버 반환
+                b.must(MatchAllQuery.of(m -> m)._toQuery());
+            }
 
             return b;
         });
@@ -123,7 +174,9 @@ public class SearchService {
         // SearchRequest 빌더에 결합된 쿼리 추가
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .index("members")  // 검색할 인덱스 이름
-                .query( boolQuery._toQuery());  // 결합된 쿼리
+                .query( boolQuery._toQuery())  // 결합된 쿼리
+                .from(from * size)  // 시작 인덱스 (예: 첫 번째 페이지)
+                .size(size);  // 페이지 당 size 만큼 반환
 
         // 정렬 기준 설정
         if (sort != null && !sort.isEmpty()) {
