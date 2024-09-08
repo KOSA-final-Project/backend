@@ -10,6 +10,7 @@ import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
+import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
 import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
 
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class SearchService {
 
     private final OpenSearchClient openSearchClient;
+    private final ProjectLikeRepository projectLikeRepository;
 
     /** project search */
     public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword, String status, String sort) throws IOException {

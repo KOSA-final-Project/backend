@@ -9,6 +9,7 @@ package site.hesil.latteve_spring.global.security.annotation;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-09-04        Yeong-Huns       최초 생성
+ * 2024-09-08        Heeseon          required 추가
  */
 
 import java.lang.annotation.ElementType;
@@ -19,5 +20,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AuthMemberId {
+    boolean required() default true;
     // 해당 어노테이션을 사용하면 자동으로 토큰에서 MemberId 를 추출해서 주입
 }
