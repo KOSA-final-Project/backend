@@ -7,8 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -36,6 +39,7 @@ import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepositor
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 import site.hesil.latteve_spring.global.error.exception.NotFoundException;
+import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,6 +61,7 @@ import java.util.stream.Collectors;
  * 2024-09-04        Heeseon       프로젝트 조회, 프로젝트 카드 내용 조회
  * 2024-09-07        Yeong-Huns    프로젝트 지원자 승인 / 거절
  * 2024-09-08        Heeseon       좋아요 여부 확인 추가
+ * 2024-09-08        Yeong-Huns    좋아요, 좋아요 취소
  */
 @Slf4j
 @Service
@@ -237,6 +242,14 @@ public class ProjectService {
 
         return projectRepository.getRetrospective(projectId, memberId, week)
                 .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+    }
+    @Transactional
+    public void registerProjectLike(long projectId, long memberId) {
+        projectLikeRepository.registerProjectLike(projectId, memberId);
+    }
+    @Transactional
+    public void deleteProjectLike(long projectId, long memberId) {
+        projectLikeRepository.deleteProjectLike(projectId, memberId);
     }
 
     public boolean isProjectLikedByUser(Long projectId, Long memberId) {
