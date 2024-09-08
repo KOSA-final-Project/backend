@@ -19,6 +19,7 @@ import java.util.List;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-27           yunbin           최초 생성
+ * 2024-09-03           yeong-huns       addArgumentResolvers 메서드 추가
  */
 @RequiredArgsConstructor
 @Configuration

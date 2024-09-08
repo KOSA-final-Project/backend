@@ -66,11 +66,10 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest, @AuthMemberId Long memberId) {
+    public ResponseEntity<Long> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest, @AuthMemberId Long memberId) {
         log.info("projectSaveRequest: {}", projectSaveRequest);
         log.info("memberId: {}", memberId);
-        projectService.saveProject(projectSaveRequest, memberId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.saveProject(projectSaveRequest, memberId));
     }
 
     @GetMapping("/{projectId}/applications")
