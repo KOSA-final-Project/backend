@@ -29,6 +29,7 @@ import java.util.Optional;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-09-04        Yeong-Huns       최초 생성
+ * 2024-09-08        Heeseon          AuthMemberId가 없을때 처리
  */
 @Log4j2
 @RequiredArgsConstructor
@@ -48,9 +49,25 @@ public class AuthMemberResolver implements HandlerMethodArgumentResolver {
                                   ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) throws Exception {
+
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String token = extractTokenFromCookies(request);
         Optional<Long> memberId = Optional.empty();
+
+        AuthMemberId authMemberId = parameter.getParameterAnnotation(AuthMemberId.class);
+
+
+        if (token == null) {
+            // 토큰이 없을 때
+            if (authMemberId != null && !authMemberId.required()) {
+                // required=false일 때는 null 반환 (비로그인 사용자의 경우)
+                return null;
+            } else {
+                // required=true이면 예외를 던짐 (로그인 필수 API인 경우)
+                throw new CustomBaseException(ErrorCode.TOKEN_NOT_FOUND);
+            }
+        }
+
         if (token != null) {
             memberId = tokenProvider.getMemberId(token);
         }

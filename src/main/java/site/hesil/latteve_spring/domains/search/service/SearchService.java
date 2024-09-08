@@ -12,6 +12,7 @@ import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class SearchService {
     private final ProjectLikeRepository projectLikeRepository;
 
     /** project search */
-    public List<ProjectDocumentReq> searchProjectsByKeyword(String keyword, String status, String sort) throws IOException {
+    public List<ProjectCardResponse> searchProjectsByKeyword(Long memberId, String keyword, String status, String sort) throws IOException {
 
         // keyword로 검색
         BoolQuery boolQuery = BoolQuery.of(b -> {
@@ -91,12 +92,49 @@ public class SearchService {
         // OpenSearch 클라이언트를 사용하여 검색 요청 실행
         SearchResponse<ProjectDocumentReq> response = openSearchClient.search(searchRequest.build(), ProjectDocumentReq.class);
 
-        // 검색 결과를 ProjectDocumentReq 리스트로 변환하여 반환
-        return response.hits().hits().stream()
-                .map(Hit::source)
+        // 검색된 프로젝트 리스트 가져오기
+        List<ProjectDocumentReq> projects = response.hits().hits().stream()
+                .map(hit -> hit.source())
                 .collect(Collectors.toList());
-    }
 
+        // 로그인된 상태일 때, 각 프로젝트의 좋아요 여부를 한 번에 확인
+        // 로그인된 상태일 때, 각 프로젝트의 좋아요 여부를 한 번에 확인
+        if (memberId != null) {
+            List<Long> projectIds = projects.stream()
+                    .map(ProjectDocumentReq::projectId)
+                    .collect(Collectors.toList());
+
+            // 사용자가 좋아요한 프로젝트 ID 조회
+            Set<Long> likedProjectIds = new HashSet<>(projectLikeRepository.findLikedProjectIdsByMemberIdAndProjectIds(memberId, projectIds));
+
+            // 좋아요 여부를 반영하여 ProjectCardResponse로 변환
+            return projects.stream()
+                    .map(project -> mapToProjectCardResponse(project, likedProjectIds.contains(project.projectId())))
+                    .collect(Collectors.toList());
+        }
+
+        // 로그인되지 않은 경우 좋아요 여부 없이 ProjectCardResponse 반환
+        return projects.stream()
+                .map(project -> mapToProjectCardResponse(project, false))
+                .collect(Collectors.toList());
+
+    }
+    // ProjectDocumentReq를 ProjectCardResponse로 변환하는 메서드
+    public static ProjectCardResponse mapToProjectCardResponse(ProjectDocumentReq project, boolean isLiked) {
+        return ProjectCardResponse.builder()
+                .projectId(project.projectId())
+                .name(project.name())
+                .imgUrl(project.imgUrl())
+                .duration(project.duration())
+                .projectTechStack(project.projectTechStack().stream()
+                        .map(tech -> new ProjectCardResponse.TechStack(tech.name(), tech.imgUrl()))
+                        .collect(Collectors.toList()))
+                .isLiked(isLiked)  // 좋아요 여부 추가
+                .cntLike(project.cntLike())  // 좋아요 수
+                .currentCnt(project.currentCnt())
+                .teamCnt(project.teamCnt())
+                .build();
+    }
     /**Member search */
 
     public List<MemberDocumentReq> searchMembersByKeyword(String keyword , String sort) throws IOException {
