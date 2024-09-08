@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.IndexRequest;
+import org.opensearch.client.opensearch.core.UpdateRequest;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
@@ -216,4 +217,6 @@ public class SearchIndexingService {
         }
         return 0; // 기타 또는 알 수 없는 경우
     }
+
+
 }

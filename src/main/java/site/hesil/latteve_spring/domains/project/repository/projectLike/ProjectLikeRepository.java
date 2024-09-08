@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
 import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLikeId;
 
+import java.util.List;
+
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.projectlike
  * fileName       : ProjectLikeRepository
@@ -39,4 +41,6 @@ public interface ProjectLikeRepository extends JpaRepository<ProjectLike, Projec
 
     boolean existsByProject_ProjectIdAndMember_MemberId(Long projectId, Long memberId);
 
+    @Query("SELECT pl.project.projectId FROM ProjectLike pl WHERE pl.member.memberId = :memberId AND pl.project.projectId IN :projectIds")
+    List<Long> findLikedProjectIdsByMemberIdAndProjectIds(@Param("memberId") Long memberId, @Param("projectIds") List<Long> projectIds);
 }

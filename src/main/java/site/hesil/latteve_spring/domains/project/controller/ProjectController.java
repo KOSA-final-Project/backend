@@ -20,6 +20,7 @@ import site.hesil.latteve_spring.domains.project.dto.response.ApplicationRespons
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
+import site.hesil.latteve_spring.global.security.annotation.LoginFilterMemberId;
 
 import java.util.List;
 
@@ -115,7 +116,8 @@ public class ProjectController {
 
     //최근에 생성된 프로젝트 조회
     @GetMapping("/new")
-    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@AuthMemberId(required = false) Long memberId,@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@LoginFilterMemberId(required = false) Long memberId,
+                                                                          @RequestParam(defaultValue = "0") int page,
                                                                           @RequestParam(defaultValue = "4") int size) {
         Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size),memberId);
         return ResponseEntity.ok(projectPage);
@@ -123,7 +125,7 @@ public class ProjectController {
 
     //최근에 종료된 프로젝트 조회
     @GetMapping("/done")
-    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@AuthMemberId(required = false) Long memberId,
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@LoginFilterMemberId(required = false) Long memberId,
                                                                               @RequestParam(defaultValue = "0") int page,
                                                                               @RequestParam(defaultValue = "4") int size) {
 
