@@ -64,6 +64,7 @@ public class SearchService {
 
             // project 상태로 필터링
             if (status != null && !status.isEmpty() && !status.equals("전체")) {
+                log.info("search projects - status: " + status);
                 b.filter(TermQuery.of(t -> t.field("status").value(FieldValue.of(status)))._toQuery());
             }
             return b;
