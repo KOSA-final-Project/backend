@@ -4,11 +4,13 @@ import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
 import site.hesil.latteve_spring.domains.project.domain.recruitment.RecruitmentId;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.RecruitmentRoles;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.recruitment
@@ -21,6 +23,7 @@ import java.util.List;
  * -----------------------------------------------------------
  * 2024-08-28        Heeseon       최초 생성
  * 2024-09-01        Yeong-Huns    프로젝트 생성 커스텀 로직 추가
+ * 2024-09-08        Heeseon       프로젝트로 직무 조회 추가, 직무 개수 조회 추가
  */
 public interface RecruitmentRepository extends JpaRepository <Recruitment, RecruitmentId> {
 
@@ -35,5 +38,7 @@ public interface RecruitmentRepository extends JpaRepository <Recruitment, Recru
     default void saveAllRecruitments(List<RecruitmentRoles> roles, Long projectId) {
         roles.forEach(i->saveRecruitment(projectId, i.jobId(), i.count()));
     }
+
+    List<Recruitment> findByProject(Project project);
 
 }

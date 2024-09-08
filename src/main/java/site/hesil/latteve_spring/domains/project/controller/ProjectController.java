@@ -156,5 +156,12 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("/popular")
+    public ResponseEntity<List<PopularProjectResponse>>  getPopular() {
+
+        List<PopularProjectResponse> projectList = projectService.getTop10PopularProjects();
+        return ResponseEntity.ok(projectList);
+    }
+
 
 }

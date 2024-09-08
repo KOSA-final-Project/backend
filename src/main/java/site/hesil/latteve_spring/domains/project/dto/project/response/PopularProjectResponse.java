@@ -25,8 +25,10 @@ public record PopularProjectResponse(
         String description,
         List <String> recruitmentName,
         LocalDateTime deadline,
+        LocalDateTime createdAt,
         Long cntLike, // 좋아요 수
         int currentCnt, // 현재 모인 팀원 수
-        int teamCnt
+        int teamCnt,
+        double popularityScore
 ) {
 }

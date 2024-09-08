@@ -22,7 +22,9 @@ import site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackRes
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
+import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
 import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
+import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
@@ -41,10 +43,9 @@ import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 import site.hesil.latteve_spring.global.error.exception.NotFoundException;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -253,10 +254,6 @@ public class ProjectService {
         projectLikeRepository.deleteProjectLike(projectId, memberId);
     }
 
-    public boolean isProjectLikedByUser(Long projectId, Long memberId) {
-        // 프로젝트와 사용자의 좋아요 기록을 확인
-        return projectLikeRepository.existsByProject_ProjectIdAndMember_MemberId(projectId, memberId);
-    }
 
     // 최근 종료된 순으로 조회
     public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable,Long memberId) {
@@ -276,10 +273,131 @@ public class ProjectService {
     }
 
     // 인기 프로젝트 조회
-
+//    public List<PopularProjectResponse> getTop10PopularProjects() {
+//        List<Project> projects = projectRepository.findAll(); // 프로젝트 데이터 전체 조회
 //
-//    // 가중치 계산
-//    public
+//        // 좋아요 수 최대값 조회
+//        Long maxLikes = projectLikeRepository.findMaxLikes();
+//
+//        return projects.stream()
+//                .map(project -> {
+//                    // 프로젝트의 직무별 모집 인원 및 지원자 수 계산
+//                    List<Recruitment> recruitments = recruitmentRepository.findByProject(project);
+//                    long totalRecruitmentCount = recruitments.stream().mapToInt(Recruitment::getCount).sum();
+//
+//                    // 모집 대비 지원자 수 계산
+//                    long totalApplicantsCount = projectMemberRepository.countByProject(project);
+//
+//                    // 모집 대비 지원자 비율
+//                    double normalizedApplicants = totalRecruitmentCount > 0
+//                            ? (double) totalApplicantsCount / totalRecruitmentCount
+//                            : 0;
+//
+//                    // 각 프로젝트의 좋아요 수 조회
+//                    Long projectLikes = projectLikeRepository.countProjectLikeByProject_ProjectId(project.getProjectId());
+//
+//                    // 좋아요 수 정규화
+//                    double normalizedLikes = maxLikes > 0
+//                            ? (double) projectLikes / maxLikes
+//                            : 0;
+//
+//                    // 시간 가중치 계산 (최신순)
+//                    double weightTime = calculateTimeWeight(project.getCreatedAt().toLocalDate());
+//
+//                    // 최종 인기도 점수 계산
+//                    double popularityScore = (normalizedLikes * 0.4) + (normalizedApplicants * 0.4) + (weightTime * 0.2);
+//
+//                    // PopularProjectResponse로 변환하여 반환
+//                    return new PopularProjectResponse(
+//                            project.getProjectId(),
+//                            project.getName(),
+//                            popularityScore,
+//
+//                })
+//                .sorted(Comparator.comparingDouble(Project::getPopularityScore).reversed())
+//                .limit(10)
+//                .map(this::toPopularProjectResponse) // 필요한 DTO 변환
+//                .collect(Collectors.toList());
+//    }
+
+    public List<PopularProjectResponse> getTop10PopularProjects() {
+        List<Project> projects = projectRepository.findAll(); // 프로젝트 데이터 전체 조회
+
+        return projects.stream()
+                .map(project -> {
+                    // 각 프로젝트의 좋아요 수 조회
+                    Long projectLikes = projectLikeRepository.countProjectLikeByProject_ProjectId(project.getProjectId());
+
+                    // 지원자 수 조회
+                    long totalApplicantsCount = projectMemberRepository. findMemberCountByProject_ProjectId(project.getProjectId());
+
+                    //총 모집 인원 조회
+                    long totalRecruitmentCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
+
+                    // 모집 인원 대비 지원자 비율 계산
+                    double applicantsRatio = totalRecruitmentCount > 0
+                            ? (double) totalApplicantsCount / totalRecruitmentCount
+                            : 0;
+
+                    // 좋아요 수와 모집 대비 지원자 비율 합산
+                    double popularitySum = projectLikes + applicantsRatio;
+
+                    // 기술 스택 정보 조회
+                    List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
+                    List<ProjectCardResponse.TechStack> techStackList = projectTechStacks.stream()
+                            .map(stack -> {
+                                Long techStackId = stack.getTechStack().getTechStackId();
+                                if (techStackId == 1) {
+                                    return new ProjectCardResponse.TechStack(stack.getCustomStack(), null);
+                                } else {
+                                    Optional<TechStack> techStackOpt = techStackRepository.findById(techStackId);
+                                    return techStackOpt.map(techStack ->
+                                                    new ProjectCardResponse.TechStack(techStack.getName(), techStack.getImgUrl()))
+                                            .orElse(null);
+                                }
+                            })
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    // 직무별 모집 정보 조회 및 변환
+                    List<String> recruitmentNames = recruitmentRepository.findByProject(project)
+                            .stream()
+                            .map(recruitment -> recruitment.getJob().getName())
+                            .collect(Collectors.toList());
+
+                    // PopularProjectResponse로 변환하여 반환
+                    return PopularProjectResponse.builder()
+                            .projectId(project.getProjectId())                      // 프로젝트 ID
+                            .name(project.getName())                                // 프로젝트 이름
+                            .imgUrl(project.getImgUrl())                            // 이미지 URL
+                            .projectTechStack(techStackList)                        // 프로젝트 기술 스택 (List<ProjectCardResponse.TechStack>)
+                            .description(project.getDescription())                  // 프로젝트 설명
+                            .recruitmentName(recruitmentNames)                      // 직무별 모집 이름 리스트
+                            .deadline(project.getDeadline())                        // 프로젝트 마감일 (주차)
+                            .createdAt(project.getCreatedAt())
+                            .cntLike(projectLikes)                                  // 좋아요 수
+                            .currentCnt((int) totalApplicantsCount)                 // 현재 모인 팀원 수
+                            .teamCnt((int) totalRecruitmentCount)                   // 총 팀원 수
+                            .popularityScore(popularitySum)                         // 인기 점수 (좋아요 + 모집 대비 지원자 비율)
+                            .build();
+                })
+                // 좋아요 수 + 모집 대비 지원자 비율로 내림차순 정렬
+                .sorted(Comparator.comparingDouble(PopularProjectResponse::popularityScore).reversed()
+                        // 동일한 경우 최신순으로 정렬
+                        .thenComparing(PopularProjectResponse::createdAt, Comparator.reverseOrder()))
+                .limit(10)  // 상위 10개
+                .collect(Collectors.toList());
+    }
+
+
+    // 시간 가중치 계산 (최근 5일을 1로 설정하고 점점 감소)
+    private double calculateTimeWeight(LocalDate createdDate) {
+        long daysSinceCreation = ChronoUnit.DAYS.between(createdDate, LocalDate.now());
+        if (daysSinceCreation <= 5) {
+            return 1.0; // 최근 5일 이내면 가중치 1
+        }
+        return Math.max(0.1, 1 - (double) daysSinceCreation / 30); // 30일 이후로 서서히 가중치 감소
+    }
 
 
 }
