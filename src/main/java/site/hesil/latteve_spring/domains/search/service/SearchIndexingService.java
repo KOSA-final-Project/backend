@@ -131,7 +131,7 @@ public class SearchIndexingService {
             case 0: return "모집중";
             case 1: return "진행중";
             case 2: return "종료";
-            default: return "전체";
+            default: return "unknown";
         }
     }
 

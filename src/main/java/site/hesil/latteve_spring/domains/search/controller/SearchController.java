@@ -65,6 +65,8 @@ public class SearchController {
                                                                     @RequestParam(defaultValue = "50") int size, // 기본값 50으로 설정
                                                                     @RequestParam(defaultValue = "0") int from) throws IOException {
         log.info("keyword = " + keyword);
+        log.info("status = " + status);
+        log.info("sortby= " + sortby);
 
         return ResponseEntity.ok(searchService.searchProjectsByKeyword(memberId, keyword,status, sortby, from, size));
     }

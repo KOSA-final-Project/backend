@@ -24,6 +24,7 @@ public record PopularProjectResponse(
         List<ProjectCardResponse.TechStack> projectTechStack,
         String description,
         List <String> recruitmentName,
+        int duration,
         LocalDateTime deadline,
         LocalDateTime createdAt,
         Long cntLike, // 좋아요 수

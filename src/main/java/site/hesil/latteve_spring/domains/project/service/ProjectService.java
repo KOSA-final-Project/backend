@@ -372,7 +372,8 @@ public class ProjectService {
                             .imgUrl(project.getImgUrl())                            // 이미지 URL
                             .projectTechStack(techStackList)                        // 프로젝트 기술 스택 (List<ProjectCardResponse.TechStack>)
                             .description(project.getDescription())                  // 프로젝트 설명
-                            .recruitmentName(recruitmentNames)                      // 직무별 모집 이름 리스트
+                            .recruitmentName(recruitmentNames)
+                            .duration(project.getDuration())
                             .deadline(project.getDeadline())                        // 프로젝트 마감일 (주차)
                             .createdAt(project.getCreatedAt())
                             .cntLike(projectLikes)                                  // 좋아요 수
