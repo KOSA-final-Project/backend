@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.alarm.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.Job;
@@ -47,6 +48,7 @@ public class Alarm {
     @Column(columnDefinition = "TINYINT(1)")
     private boolean isRead;
 
+    @Builder
     private Alarm(Project project, Member member, Job job, Integer type) {
         this.project = project;
         this.member = member;

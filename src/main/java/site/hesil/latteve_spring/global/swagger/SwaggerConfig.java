@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SwaggerConfig {
-    @Bean
+    /*@Bean
     public OpenAPI openAPI() {
         String jwt = "JWT";
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
@@ -43,5 +43,5 @@ public class SwaggerConfig {
                 .title("API Test") // API의 제목
                 .description("Let's practice Swagger UI") // API에 대한 설명
                 .version("1.0.0"); // API의 버전
-    }
+    }*/
 }
