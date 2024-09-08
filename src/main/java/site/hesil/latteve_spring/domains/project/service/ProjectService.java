@@ -196,7 +196,7 @@ public class ProjectService {
                     .cntLike(cntLike)
                     .isLiked(isLiked)
                     .currentCnt(currentMemberCount)
-                    .teamCnt(currentMemberCount)
+                    .teamCnt(requiredMemberCount)
                     .build();
             projectDocuments.add(projectCard);
         }
