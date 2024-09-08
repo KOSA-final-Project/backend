@@ -43,4 +43,8 @@ public interface ProjectLikeRepository extends JpaRepository<ProjectLike, Projec
 
     @Query("SELECT pl.project.projectId FROM ProjectLike pl WHERE pl.member.memberId = :memberId AND pl.project.projectId IN :projectIds")
     List<Long> findLikedProjectIdsByMemberIdAndProjectIds(@Param("memberId") Long memberId, @Param("projectIds") List<Long> projectIds);
+
+    // 프로젝트별 좋아요 수 중 가장 많은 좋아요 수 반환
+    @Query("SELECT COUNT(pl) FROM ProjectLike pl GROUP BY pl.project ORDER BY COUNT(pl) DESC")
+    Long findMaxLikes();
 }
