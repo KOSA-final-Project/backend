@@ -156,12 +156,5 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-//    // 인기 프로젝트 조회
-//    @GetMapping("/popular")
-//    public ResponseEntity<Page<PopularProjectResponse>> getPopularProjectList(@RequestParam(defaultValue = "0") int page,
-//                                                                              @RequestParam(defaultValue = "4") int size){
-//
-//        return ResponseEntity.ok(projectService.getProjectsByScore());
-//    }
 
 }

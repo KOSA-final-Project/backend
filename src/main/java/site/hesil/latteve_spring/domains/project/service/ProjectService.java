@@ -230,10 +230,10 @@ public class ProjectService {
 
     }
 
-    // 신규순으로 조회
+    // 신규순으로 조회 (모집중, 진행중)
     public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable,Long memberId) {
 
-        Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(1, pageable);
+        Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(0, pageable);
         List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }

@@ -43,6 +43,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
                                                         Pageable pageable);
 
     // 신규순으로 조회하는 쿼리
+    @Query("SELECT p FROM Project p WHERE p.status <> 2 ORDER BY p.createdAt DESC")
     Page<Project> findAllByStatusOrderByCreatedAtDesc(int status, Pageable pageable);
 
 
