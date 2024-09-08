@@ -28,6 +28,7 @@ import site.hesil.latteve_spring.global.security.jwt.TokenExceptionFilter;
  * -----------------------------------------------------------
  * 2024-08-23           yunbin           최초 생성
  * 2024-08-29           yunbin           jwt 관련 설정 추가
+ * 2024-09-09           Heeseon          swagger-ui 경로 추가
  */
 
 @RequiredArgsConstructor
@@ -80,7 +81,8 @@ public class SecurityConfig {
 //                                        new AntPathRequestMatcher("/oauth2/**"),
 //                                        new AntPathRequestMatcher("/login/**"),
                                         new AntPathRequestMatcher("/api/users/check-auth"),
-                                        new AntPathRequestMatcher("/api/users/check-nickname")
+                                        new AntPathRequestMatcher("/api/users/check-nickname"),
+                                        new AntPathRequestMatcher("/swagger-ui.html/**", " /v3/api-docs/**")
                                 ).permitAll()
                                 .requestMatchers(
                                         new AntPathRequestMatcher("/api/users/**")

@@ -1,5 +1,6 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -114,7 +115,8 @@ public class ProjectController {
     
     //최근에 생성된 프로젝트 조회
     @GetMapping("/new")
-    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@LoginFilterMemberId(required = false) Long memberId,
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(
+             @LoginFilterMemberId(required = false) @Parameter(required = false) Long memberId,
                                                                           @RequestParam(defaultValue = "0") int page,
                                                                           @RequestParam(defaultValue = "4") int size) {
         Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size),memberId);

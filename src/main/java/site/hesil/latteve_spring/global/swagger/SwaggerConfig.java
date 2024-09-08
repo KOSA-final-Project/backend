@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
  * 2024-09-09        Heeseon       최초 생성
  */
 @Configuration
+
 public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
@@ -28,12 +29,12 @@ public class SwaggerConfig {
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwt);
         Components components = new Components().addSecuritySchemes(jwt, new SecurityScheme()
                 .name(jwt)
-                .type(SecurityScheme.Type.HTTP)
-                .scheme("bearer")
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.COOKIE)  // 쿠키에 JWT 저장
                 .bearerFormat("JWT")
+                .scheme("bearer")
         );
         return new OpenAPI()
-                .components(new Components())
                 .info(apiInfo())
                 .addSecurityItem(securityRequirement)
                 .components(components);
