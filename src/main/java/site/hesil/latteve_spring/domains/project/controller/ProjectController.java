@@ -115,18 +115,19 @@ public class ProjectController {
 
     //최근에 생성된 프로젝트 조회
     @GetMapping("/new")
-    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(@AuthMemberId(required = false) Long memberId,@RequestParam(defaultValue = "0") int page,
                                                                           @RequestParam(defaultValue = "4") int size) {
-        Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size));
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size),memberId);
         return ResponseEntity.ok(projectPage);
     }
 
     //최근에 종료된 프로젝트 조회
     @GetMapping("/done")
-    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@AuthMemberId(required = false) Long memberId,
+                                                                              @RequestParam(defaultValue = "0") int page,
                                                                               @RequestParam(defaultValue = "4") int size) {
 
-        Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size));
+        Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size),memberId);
         return ResponseEntity.ok(projectPage);
     }
 

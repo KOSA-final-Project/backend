@@ -60,6 +60,7 @@ import java.util.stream.Collectors;
  * 2024-09-01        Yeong-Huns    프로젝트 생성
  * 2024-09-04        Heeseon       프로젝트 조회, 프로젝트 카드 내용 조회
  * 2024-09-07        Yeong-Huns    프로젝트 지원자 승인 / 거절
+ * 2024-09-08        Heeseon       좋아요 여부 확인 추가
  * 2024-09-08        Yeong-Huns    좋아요, 좋아요 취소
  */
 @Slf4j
@@ -148,7 +149,7 @@ public class ProjectService {
 
     //프로젝트 카드에 들어갈 내용 조회
     @Transactional(readOnly = true)
-    public List<ProjectCardResponse> getProjectCardList(List<Project> projectList) {
+    public List<ProjectCardResponse> getProjectCardList(List<Project> projectList, Long memberId) {
 
         List<ProjectCardResponse> projectDocuments = new ArrayList<>();
 
@@ -173,7 +174,8 @@ public class ProjectService {
                 }
 
             }
-
+            // 로그인한 사용자의 좋아요 여부만 확인
+            boolean isLiked = (memberId != null) && projectLikeRepository.existsByProject_ProjectIdAndMember_MemberId(project.getProjectId(), memberId);
 
             // 좋아요 수
             Long cntLike = projectLikeRepository.countProjectLikeByProject_ProjectId(project.getProjectId());
@@ -191,6 +193,7 @@ public class ProjectService {
                     .duration(project.getDuration())
                     .projectTechStack(techStackList)
                     .cntLike(cntLike)
+                    .isLiked(isLiked)
                     .currentCnt(currentMemberCount)
                     .teamCnt(currentMemberCount)
                     .build();
@@ -203,7 +206,7 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public Page<ProjectCardResponse> getProjectsByMemberAndLike(Long memberId, Pageable pageable) {
         Page<Project> projectPage = projectRepository.findLikedProjectsByMemberId(memberId, pageable);
-        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }
 
@@ -221,16 +224,16 @@ public class ProjectService {
             // 일반적으로 memberId로 프로젝트 조회
             projectPage = projectRepository.findProjectsByMemberIdAndStatus(memberId, status, pageable);
         }
-        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
 
     }
 
     // 신규순으로 조회
-    public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable) {
+    public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable,Long memberId) {
 
         Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(1, pageable);
-        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent());
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }
 
@@ -255,7 +258,7 @@ public class ProjectService {
     }
 
     // 최근 종료된 순으로 조회
-    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable) {
+    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable,Long memberId) {
         // 1. 프로젝트 목록 가져오기
         Page<Project> projects = projectRepository.findAllCompletedProjects(pageable);
 
@@ -266,7 +269,7 @@ public class ProjectService {
 
 
         // 3. getProjectCardList 메서드를 사용하여 ProjectCardResponse 리스트로 변환
-        List<ProjectCardResponse> projectCardResponses = getProjectCardList(sortedProjects);
+        List<ProjectCardResponse> projectCardResponses = getProjectCardList(sortedProjects,memberId);
 
         return new PageImpl<>(projectCardResponses, pageable, projects.getTotalElements());
     }
@@ -276,5 +279,6 @@ public class ProjectService {
 //
 //    // 가중치 계산
 //    public
+
 
 }
