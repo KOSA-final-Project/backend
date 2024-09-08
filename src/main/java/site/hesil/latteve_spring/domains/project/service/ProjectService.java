@@ -86,11 +86,12 @@ public class ProjectService {
     }
 
     @Transactional
-    public void saveProject(ProjectSaveRequest projectSaveRequest, long memberId) {
+    public long saveProject(ProjectSaveRequest projectSaveRequest, long memberId) {
         long projectId = projectRepository.save(projectSaveRequest.toEntity()).getProjectId();
         recruitmentRepository.saveAllRecruitments(projectSaveRequest.recruitmentRoles(), projectId);
         projectStackRepository.saveAllProjectStacks(projectSaveRequest.techStack(), projectId);
         projectMemberRepository.registerProjectLeader(projectId, memberId);
+        return projectId;
     }
 
 
