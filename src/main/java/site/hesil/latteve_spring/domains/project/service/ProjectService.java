@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
+import site.hesil.latteve_spring.domains.alarm.dto.ProjectApplicationAlarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
@@ -40,6 +41,9 @@ import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepositor
 import site.hesil.latteve_spring.global.error.errorcode.ErrorCode;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 import site.hesil.latteve_spring.global.error.exception.NotFoundException;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQExchange;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQRouting;
+import site.hesil.latteve_spring.global.rabbitMQ.publisher.MQSender;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -78,6 +82,7 @@ public class ProjectService {
     private final TechStackRepository techStackRepository;
     private final ProjectLikeRepository projectLikeRepository;
     private final RetrospectiveRepository retrospectiveRepository;
+    private final MQSender mqSender;
 
     // 프로젝트 상세 페이지 정보
     public ProjectDetailResponse getProjectDetail(Long projectId) {
@@ -125,6 +130,7 @@ public class ProjectService {
     }
 
     // 프로젝트 지원
+    @Transactional
     public void applyProject(Long projectId, Long memberId, Long jobId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
@@ -140,11 +146,18 @@ public class ProjectService {
 
         projectMemberRepository.save(projectMember);
 
+        long leaderId = projectMemberRepository.findLeaderMemberIdByProjectId(projectId).orElseThrow(()->new NotFoundException("리더를 찾을수 없습니다."));
+
         // alarm 테이블에 데이터 삽입
         Alarm alarm = Alarm.of(project, member, job, 0);
-
+        ProjectApplicationAlarm projectApplicationAlarm = ProjectApplicationAlarm.builder()
+                .projectName(project.getName())
+                .nickname(member.getNickname())
+                .jobName(job.getName())
+                .projectLeaderId(leaderId)
+                .build();
+        mqSender.sendMessage(MQExchange.ALARM.getExchange(), MQRouting.APPLICATION_CREATE.getRouting(), projectApplicationAlarm);
         alarmRepository.save(alarm);
-
     }
 
 

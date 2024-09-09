@@ -19,8 +19,9 @@ public enum MQRouting {
     MEMBER_CREATE("member.create"),
     DEAD_LETTER("deadLetter"),
     MEMBER_UPDATE("member.update"),
-    MEMBER_DELETE("member.delete");
-
+    MEMBER_DELETE("member.delete"),
+    APPLICATION_CREATE("application"),
+    APPROVAL_RESULT("approval"),
     ;
     private final String routing;
 }
