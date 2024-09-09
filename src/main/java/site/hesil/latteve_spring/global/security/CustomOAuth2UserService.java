@@ -31,6 +31,7 @@ import java.util.function.Supplier;
  * -----------------------------------------------------------
  * 2024-08-23           yunbin           최초 생성
  * 2024-09-06           Yeong_huns       member 동기화
+ * 2024-09-09           Yeong_huns       같은 이메일인데 다른 소셜 로그인으로 가입 시도했을 경우 -> 로직 개선
  */
 @RequiredArgsConstructor
 @Service
@@ -56,9 +57,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, oAuth2UserAttributes);
 
         // 5. 같은 이메일인데 다른 소셜 로그인으로 가입 시도했을 경우 -> 가입 x
-        Supplier<? extends Throwable> NotFoundException;
+        boolean isExist = memberRepository.existsByEmail(oAuth2UserInfo.email());
+        log.info("isExist: {}", isExist);
+        if(isExist) {
         Member existUser = memberRepository.findByEmail(oAuth2UserInfo.email()).orElseThrow(NotFoundException::new);
-
             // 기존 사용자가 존재하고, 다른 소셜 로그인 제공자로 가입된 경우
             if (!existUser.getProvider().equals(registrationId)) {
                 // 예외를 던져서 사용자에게 메시지 반환
@@ -69,6 +71,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                 existUser.getProvider())
                 );
             }
+        }
 
         // 6. 회원가입 및 로그인
         Member member = getOrSave(oAuth2UserInfo);

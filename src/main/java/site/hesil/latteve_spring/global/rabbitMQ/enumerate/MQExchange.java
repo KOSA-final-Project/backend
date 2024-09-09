@@ -19,6 +19,7 @@ public enum MQExchange {
     DIRECT_MEMBER("memberDirectExchange"),
     DEAD_LETTER("deadLetterExchange"),
     TOPIC_MEMBER("topicMemberExchange"),
+    ALARM("alarmExchange");
     ;
 
 
