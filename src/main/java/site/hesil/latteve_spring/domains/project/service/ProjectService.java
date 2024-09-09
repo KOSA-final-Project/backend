@@ -330,6 +330,9 @@ public class ProjectService {
                     // 지원자 수 조회
                     long totalApplicantsCount = projectMemberRepository. findMemberCountByProject_ProjectId(project.getProjectId());
 
+                    // 현재 모인 팀원수
+                    long currentApprovedCnt = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
+
                     //총 모집 인원 조회
                     long totalRecruitmentCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
 
@@ -376,7 +379,7 @@ public class ProjectService {
                             .deadline(project.getDeadline())                        // 프로젝트 마감일 (주차)
                             .createdAt(project.getCreatedAt())
                             .cntLike(projectLikes)                                  // 좋아요 수
-                            .currentCnt((int) totalApplicantsCount)                 // 현재 모인 팀원 수
+                            .currentCnt((int) currentApprovedCnt)                 // 현재 모인 팀원 수
                             .teamCnt((int) totalRecruitmentCount)                   // 총 팀원 수
                             .popularityScore(popularitySum)                         // 인기 점수 (좋아요 + 모집 대비 지원자 비율)
                             .build();
