@@ -184,7 +184,7 @@ public class ProjectService {
             // 프로젝트에 필요한 인원
             Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
             // 프로젝트에 지원한 인원
-            Integer currentMemberCount = projectMemberRepository.findMemberCountByProject_ProjectId(project.getProjectId());
+            Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
 
 
             ProjectCardResponse projectCard = ProjectCardResponse.builder()
@@ -359,7 +359,7 @@ public class ProjectService {
                             .collect(Collectors.toList());
 
                     // 직무별 모집 정보 조회 및 변환
-                    List<String> recruitmentNames = recruitmentRepository.findByProject(project)
+                    List<String> recruitmentNames = recruitmentRepository.findByProjectExcludingJobId1(project)
                             .stream()
                             .map(recruitment -> recruitment.getJob().getName())
                             .collect(Collectors.toList());

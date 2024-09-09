@@ -39,6 +39,8 @@ public interface RecruitmentRepository extends JpaRepository <Recruitment, Recru
         roles.forEach(i->saveRecruitment(projectId, i.jobId(), i.count()));
     }
 
-    List<Recruitment> findByProject(Project project);
+    @Query("SELECT r FROM Recruitment r WHERE r.project = :project AND r.job.jobId <> 1")
+    List<Recruitment> findByProjectExcludingJobId1(@Param("project") Project project);
+
 
 }
