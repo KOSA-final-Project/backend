@@ -359,7 +359,7 @@ public class ProjectService {
                             .collect(Collectors.toList());
 
                     // 직무별 모집 정보 조회 및 변환
-                    List<String> recruitmentNames = recruitmentRepository.findByProject(project)
+                    List<String> recruitmentNames = recruitmentRepository.findByProjectExcludingJobId1(project)
                             .stream()
                             .map(recruitment -> recruitment.getJob().getName())
                             .collect(Collectors.toList());
