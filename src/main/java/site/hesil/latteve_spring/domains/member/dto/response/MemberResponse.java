@@ -17,7 +17,7 @@ import java.util.List;
  * 2024-09-04        Heeseon       최초 생성
  */
 @Builder
-public record ResponseMember (
+public record MemberResponse(
     Long memberId,
     String imgUrl,
     String email,

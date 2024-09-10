@@ -67,6 +67,24 @@ public class Member extends BaseTimeEntity {
         }
     }
 
+    public void updateMemberInfo(String imgUrl, String nickname, String career, String github,  String pr){
+        if(imgUrl != null){
+            this.imgUrl = imgUrl;
+        }
+        if(nickname != null){
+            this.nickname = nickname;
+        }
+        if(career != null){
+            this.career = career;
+        }
+        if(github != null){
+            this.github = github;
+        }
+        if(pr != null){
+            this.pr = pr;
+        }
+    }
+
     public void updateProvider(String provider, String providerId) {
         if (provider != null) {
             this.provider = provider;

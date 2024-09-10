@@ -1,6 +1,5 @@
 package site.hesil.latteve_spring.domains.member.controller;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +16,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.dto.request.RequestMember;
-import site.hesil.latteve_spring.domains.member.dto.response.ResponseMember;
+import site.hesil.latteve_spring.domains.member.dto.request.UpdateMemberReq;
+import site.hesil.latteve_spring.domains.member.dto.response.MemberResponse;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
 import site.hesil.latteve_spring.domains.member.service.MemberService;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
@@ -110,10 +110,20 @@ public class MemberController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ResponseMember> getMemberInfo( @AuthMemberId Long memberId) {
-        ResponseMember responseMember = memberService.getMemberInfo(memberId);
-        return ResponseEntity.ok(responseMember);
+    public ResponseEntity<MemberResponse> getMemberInfo(@AuthMemberId Long memberId) {
+        MemberResponse memberResponse = memberService.getMemberInfo(memberId);
+        return ResponseEntity.ok(memberResponse);
     }
 
+    // 멤버 정보 수정 API
+    @PutMapping("/me")
+    public ResponseEntity<String> updateMemberProfile(
+            @RequestBody UpdateMemberReq updateRequest,
+            @AuthMemberId Long memberId) {
+
+       memberService.updateMemberProfile(memberId, updateRequest);
+
+       return ResponseEntity.ok().body("회원 정보가 업데이트되었습니다.");
+    }
 }
 
