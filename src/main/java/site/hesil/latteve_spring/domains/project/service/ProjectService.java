@@ -285,53 +285,6 @@ public class ProjectService {
     }
 
     // 인기 프로젝트 조회
-//    public List<PopularProjectResponse> getTop10PopularProjects() {
-//        List<Project> projects = projectRepository.findAll(); // 프로젝트 데이터 전체 조회
-//
-//        // 좋아요 수 최대값 조회
-//        Long maxLikes = projectLikeRepository.findMaxLikes();
-//
-//        return projects.stream()
-//                .map(project -> {
-//                    // 프로젝트의 직무별 모집 인원 및 지원자 수 계산
-//                    List<Recruitment> recruitments = recruitmentRepository.findByProject(project);
-//                    long totalRecruitmentCount = recruitments.stream().mapToInt(Recruitment::getCount).sum();
-//
-//                    // 모집 대비 지원자 수 계산
-//                    long totalApplicantsCount = projectMemberRepository.countByProject(project);
-//
-//                    // 모집 대비 지원자 비율
-//                    double normalizedApplicants = totalRecruitmentCount > 0
-//                            ? (double) totalApplicantsCount / totalRecruitmentCount
-//                            : 0;
-//
-//                    // 각 프로젝트의 좋아요 수 조회
-//                    Long projectLikes = projectLikeRepository.countProjectLikeByProject_ProjectId(project.getProjectId());
-//
-//                    // 좋아요 수 정규화
-//                    double normalizedLikes = maxLikes > 0
-//                            ? (double) projectLikes / maxLikes
-//                            : 0;
-//
-//                    // 시간 가중치 계산 (최신순)
-//                    double weightTime = calculateTimeWeight(project.getCreatedAt().toLocalDate());
-//
-//                    // 최종 인기도 점수 계산
-//                    double popularityScore = (normalizedLikes * 0.4) + (normalizedApplicants * 0.4) + (weightTime * 0.2);
-//
-//                    // PopularProjectResponse로 변환하여 반환
-//                    return new PopularProjectResponse(
-//                            project.getProjectId(),
-//                            project.getName(),
-//                            popularityScore,
-//
-//                })
-//                .sorted(Comparator.comparingDouble(Project::getPopularityScore).reversed())
-//                .limit(10)
-//                .map(this::toPopularProjectResponse) // 필요한 DTO 변환
-//                .collect(Collectors.toList());
-//    }
-
     public List<PopularProjectResponse> getTop10PopularProjects() {
         List<Project> projects = projectRepository.findAll(); // 프로젝트 데이터 전체 조회
 
