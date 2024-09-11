@@ -11,9 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import site.hesil.latteve_spring.domains.member.controller.MemberController;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectApplyRequest;
-import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.request.ProjectStartRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
+import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
@@ -70,8 +70,6 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<Long> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest, @AuthMemberId Long memberId) {
-        log.info("projectSaveRequest: {}", projectSaveRequest);
-        log.info("memberId: {}", memberId);
         return ResponseEntity.status(HttpStatus.CREATED).body(projectService.saveProject(projectSaveRequest, memberId));
     }
 

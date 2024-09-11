@@ -23,7 +23,7 @@ public class MQSender {
 
 
     public void sendMessage(String exchange, String routingKey, Object message) {
-        log.info("sendMessage : {}", message);
+        log.info("sendMessage : {}", message.toString());
         rabbitTemplate.convertAndSend(exchange, routingKey, message);
     }
 

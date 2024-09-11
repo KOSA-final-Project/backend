@@ -32,4 +32,5 @@ public record PopularProjectResponse(
         int teamCnt,
         double popularityScore
 ) {
+
 }

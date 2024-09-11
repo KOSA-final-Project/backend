@@ -3,6 +3,9 @@ package site.hesil.latteve_spring.domains.project.repository.project.custom;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -26,10 +29,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.custom
- * fileName       : ProjectRepositoryImpl
+ * fileName       :
  * author         : JooYoon
  * date           : 2024-08-27
  * description    :
@@ -38,7 +42,6 @@ import java.util.Optional;
  * -----------------------------------------------------------
  * 2024-08-27        JooYoon       최초 생성
  */
-
 @Log4j2
 @RequiredArgsConstructor
 public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
@@ -47,7 +50,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
     // 프로젝트 상세 정보 조회
     @Override
-    public Optional<ProjectDetailResponse> getProjectDetail(Long projectId) {
+    public Optional<ProjectDetailResponse> getProjectDetail_deprecated(Long projectId) {
         QProject project = QProject.project;
         QProjectStack projectStack = QProjectStack.projectStack;
         QTechStack techStack = QTechStack.techStack;
@@ -289,10 +292,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QRetrospective retrospective = QRetrospective.retrospective;
 
         Tuple retrospectiveInto = queryFactory.select(
-                retrospective.title,
-                retrospective.content,
-                retrospective.createdAt,
-                retrospective.updatedAt)
+                        retrospective.title,
+                        retrospective.content,
+                        retrospective.createdAt,
+                        retrospective.updatedAt)
                 .from(retrospective)
                 .where(retrospective.project.projectId.eq(projectId)
                         .and(retrospective.member.memberId.eq(memberId))

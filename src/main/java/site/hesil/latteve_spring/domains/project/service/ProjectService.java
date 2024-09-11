@@ -16,6 +16,7 @@ import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
+import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackResponse;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -24,6 +25,8 @@ import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAccep
 import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse;
+import site.hesil.latteve_spring.domains.project.dto.project.response.projectDetail.*;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
@@ -45,7 +48,10 @@ import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQExchange;
 import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQRouting;
 import site.hesil.latteve_spring.global.rabbitMQ.publisher.MQSender;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,6 +71,7 @@ import java.util.stream.Collectors;
  * 2024-09-07        Yeong-Huns    프로젝트 지원자 승인 / 거절
  * 2024-09-08        Heeseon       좋아요 여부 확인 추가
  * 2024-09-08        Yeong-Huns    좋아요, 좋아요 취소
+ * 2024-09-11        Yeong-Huns    getApplicationsByProjectId 쿼리 성능개선
  */
 @Slf4j
 @Service
@@ -85,9 +92,14 @@ public class ProjectService {
     private final MQSender mqSender;
 
     // 프로젝트 상세 페이지 정보
+    @Transactional(readOnly = true)
     public ProjectDetailResponse getProjectDetail(Long projectId) {
-        return projectRepository.getProjectDetail(projectId)
+        long startTime = System.currentTimeMillis();
+        ProjectDetailResponse result = projectRepository.getProjectDetail_deprecated(projectId)
                 .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+        long endTime = System.currentTimeMillis();
+        log.info("getProjectDetail 쿼리 시간 : {} ms", (endTime - startTime));
+        return result;
     }
 
     @Transactional
@@ -102,11 +114,38 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getApplicationsByProjectId(long projectId){
-        return projectMemberRepository.findApplicationsByProjectId(projectId).stream()
-                .map(pm->{
-                    List<MemberStackResponse> techStacks = memberStackRepository.findTechStackNamesByMemberId(pm.projectMemberId());
+        long startTime = System.currentTimeMillis();
+        log.info("getApplication 실행:");
+        List<ProjectMemberResponse> projectMembers = projectMemberRepository.findApplicationsByProjectId(projectId);
+
+        List<Long> memberIds = projectMembers.stream()
+                .map(ProjectMemberResponse::projectMemberId)
+                .toList();
+
+        List<MemberStack> allTechStacks = memberStackRepository.findAllTechStacksByMemberIds(memberIds);
+
+        Map<Long, List<MemberStackResponse>> techStacksByMemberId = allTechStacks.stream()
+                .collect(Collectors.groupingBy(
+                        ms -> ms.getMember().getMemberId(),
+                        Collectors.mapping(
+                                ms -> new MemberStackResponse(
+                                        ms.getTechStack().getTechStackId() == 1 ? ms.getCustomStack() : ms.getTechStack().getName(),
+                                        ms.getTechStack().getTechStackId() == 1 ? null : ms.getTechStack().getImgUrl()
+                                ),
+                                Collectors.toList()
+                        )
+                ));
+
+        List<ApplicationResponse> result = projectMembers.stream()
+                .map(pm -> {
+                    log.info("findTechStackNames 실행:");
+                    List<MemberStackResponse> techStacks = techStacksByMemberId.getOrDefault(pm.projectMemberId(), Collections.emptyList());
                     return ApplicationResponse.of(pm, techStacks);
-                }).toList();
+                })
+                .toList();
+        long endTime = System.currentTimeMillis();
+        log.info("getApplicationsByProjectId 쿼리 시간 : {} ms", (endTime - startTime));
+        return result;
     }
 
     @Transactional

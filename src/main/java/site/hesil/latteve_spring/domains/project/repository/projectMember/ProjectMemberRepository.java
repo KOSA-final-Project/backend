@@ -57,7 +57,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
                     (SELECT COUNT(p)
                      FROM ProjectMember pm2
                      JOIN pm2.project p
-                     WHERE pm2.member.memberId = pm.member.memberId 
+                     WHERE pm2.member.memberId = pm.member.memberId
                        AND p.status = 1
                        AND pm2.acceptStatus = 1),
                     (SELECT COUNT(p)
