@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.repository.project.custom.ProjectRepositoryCustom;
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 
@@ -22,7 +23,6 @@ import java.util.List;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-27        JooYoon       최초 생성
- * 2024
  */
 
 public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
@@ -50,8 +50,5 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
     // 종료된 프로젝트 조회
     @Query("SELECT p FROM Project p WHERE p.status = 2 AND p.deletedAt IS NULL AND p.startedAt IS NOT NULL")
     Page<Project> findAllCompletedProjects(Pageable pageable);
-
-
-
 
 }
