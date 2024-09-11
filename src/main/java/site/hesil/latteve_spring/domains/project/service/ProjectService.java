@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -331,76 +332,9 @@ public class ProjectService {
 
     // 인기 프로젝트 조회
     public List<PopularProjectResponse> getTop10PopularProjects() {
-        List<Project> projects = projectRepository.findAll(); // 프로젝트 데이터 전체 조회
 
-        return projects.stream()
-                .map(project -> {
-                    // 각 프로젝트의 좋아요 수 조회
-                    Long projectLikes = projectLikeRepository.countProjectLikeByProject_ProjectId(project.getProjectId());
-
-                    // 지원자 수 조회
-                    long totalApplicantsCount = projectMemberRepository. findMemberCountByProject_ProjectId(project.getProjectId());
-
-                    // 현재 모인 팀원수
-                    long currentApprovedCnt = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
-
-                    //총 모집 인원 조회
-                    long totalRecruitmentCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
-
-                    // 모집 인원 대비 지원자 비율 계산
-                    double applicantsRatio = totalRecruitmentCount > 0
-                            ? (double) totalApplicantsCount / totalRecruitmentCount
-                            : 0;
-
-                    // 좋아요 수와 모집 대비 지원자 비율 합산
-                    double popularitySum = projectLikes + applicantsRatio;
-
-                    // 기술 스택 정보 조회
-                    List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
-                    List<ProjectCardResponse.TechStack> techStackList = projectTechStacks.stream()
-                            .map(stack -> {
-                                Long techStackId = stack.getTechStack().getTechStackId();
-                                if (techStackId == 1) {
-                                    return new ProjectCardResponse.TechStack(stack.getCustomStack(), null);
-                                } else {
-                                    Optional<TechStack> techStackOpt = techStackRepository.findById(techStackId);
-                                    return techStackOpt.map(techStack ->
-                                                    new ProjectCardResponse.TechStack(techStack.getName(), techStack.getImgUrl()))
-                                            .orElse(null);
-                                }
-                            })
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-
-                    // 직무별 모집 정보 조회 및 변환
-                    List<String> recruitmentNames = recruitmentRepository.findByProjectExcludingJobId1(project)
-                            .stream()
-                            .map(recruitment -> recruitment.getJob().getName())
-                            .collect(Collectors.toList());
-
-                    // PopularProjectResponse로 변환하여 반환
-                    return PopularProjectResponse.builder()
-                            .projectId(project.getProjectId())                      // 프로젝트 ID
-                            .name(project.getName())                                // 프로젝트 이름
-                            .imgUrl(project.getImgUrl())                            // 이미지 URL
-                            .projectTechStack(techStackList)                        // 프로젝트 기술 스택 (List<ProjectCardResponse.TechStack>)
-                            .description(project.getDescription())                  // 프로젝트 설명
-                            .recruitmentName(recruitmentNames)
-                            .duration(project.getDuration())
-                            .deadline(project.getDeadline())                        // 프로젝트 마감일 (주차)
-                            .createdAt(project.getCreatedAt())
-                            .cntLike(projectLikes)                                  // 좋아요 수
-                            .currentCnt((int) currentApprovedCnt)                 // 현재 모인 팀원 수
-                            .teamCnt((int) totalRecruitmentCount)                   // 총 팀원 수
-                            .popularityScore(popularitySum)                         // 인기 점수 (좋아요 + 모집 대비 지원자 비율)
-                            .build();
-                })
-                // 좋아요 수 + 모집 대비 지원자 비율로 내림차순 정렬
-                .sorted(Comparator.comparingDouble(PopularProjectResponse::popularityScore).reversed()
-                        // 동일한 경우 최신순으로 정렬
-                        .thenComparing(PopularProjectResponse::createdAt, Comparator.reverseOrder()))
-                .limit(10)  // 상위 10개
-                .collect(Collectors.toList());
+        List<PopularProjectResponse> projects = projectRepository.findPopularProjects(10 );
+        return projectRepository.findPopularProjects(10);
     }
 
 
