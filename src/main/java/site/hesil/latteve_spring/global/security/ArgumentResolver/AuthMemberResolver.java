@@ -54,7 +54,6 @@ public class AuthMemberResolver implements HandlerMethodArgumentResolver {
         if (token != null) {
             memberId = tokenProvider.getMemberId(token);
         }
-        log.error("resolveArgument 토큰 파싱중 null 반환");
         return memberId.orElseThrow(()->new CustomBaseException(ErrorCode.TOKEN_NOT_FOUND));
     }
 
