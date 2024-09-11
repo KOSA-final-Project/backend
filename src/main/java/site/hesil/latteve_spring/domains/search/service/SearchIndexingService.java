@@ -96,7 +96,7 @@ public class SearchIndexingService {
             // 프로젝트에 필요한 인원
             Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
             // 프로젝트에 지원한 인원
-            Integer currentMemberCount = projectMemberRepository.findMemberCountByProject_ProjectId(project.getProjectId());
+            Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
 
             // ProjectDocumentReq 생성
             ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
