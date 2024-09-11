@@ -26,19 +26,10 @@ public interface MemberStackRepository extends JpaRepository<MemberStack, Long> 
     List<MemberStack> findAllByMember_MemberId(Long memberId);
 
     @Query("""
-             SELECT new site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackResponse(
-                 CASE
-                     WHEN ms.techStack.techStackId = 1 THEN ms.customStack
-                     ELSE ts.name
-                 END,
-                 CASE
-                     WHEN ms.techStack.techStackId = 1 THEN null
-                     ELSE ts.imgUrl
-                 END
-             )
-             FROM MemberStack ms
-             JOIN ms.techStack ts
-             WHERE ms.member.memberId = :memberId
-            """)
-    List<MemberStackResponse> findTechStackNamesByMemberId(@Param("memberId") Long memberId);
+    SELECT ms 
+    FROM MemberStack ms
+    JOIN FETCH ms.techStack
+    WHERE ms.member.memberId IN :memberIds
+""")
+    List<MemberStack> findAllTechStacksByMemberIds(@Param("memberIds") List<Long> memberIds);
 }

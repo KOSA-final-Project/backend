@@ -1,5 +1,6 @@
 package site.hesil.latteve_spring.domains.project.repository.project.custom;
 
+import com.querydsl.core.Tuple;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import site.hesil.latteve_spring.domains.project.domain.Project;
@@ -25,7 +26,7 @@ import java.util.Optional;
 
 public interface ProjectRepositoryCustom {
 
-    Optional<ProjectDetailResponse> getProjectDetail(Long projectId);
+    Optional<ProjectDetailResponse> getProjectDetail_deprecated(Long projectId);
 
     int countProjectsByMemberIdAndStatus(Long memberId, int status);
 

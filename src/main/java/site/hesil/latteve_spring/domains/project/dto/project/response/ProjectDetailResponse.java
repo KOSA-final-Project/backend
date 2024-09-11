@@ -32,6 +32,28 @@ public record ProjectDetailResponse(
         Leader leader,
         List<Recruitment> recruitments
 ) {
+    public static ProjectDetailResponse of(
+            ProjectDetailResponse projectDetail,
+            List<TechStack> projectTechStack,
+            Leader leader,
+            List<Recruitment> recruitments
+    ){
+        return ProjectDetailResponse.builder()
+                .projectId(projectDetail.projectId)
+                .name(projectDetail.name)
+                .description(projectDetail.description)
+                .projectImg(projectDetail.projectImg)
+                .status(projectDetail.status)
+                .createdAt(projectDetail.createdAt)
+                .startedAt(projectDetail.startedAt)
+                .duration(projectDetail.duration)
+                .cycle(projectDetail.cycle)
+                .projectTechStack(projectTechStack)
+                .leader(leader)
+                .recruitments(recruitments)
+                .build();
+    }
+
     public record Leader(
             Long memberId,
             String memberNickname,
