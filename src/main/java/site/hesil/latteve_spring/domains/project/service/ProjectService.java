@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.dto.ProjectApplicationAlarm;
+import site.hesil.latteve_spring.domains.alarm.dto.ProjectApprovalResultAlarm;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
@@ -73,6 +74,7 @@ import java.util.stream.Collectors;
  * 2024-09-08        Heeseon       좋아요 여부 확인 추가
  * 2024-09-08        Yeong-Huns    좋아요, 좋아요 취소
  * 2024-09-11        Yeong-Huns    getApplicationsByProjectId 쿼리 성능개선
+ * 2024-09-11        Yeong-Huns    applyProject 이미 지원중인 인원인지 검증로직 추가
  */
 @Slf4j
 @Service
@@ -153,10 +155,11 @@ public class ProjectService {
     public void updateAcceptStatus(UpdateAcceptStatusRequest updateAcceptStatusRequest, Long memberId){
         boolean isLeader = projectMemberRepository.isLeader(updateAcceptStatusRequest.projectId(), memberId);
         if(!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
-        ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.memberId())
+        ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberIdAndJobId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.jobId(), updateAcceptStatusRequest.memberId())
                 .orElseThrow(()-> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
         projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
-        log.info(projectMember.toString());
+        mqSender.sendMessage(MQExchange.ALARM.getExchange(), MQRouting.APPROVAL_RESULT.getRouting(), ProjectApprovalResultAlarm.from(projectMember));
+        //log.info(projectMember.toString());
     }
 
     @Transactional
@@ -172,6 +175,9 @@ public class ProjectService {
     // 프로젝트 지원
     @Transactional
     public void applyProject(Long projectId, Long memberId, Long jobId) {
+        boolean isApplication = projectMemberRepository.isApplication(projectId, memberId);
+        if(isApplication) throw new CustomBaseException(ErrorCode.ALREADY_APPLICATION);
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 

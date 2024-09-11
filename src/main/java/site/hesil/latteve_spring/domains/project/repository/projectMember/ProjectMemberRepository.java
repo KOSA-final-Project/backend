@@ -49,6 +49,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
 
     @Query("""
                 SELECT new site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse(
+                    pm.job.jobId,
                     pm.job.name,
                     pm.member.memberId,
                     pm.member.nickname,
@@ -63,7 +64,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
                     (SELECT COUNT(p)
                      FROM ProjectMember pm3
                      JOIN pm3.project p
-                     WHERE pm3.member.memberId = pm.member.memberId 
+                     WHERE pm3.member.memberId = pm.member.memberId
                        AND p.status = 2
                        AND pm3.acceptStatus = 1)
                 )
@@ -76,8 +77,14 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     @Query("SELECT pm.isLeader FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId")
     boolean isLeader(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 
+    @Query("SELECT COUNT(pm) > 0 FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId AND (pm.acceptStatus = 1 OR pm.acceptStatus = 2)")
+    boolean isApplication(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
+
     @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId")
-    Optional<ProjectMember> findByProjectIdAndMemberId(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
+    Optional<ProjectMember> findByProjectIdAndMemberId(@Param("projectId") Long projectId,  @Param("memberId") Long memberId);
+
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.member.memberId = :memberId AND pm.job.jobId = :jobId AND pm.acceptStatus = 2")
+    Optional<ProjectMember> findByProjectIdAndMemberIdAndJobId(@Param("projectId") Long projectId, @Param("jobId") int jobId , @Param("memberId") Long memberId);
 
     @Modifying
     @Query("UPDATE ProjectMember pm SET pm.acceptStatus = 0 WHERE pm.project.projectId = :projectId AND pm.acceptStatus = 2")

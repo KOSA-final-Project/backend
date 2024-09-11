@@ -15,6 +15,7 @@ import java.util.List;
  * 2024-09-08        Yeong-Huns       최초 생성
  */
 public record ProjectMemberResponse(
+        long jobId,
         String jobName,
         long projectMemberId,
         String projectMemberNickname,

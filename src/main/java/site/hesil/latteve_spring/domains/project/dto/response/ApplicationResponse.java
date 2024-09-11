@@ -20,6 +20,7 @@ import java.util.List;
  */
 @Builder
 public record ApplicationResponse(
+        long jobId,
         String jobName,
         long projectMemberId,
         String projectMemberNickname,
@@ -31,6 +32,7 @@ public record ApplicationResponse(
 ) {
     public static ApplicationResponse of(ProjectMemberResponse projectMemberResponse, List<MemberStackResponse> techStack) {
         return ApplicationResponse.builder()
+                .jobId(projectMemberResponse.jobId())
                 .projectMemberId(projectMemberResponse.projectMemberId())
                 .projectMemberNickname(projectMemberResponse.projectMemberNickname())
                 .projectMemberGitHub(projectMemberResponse.projectMemberGitHub())
