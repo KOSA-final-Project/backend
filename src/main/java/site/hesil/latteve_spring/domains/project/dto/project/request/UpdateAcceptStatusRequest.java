@@ -13,6 +13,7 @@ package site.hesil.latteve_spring.domains.project.dto.project.request;
 
 public record UpdateAcceptStatusRequest(
         long projectId,
+        int jobId,
         long memberId,
         int acceptStatus
 ) {
