@@ -311,6 +311,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QRetrospective retrospective = QRetrospective.retrospective;
 
         Tuple retrospectiveInto = queryFactory.select(
+                        retrospective.retId,
                         retrospective.title,
                         retrospective.content,
                         retrospective.createdAt,
@@ -324,6 +325,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         if (retrospectiveInto == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
 
         return Optional.ofNullable(RetrospectiveResponse.builder()
+                .retId(retrospectiveInto.get(retrospective.retId))
                 .title(retrospectiveInto.get(retrospective.title))
                 .content(retrospectiveInto.get(retrospective.content))
                 .createdAt(retrospectiveInto.get(retrospective.createdAt))
