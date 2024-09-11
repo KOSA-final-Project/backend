@@ -28,7 +28,7 @@ public enum ErrorCode {
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED,"D98", "토큰이 만료되었습니다."),
     ILLEGAL_REGISTRATION_ID(HttpStatus.NOT_ACCEPTABLE, "D99","illegal registration id"),
     INVALID_JWT_SIGNATURE(HttpStatus.UNAUTHORIZED,"D89","잘못된 JWT 시그니처입니다."),
-
+    ALREADY_APPLICATION(HttpStatus.UNAUTHORIZED, "D88", "이미 지원중입니다."),
     // User
     ALREADY_EXIST(HttpStatus.BAD_REQUEST, "D94", "이미 존재하는 사용자입니다."),
 
