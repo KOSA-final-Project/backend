@@ -32,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
         // cors 적용할 url 패턴
         registry.addMapping("/**")
                 // 자원을 공유할 오리진 지정
-                .allowedOrigins("http://localhost:3000")
+                .allowedOrigins("http://localhost:3000", "https://latteve.site")
                 // 요청 허용 메서드
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 // 요청 허용 헤더
