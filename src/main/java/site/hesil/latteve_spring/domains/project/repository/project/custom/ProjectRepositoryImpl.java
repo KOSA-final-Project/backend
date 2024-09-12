@@ -394,7 +394,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
         // 모든 프로젝트의 기술 스택 리스트 조회
         Map<Long, List<ProjectCardResponse.TechStack>> techStacksByProjectId = queryFactory
-                .select(projectStack.project.projectId, techStack.name, techStack.imgUrl)
+                .select(projectStack.project.projectId, new CaseBuilder()
+                        .when(techStack.techStackId.eq(1L)).then(projectStack.customStack)
+                        .otherwise(techStack.name),
+                        techStack.imgUrl)
                 .from(projectStack)
                 .join(projectStack.techStack, techStack)
                 .where(projectStack.project.projectId.in(projectIds))  // 모든 projectId에 대해 한 번에 조회
@@ -403,7 +406,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .collect(Collectors.toMap(
                         tuple -> tuple.get(projectStack.project.projectId),  // Key: projectId
                         tuple -> new ArrayList<>(List.of(new ProjectCardResponse.TechStack(  // Value: TechStack을 리스트로 변환
-                                tuple.get(techStack.name),
+                                tuple.get(1, String.class), // techStack.name or projectStack.customSTack
                                 tuple.get(techStack.imgUrl)
                         ))),
                         (existing, replacement) -> {  // 기존 값에 새 값을 병합하는 로직
