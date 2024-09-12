@@ -43,7 +43,7 @@ import java.util.List;
  */
 @Log4j2
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 

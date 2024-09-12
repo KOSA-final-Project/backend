@@ -22,7 +22,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/jobs")
+@RequestMapping("/jobs")
 public class JobController {
     private final JobService jobService;
 
