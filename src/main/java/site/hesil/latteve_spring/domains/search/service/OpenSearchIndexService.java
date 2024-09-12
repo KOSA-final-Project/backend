@@ -61,6 +61,10 @@ public class OpenSearchIndexService {
             openSearchClient.indices().delete(new DeleteIndexRequest.Builder().index(indexName).build());
         }
 
+        // n-gram 분석기 적용
+        Map<String, Object> settings = new HashMap<>();
+//        settings.put("analysis", <a[])
+
         // 인덱스별 techStack 매핑 설정
         TypeMapping mapping = createMapping(indexName);
 

@@ -46,13 +46,14 @@ public class SearchService {
         BoolQuery boolQuery = BoolQuery.of(b -> {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 // 프로젝트 이름으로 검색
-                b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)))._toQuery());
+                b.should(MatchQuery.of(m -> m.field("name").query(FieldValue.of(keyword)).fuzziness("AUTO"))._toQuery());
                 // 기술 스택 이름으로 검색
                 b.should(NestedQuery.of(n -> n
                         .path("projectTechStack")
                         .query(q -> q.match(m -> m
                                 .field("projectTechStack.name")
                                 .query(FieldValue.of(keyword))
+                                .fuzziness("AUTO")
                         ))
                 )._toQuery());
                 // 최소 일치 조건: 하나 이상의 필드가 일치해야 함
@@ -149,7 +150,7 @@ public class SearchService {
         BoolQuery boolQuery = BoolQuery.of(b -> {
             if (keyword != null && !keyword.trim().isEmpty()){
                 // 라떼버 이름으로 검색
-                b.should(MatchQuery.of(m -> m.field("memberNickname").query(FieldValue.of(keyword)))._toQuery());
+                b.should(MatchQuery.of(m -> m.field("memberNickname").query(FieldValue.of(keyword)).fuzziness("AUTO"))._toQuery());
                 // 기술 스택 이름으로 검색
                 b.should(NestedQuery.of(n -> n
                         .path("techStack")  // nested 필드의 경로 지정
@@ -157,11 +158,12 @@ public class SearchService {
                                 .match(m -> m
                                         .field("techStack.name")
                                         .query(FieldValue.of(keyword))
+                                        .fuzziness("AUTO")
                                 )
                         )
                 )._toQuery());
                 // 경력으로 검색
-                b.should(MatchQuery.of(m -> m.field("memberJob").query(FieldValue.of(keyword)))._toQuery());
+                b.should(MatchQuery.of(m -> m.field("memberJob").query(FieldValue.of(keyword)).fuzziness("AUTO"))._toQuery());
                 // 최소 매칭 조건
                 b.minimumShouldMatch(String.valueOf(1));
             }else{
@@ -176,7 +178,7 @@ public class SearchService {
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .index("members")  // 검색할 인덱스 이름
                 .query( boolQuery._toQuery())  // 결합된 쿼리
-                .from(from * size)  // 시작 인덱스 (예: 첫 번째 페이지)
+                .from(from * size)  // 시작 인덱스
                 .size(size);  // 페이지 당 size 만큼 반환
 
         // 정렬 기준 설정
