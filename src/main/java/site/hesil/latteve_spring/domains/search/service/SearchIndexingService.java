@@ -62,6 +62,51 @@ public class SearchIndexingService {
     private final ProjectLikeRepository projectLikeRepository;
 
     @Transactional
+    public void indexProject(Long projectId) throws IOException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // 프로젝트 기술 스택 리스트 가져옴
+        List<ProjectStack> projectStacks = projectStackRepository.findAllByProject_ProjectId(projectId);
+        List<ProjectDocumentReq.TechStack> techStackList = new ArrayList<>();
+        for (ProjectStack stack : projectStacks) {
+            TechStack techStack = stack.getTechStack();
+            techStackList.add(new ProjectDocumentReq.TechStack(techStack.getName(), techStack.getImgUrl()));
+        }
+
+        // 좋아요 수
+        Long likeCount = projectLikeRepository.countProjectLikeByProject_ProjectId(projectId);
+
+        // 프로젝트에 필요한 인원
+        Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(project.getProjectId());
+        // 프로젝트에 지원한 인원
+        Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
+
+        // ProjectDocumentReq 생성
+        ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
+                .projectId(project.getProjectId())
+                .name(project.getName())
+                .imgUrl(project.getImgUrl())
+                .duration(project.getDuration())
+                .projectTechStack(techStackList)
+                .cntLike(likeCount)
+                .currentCnt(currentMemberCount)
+                .teamCnt(requiredMemberCount)
+                .status(convertStatusToString(project.getStatus()))
+                .createdAt(formatLocalDateTime(project.getCreatedAt()))
+                .build();
+
+        // Elasticsearch에 인덱싱
+        IndexRequest<ProjectDocumentReq> indexRequest = new IndexRequest.Builder<ProjectDocumentReq>()
+                .index("projects")
+                .id(project.getProjectId().toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
+                .document(projectDocumentReq)
+                .build();
+        openSearchClient.index(indexRequest);
+        // OpenSearch에 인덱스 요청 생성
+    }
+
+    @Transactional
     public void indexProjectsToOpenSearch() throws IOException {
         List<Project> projects = projectRepository.findAll();
         //Project -> Index
