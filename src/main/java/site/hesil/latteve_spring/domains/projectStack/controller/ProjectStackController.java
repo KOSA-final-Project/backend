@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 2024-09-02        Yeong-Huns       최초 생성
  */
 @RequiredArgsConstructor
-@RequestMapping("/api/project-stack")
+@RequestMapping("/project-stack")
 @RestController
 public class ProjectStackController {
 }

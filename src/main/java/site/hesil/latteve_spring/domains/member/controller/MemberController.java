@@ -42,7 +42,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;

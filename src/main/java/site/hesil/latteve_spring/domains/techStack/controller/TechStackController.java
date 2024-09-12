@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/tech-stacks")
+@RequestMapping("/tech-stacks")
 public class TechStackController {
     private final TechStackService techStackService;
 

@@ -17,5 +17,5 @@ import java.time.LocalDateTime;
  */
 
 @Builder
-public record RetrospectiveResponse(String title, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
+public record RetrospectiveResponse(Long retId, String title, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
 }

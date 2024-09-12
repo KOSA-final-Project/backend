@@ -1,21 +1,18 @@
 package site.hesil.latteve_spring.domains.project.repository.project.custom;
 
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import site.hesil.latteve_spring.domains.job.domain.QJob;
+import site.hesil.latteve_spring.domains.member.domain.QMember;
 import site.hesil.latteve_spring.domains.memberStack.domain.QMemberStack;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.QProject;
@@ -34,14 +31,9 @@ import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.custom
@@ -70,6 +62,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QMemberStack memberStack = QMemberStack.memberStack;
         QRecruitment recruitment = QRecruitment.recruitment;
         QJob job = QJob.job;
+        QMember member = QMember.member;
+
+        QProjectMember subProjectMember = new QProjectMember("subProjectMember"); // 서브 쿼리용
 
         // 프로젝트 기본 정보 조회
         Tuple projectInfo = queryFactory
@@ -79,7 +74,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .where(project.projectId.eq(projectId))
                 .fetchOne();
 
-        if(projectInfo == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
+        if (projectInfo == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
 
         // 프로젝트 기술 스택 조회
         List<ProjectDetailResponse.TechStack> projectTechStacks = new ArrayList<>();
@@ -109,17 +104,21 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                         projectMember.member.nickname,
                         projectMember.member.imgUrl,
                         projectMember.member.github,
-                        projectMember.project.status.when(1).then(1).otherwise(0).sum().as("ongoingProjectCount"),
-                        projectMember.project.status.when(2).then(1).otherwise(0).sum().as("completedProjectCount"))
+                        JPAExpressions.select(subProjectMember.count())
+                                .from(subProjectMember)
+                                .where(subProjectMember.member.memberId.eq(projectMember.member.memberId)
+                                        .and(subProjectMember.project.status.eq(1))
+                                        .and(subProjectMember.acceptStatus.eq(1))),
+                        JPAExpressions.select(subProjectMember.count())
+                                .from(subProjectMember)
+                                .where(subProjectMember.member.memberId.eq(projectMember.member.memberId)
+                                        .and(subProjectMember.project.status.eq(2))
+                                        .and(subProjectMember.acceptStatus.eq(1))))
                 .from(projectMember)
                 .join(projectMember.member)
                 .join(projectMember.project)
                 .where(projectMember.isLeader.isTrue()
                         .and(projectMember.project.projectId.eq(projectId)))
-                .groupBy(projectMember.member.memberId,
-                        projectMember.member.nickname,
-                        projectMember.member.imgUrl,
-                        projectMember.member.github)
                 .fetchOne();
 
         if (leaderInfo == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
@@ -151,8 +150,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 leaderInfo.get(projectMember.member.nickname),
                 leaderInfo.get(projectMember.member.imgUrl),
                 leaderInfo.get(projectMember.member.github),
-                Optional.ofNullable(leaderInfo.get(4, Integer.class)).orElse(0),
-                Optional.ofNullable(leaderInfo.get(5, Integer.class)).orElse(0),
+                Optional.ofNullable(leaderInfo.get(4, Long.class)).orElse(0L).intValue(),
+                Optional.ofNullable(leaderInfo.get(5, Long.class)).orElse(0L).intValue(),
                 leaderTechStacks
         );
         log.debug("leader: {}", leader);
@@ -184,10 +183,18 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                             projectMember.member.nickname,
                             projectMember.member.imgUrl,
                             projectMember.member.github,
-                            projectMember.project.status.when(1).then(1).otherwise(0).sum(),
-                            projectMember.project.status.when(2).then(1).otherwise(0).sum())
+                            JPAExpressions.select(subProjectMember.count())
+                                    .from(subProjectMember)
+                                    .where(subProjectMember.member.memberId.eq(projectMember.member.memberId)
+                                            .and(subProjectMember.project.status.eq(1))
+                                            .and(subProjectMember.acceptStatus.eq(1))),
+                            JPAExpressions.select(subProjectMember.count())
+                                    .from(subProjectMember)
+                                    .where(subProjectMember.member.memberId.eq(projectMember.member.memberId)
+                                            .and(subProjectMember.project.status.eq(2))
+                                            .and(subProjectMember.acceptStatus.eq(1))))
                     .from(projectMember)
-                    .join(projectMember.member)
+                    .join(projectMember.member, member)
                     .where(projectMember.project.projectId.eq(projectId)
                             .and(projectMember.job.jobId.eq(jobId))
                             .and(projectMember.acceptStatus.eq(1))) // 프로젝트 참여가 승인된 멤버만 가져옴
@@ -208,8 +215,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 String nickname = memberTuple.get(projectMember.member.nickname);
                 String imgUrl = memberTuple.get(projectMember.member.imgUrl);
                 String github = memberTuple.get(projectMember.member.github);
-                int ongoingProjectCont = Optional.ofNullable(memberTuple.get(4, Integer.class)).orElse(0);
-                int completedProjectCount = Optional.ofNullable(memberTuple.get(5, Integer.class)).orElse(0);
+                int ongoingProjectCount = Optional.ofNullable(memberTuple.get(4, Long.class)).orElse(0L).intValue();
+                int completedProjectCount = Optional.ofNullable(memberTuple.get(5, Long.class)).orElse(0L).intValue();
 
                 List<ProjectDetailResponse.TechStack> memberTechStacks = new ArrayList<>();
                 List<Tuple> memberTechStackTuples = queryFactory
@@ -229,7 +236,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                     memberTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
                 }
 
-                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, ongoingProjectCont, completedProjectCount, memberTechStacks));
+                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, ongoingProjectCount, completedProjectCount, memberTechStacks));
             }
             log.debug("members: {}", members);
 
@@ -304,6 +311,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QRetrospective retrospective = QRetrospective.retrospective;
 
         Tuple retrospectiveInto = queryFactory.select(
+                        retrospective.retId,
                         retrospective.title,
                         retrospective.content,
                         retrospective.createdAt,
@@ -317,13 +325,13 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         if (retrospectiveInto == null) throw new CustomBaseException(ErrorCode.NOT_FOUND);
 
         return Optional.ofNullable(RetrospectiveResponse.builder()
+                .retId(retrospectiveInto.get(retrospective.retId))
                 .title(retrospectiveInto.get(retrospective.title))
                 .content(retrospectiveInto.get(retrospective.content))
                 .createdAt(retrospectiveInto.get(retrospective.createdAt))
                 .updatedAt(retrospectiveInto.get(retrospective.updatedAt))
                 .build());
     }
-
 
 
     public List<PopularProjectResponse> findPopularProjects(int limit) {
@@ -350,7 +358,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                                 ).doubleValue().divide(recruitment.count.sum())
                         )
                         .otherwise(0.0);
-
 
 
         // 기본적인 좋아요 수 + 지원자 비율 계산
@@ -404,7 +411,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                             return existing;  // 병합된 리스트 반환
                         }
                 ));
-        log.debug(" techStacksByProjectId: {}",  techStacksByProjectId);
+        log.debug(" techStacksByProjectId: {}", techStacksByProjectId);
 
 
         List<Tuple> results = queryFactory
@@ -415,8 +422,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 .fetch();
 
         log.debug("Fetched recruitment data: {}", results);
-
-
 
 
         log.debug("Fetching recruitment names by project IDs: {}", projectIds);
@@ -439,7 +444,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                             return existing;  // 병합된 리스트 반환
                         }
                 ));
-
 
 
         log.debug(" recruitmentNamesByProjectId: {}", recruitmentNamesByProjectId);
