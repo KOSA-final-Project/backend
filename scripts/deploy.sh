@@ -58,5 +58,9 @@ echo "배포완료."
 # 4
 echo "$BEFORE_COLOR server down(port:${BEFORE_PORT})"
 echo "CPU 사용률 안정화 대기 중..."
-sleep 10  # 잠시 대기하여 CPU 부하 완화
+sleep 10
 sudo docker-compose -p ${DOCKER_APP_NAME}-${BEFORE_COLOR} -f docker-compose.${BEFORE_COLOR}.yml down --force
+if [ $? -ne 0 ]; then
+    echo "$BEFORE_COLOR 컨테이너를 중지하는 데 실패했습니다."
+    exit 1
+fi
