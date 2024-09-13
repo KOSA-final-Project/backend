@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.IndexRequest;
-import org.opensearch.client.opensearch.core.UpdateRequest;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
@@ -15,6 +14,7 @@ import site.hesil.latteve_spring.domains.member.repository.memberJob.MemberJobRe
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
@@ -22,7 +22,11 @@ import site.hesil.latteve_spring.domains.project.repository.recruitment.Recruitm
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
-import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectLikeDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectMemberDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectStackDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.response.ProjectSearchResponse;
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 
@@ -33,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import static site.hesil.latteve_spring.domains.project.domain.QProject.project;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.search.service
@@ -61,17 +67,111 @@ public class SearchIndexingService {
     private final JobRepository jobRepository;
     private final ProjectLikeRepository projectLikeRepository;
 
-    @Transactional
+
+
     public void indexProject(Long projectId) throws IOException {
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectDocReq projectDocument = ProjectDocReq.builder()
+                .projectId(project.getProjectId())
+                .name(project.getName())
+                .imgUrl(project.getImgUrl())
+                .duration(project.getDuration())
+                .status(convertStatusToString(project.getStatus()))
+                .createdAt(formatLocalDateTime(project.getCreatedAt()))
+                .build();
+
+    IndexRequest<ProjectDocReq> indexRequest = new IndexRequest.Builder<ProjectDocReq>()
+            .index("projects")
+            .id(project.getProjectId().toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
+            .document(projectDocument)
+            .build();
+        openSearchClient.index(indexRequest);
+    }
+
+    public void indexProjectLike(Long projectId) throws IOException {
+        // 프로젝트 좋아요
+        // 좋아요 수 가져오기
+        ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
+                .projectId(projectId)
+                .likeCount(projectLikeRepository.countProjectLikeByProject_ProjectId(projectId))
+                .build();
+
+        // Elasticsearch에 인덱싱
+        IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
+                .index("project_likes")
+                .id(projectId.toString())
+                .document(projectLikeDocReq)
+                .build();
+        openSearchClient.index(indexRequest);
+    }
+
+
+    public void indexProjectStack(Long projectId) throws IOException{
+        // 프로젝트에 연관된 기술 스택  정보 가져옴
+        List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(projectId);
+
+        // techStack list로 저장
+        List<ProjectStackDocReq.TechStack> techStackList= new ArrayList<>();
+        for (ProjectStack projectStack : projectTechStacks) {
+            Long techStackId = projectStack.getTechStack().getTechStackId();
+            if(techStackId == 1){
+                techStackList.add(new ProjectStackDocReq.TechStack(projectStack.getCustomStack(), null));
+            }else{
+                Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
+                if (techStackOpt.isPresent()) {
+                    TechStack techStack = techStackOpt.get();
+                    String name = techStack.getName();
+                    String imgUrl = techStack.getImgUrl();
+                    techStackList.add(new ProjectStackDocReq.TechStack(name, imgUrl));
+                }
+            }
+
+        }
+        ProjectStackDocReq projectDocument = ProjectStackDocReq.builder()
+                .projectId(projectId)
+                .techStackList(techStackList)
+                .build();
+
+        IndexRequest<ProjectStackDocReq> indexRequest = new IndexRequest.Builder<ProjectStackDocReq>()
+                .index("project_stacks")
+                .id(projectId.toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
+                .document(projectDocument)
+                .build();
+        openSearchClient.index(indexRequest);
+    }
+
+    public void indexProjectMember(Long projectId ) throws IOException{
+        // 프로젝트에 필요한 인원
+        Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(projectId);
+        // 프로젝트에 지원한 인원
+        Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(projectId);
+
+        ProjectMemberDocReq projectMemberDocReq = ProjectMemberDocReq.builder()
+                .projectId(projectId)
+                .currentMemberCount(currentMemberCount)
+                .requiredMemberCount(requiredMemberCount)
+                .build();
+
+        IndexRequest<ProjectMemberDocReq> indexRequest = new IndexRequest.Builder<ProjectMemberDocReq>()
+                .index("project_members")
+                .id(projectId.toString())
+                .document(projectMemberDocReq)
+                .build();
+        openSearchClient.index(indexRequest);
+    }
+
+
+    public void indexProjectWith(Long projectId) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         // 프로젝트 기술 스택 리스트 가져옴
         List<ProjectStack> projectStacks = projectStackRepository.findAllByProject_ProjectId(projectId);
-        List<ProjectDocumentReq.TechStack> techStackList = new ArrayList<>();
+        List<ProjectSearchResponse.TechStack> techStackList = new ArrayList<>();
         for (ProjectStack stack : projectStacks) {
             TechStack techStack = stack.getTechStack();
-            techStackList.add(new ProjectDocumentReq.TechStack(techStack.getName(), techStack.getImgUrl()));
+            techStackList.add(new ProjectSearchResponse.TechStack(techStack.getName(), techStack.getImgUrl()));
         }
 
         // 좋아요 수
@@ -83,7 +183,7 @@ public class SearchIndexingService {
         Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
 
         // ProjectDocumentReq 생성
-        ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
+        ProjectSearchResponse projectDocumentReq = ProjectSearchResponse.builder()
                 .projectId(project.getProjectId())
                 .name(project.getName())
                 .imgUrl(project.getImgUrl())
@@ -97,7 +197,7 @@ public class SearchIndexingService {
                 .build();
 
         // Elasticsearch에 인덱싱
-        IndexRequest<ProjectDocumentReq> indexRequest = new IndexRequest.Builder<ProjectDocumentReq>()
+        IndexRequest<ProjectSearchResponse> indexRequest = new IndexRequest.Builder<ProjectSearchResponse>()
                 .index("projects")
                 .id(project.getProjectId().toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
                 .document(projectDocumentReq)
@@ -115,18 +215,18 @@ public class SearchIndexingService {
             List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
 
             // techStack list로 저장
-            List<ProjectDocumentReq.TechStack> techStackList= new ArrayList<>();
+            List<ProjectSearchResponse.TechStack> techStackList= new ArrayList<>();
             for (ProjectStack projectStack : projectTechStacks) {
                 Long techStackId = projectStack.getTechStack().getTechStackId();
                 if(techStackId == 1){
-                   techStackList.add(new ProjectDocumentReq.TechStack(projectStack.getCustomStack(), null));
+                   techStackList.add(new ProjectSearchResponse.TechStack(projectStack.getCustomStack(), null));
                 }else{
                     Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
                     if (techStackOpt.isPresent()) {
                         TechStack techStack = techStackOpt.get();
                         String name = techStack.getName();
                         String imgUrl = techStack.getImgUrl();
-                        techStackList.add(new ProjectDocumentReq.TechStack(name, imgUrl));
+                        techStackList.add(new ProjectSearchResponse.TechStack(name, imgUrl));
                     }
                 }
 
@@ -144,7 +244,7 @@ public class SearchIndexingService {
             Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
 
             // ProjectDocumentReq 생성
-            ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
+            ProjectSearchResponse projectDocumentReq = ProjectSearchResponse.builder()
                     .projectId(project.getProjectId())
                     .name(project.getName())
                     .imgUrl(project.getImgUrl())
@@ -158,7 +258,7 @@ public class SearchIndexingService {
                     .build();
 
             // Elasticsearch에 인덱싱
-            IndexRequest<ProjectDocumentReq> indexRequest = new IndexRequest.Builder<ProjectDocumentReq>()
+            IndexRequest<ProjectSearchResponse> indexRequest = new IndexRequest.Builder<ProjectSearchResponse>()
                     .index("projects")
                     .id(project.getProjectId().toString())
                     .document(projectDocumentReq)

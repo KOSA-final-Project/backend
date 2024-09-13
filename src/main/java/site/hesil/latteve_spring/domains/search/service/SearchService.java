@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
-import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
+import site.hesil.latteve_spring.domains.search.dto.project.response.ProjectSearchResponse;
 
 import java.io.IOException;
 import java.util.*;
@@ -98,17 +98,17 @@ public class SearchService {
         }
 
         // OpenSearch 클라이언트를 사용하여 검색 요청 실행
-        SearchResponse<ProjectDocumentReq> response = openSearchClient.search(searchRequest.build(), ProjectDocumentReq.class);
+        SearchResponse<ProjectSearchResponse> response = openSearchClient.search(searchRequest.build(), ProjectSearchResponse.class);
 
         // 검색된 프로젝트 리스트 가져오기
-        List<ProjectDocumentReq> projects = response.hits().hits().stream()
+        List<ProjectSearchResponse> projects = response.hits().hits().stream()
                 .map(hit -> hit.source())
                 .collect(Collectors.toList());
 
         // 로그인된 상태일 때, 각 프로젝트의 좋아요 여부를 한 번에 확인
         if (memberId != null) {
             List<Long> projectIds = projects.stream()
-                    .map(ProjectDocumentReq::projectId)
+                    .map(ProjectSearchResponse::projectId)
                     .collect(Collectors.toList());
 
             // 사용자가 좋아요한 프로젝트 ID 조회
@@ -127,7 +127,7 @@ public class SearchService {
 
     }
     // ProjectDocumentReq를 ProjectCardResponse로 변환하는 메서드
-    public static ProjectCardResponse mapToProjectCardResponse(ProjectDocumentReq project, boolean isLiked) {
+    public static ProjectCardResponse mapToProjectCardResponse(ProjectSearchResponse project, boolean isLiked) {
         return ProjectCardResponse.builder()
                 .projectId(project.projectId())
                 .name(project.name())

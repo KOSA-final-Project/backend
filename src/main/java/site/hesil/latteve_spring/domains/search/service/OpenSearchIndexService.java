@@ -1,15 +1,14 @@
 package site.hesil.latteve_spring.domains.search.service;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.Index;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch.core.InfoResponse;
-import org.opensearch.client.opensearch.indices.CreateIndexRequest;
-import org.opensearch.client.opensearch.indices.CreateIndexResponse;
-import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
+import org.opensearch.client.opensearch.indices.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ public class OpenSearchIndexService {
     }
 
     // 나중에 삭제 -> 데이터 동기화
-    @PostConstruct
+//    @PostConstruct
     public void init() throws IOException {
         createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
         createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
@@ -60,10 +59,6 @@ public class OpenSearchIndexService {
             // 인덱스가 존재할 경우 삭제
             openSearchClient.indices().delete(new DeleteIndexRequest.Builder().index(indexName).build());
         }
-
-        // n-gram 분석기 적용
-        Map<String, Object> settings = new HashMap<>();
-//        settings.put("analysis", <a[])
 
         // 인덱스별 techStack 매핑 설정
         TypeMapping mapping = createMapping(indexName);
