@@ -58,4 +58,9 @@ public class Retrospective extends BaseTimeEntity {
     public static Retrospective of(Project project, Member member, Job job, String title, String content, int week) {
         return new Retrospective(project, member, job, title, content, week);
     }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

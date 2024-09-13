@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,6 @@ import site.hesil.latteve_spring.domains.project.dto.project.response.PopularPro
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMemberResponse;
-import site.hesil.latteve_spring.domains.project.dto.project.response.projectDetail.*;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
@@ -40,6 +38,7 @@ import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 import site.hesil.latteve_spring.domains.retrospective.domain.Retrospective;
 import site.hesil.latteve_spring.domains.retrospective.dto.CreateRetrospectiveRequest;
+import site.hesil.latteve_spring.domains.retrospective.dto.UpdateRetrospectiveRequest;
 import site.hesil.latteve_spring.domains.retrospective.repository.RetrospectiveRepository;
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
@@ -50,10 +49,7 @@ import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQExchange;
 import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQRouting;
 import site.hesil.latteve_spring.global.rabbitMQ.publisher.MQSender;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -116,7 +112,7 @@ public class ProjectService {
 
 
     @Transactional(readOnly = true)
-    public List<ApplicationResponse> getApplicationsByProjectId(long projectId){
+    public List<ApplicationResponse> getApplicationsByProjectId(long projectId) {
         long startTime = System.currentTimeMillis();
         log.info("getApplication 실행:");
         List<ProjectMemberResponse> projectMembers = projectMemberRepository.findApplicationsByProjectId(projectId);
@@ -152,22 +148,22 @@ public class ProjectService {
     }
 
     @Transactional
-    public void updateAcceptStatus(UpdateAcceptStatusRequest updateAcceptStatusRequest, Long memberId){
+    public void updateAcceptStatus(UpdateAcceptStatusRequest updateAcceptStatusRequest, Long memberId) {
         boolean isLeader = projectMemberRepository.isLeader(updateAcceptStatusRequest.projectId(), memberId);
-        if(!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
+        if (!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberIdAndJobId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.jobId(), updateAcceptStatusRequest.memberId())
-                .orElseThrow(()-> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
+                .orElseThrow(() -> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
         projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
         mqSender.sendMessage(MQExchange.ALARM.getExchange(), MQRouting.APPROVAL_RESULT.getRouting(), ProjectApprovalResultAlarm.from(projectMember));
         //log.info(projectMember.toString());
     }
 
     @Transactional
-    public void projectStart(long projectId, Long memberId){
+    public void projectStart(long projectId, Long memberId) {
         boolean isLeader = projectMemberRepository.isLeader(projectId, memberId);
-        if(!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
+        if (!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
         projectRepository.findById(projectId)
-                .orElseThrow(()->new NotFoundException("프로젝트 시작 : 해당 ProjecetId 와 일치하는 Project 가 없습니다."))
+                .orElseThrow(() -> new NotFoundException("프로젝트 시작 : 해당 ProjecetId 와 일치하는 Project 가 없습니다."))
                 .onGoing();
         projectMemberRepository.updateAcceptStatusByProjectId(projectId);
     }
@@ -176,7 +172,7 @@ public class ProjectService {
     @Transactional
     public void applyProject(Long projectId, Long memberId, Long jobId) {
         boolean isApplication = projectMemberRepository.isApplication(projectId, memberId);
-        if(isApplication) throw new CustomBaseException(ErrorCode.ALREADY_APPLICATION);
+        if (isApplication) throw new CustomBaseException(ErrorCode.ALREADY_APPLICATION);
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
@@ -192,7 +188,7 @@ public class ProjectService {
 
         projectMemberRepository.save(projectMember);
 
-        long leaderId = projectMemberRepository.findLeaderMemberIdByProjectId(projectId).orElseThrow(()->new NotFoundException("리더를 찾을수 없습니다."));
+        long leaderId = projectMemberRepository.findLeaderMemberIdByProjectId(projectId).orElseThrow(() -> new NotFoundException("리더를 찾을수 없습니다."));
 
         // alarm 테이블에 데이터 삽입
         Alarm alarm = Alarm.of(project, member, job, 0);
@@ -213,17 +209,17 @@ public class ProjectService {
 
         List<ProjectCardResponse> projectDocuments = new ArrayList<>();
 
-        for(Project project : projectList){
+        for (Project project : projectList) {
             // 프로젝트 연관 기술 스택 정보
             List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
 
             //techStack list로 저장
-            List<ProjectCardResponse.TechStack> techStackList= new ArrayList<>();
+            List<ProjectCardResponse.TechStack> techStackList = new ArrayList<>();
             for (ProjectStack projectStack : projectTechStacks) {
                 Long techStackId = projectStack.getTechStack().getTechStackId();
-                if(techStackId == 1){
+                if (techStackId == 1) {
                     techStackList.add(new ProjectCardResponse.TechStack(projectStack.getCustomStack(), null));
-                }else{
+                } else {
                     Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
                     if (techStackOpt.isPresent()) {
                         TechStack techStack = techStackOpt.get();
@@ -262,11 +258,12 @@ public class ProjectService {
         return projectDocuments;
 
     }
+
     // 사용자가 '좋아요' 누른 프로젝트 조회
     @Transactional(readOnly = true)
     public Page<ProjectCardResponse> getProjectsByMemberAndLike(Long memberId, Pageable pageable) {
         Page<Project> projectPage = projectRepository.findLikedProjectsByMemberId(memberId, pageable);
-        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(), memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }
 
@@ -284,16 +281,16 @@ public class ProjectService {
             // 일반적으로 memberId로 프로젝트 조회
             projectPage = projectRepository.findProjectsByMemberIdAndStatus(memberId, status, pageable);
         }
-        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(), memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
 
     }
 
     // 신규순으로 조회 (모집중, 진행중)
-    public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable,Long memberId) {
+    public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable, Long memberId) {
 
         Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(0, pageable);
-        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(),memberId);
+        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(), memberId);
         return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
     }
 
@@ -303,10 +300,12 @@ public class ProjectService {
         return projectRepository.getRetrospective(projectId, memberId, week)
                 .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
     }
+
     @Transactional
     public void registerProjectLike(long projectId, long memberId) {
         projectLikeRepository.registerProjectLike(projectId, memberId);
     }
+
     @Transactional
     public void deleteProjectLike(long projectId, long memberId) {
         projectLikeRepository.deleteProjectLike(projectId, memberId);
@@ -314,7 +313,7 @@ public class ProjectService {
 
 
     // 최근 종료된 순으로 조회
-    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable,Long memberId) {
+    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable, Long memberId) {
         // 1. 프로젝트 목록 가져오기
         Page<Project> projects = projectRepository.findAllCompletedProjects(pageable);
 
@@ -325,7 +324,7 @@ public class ProjectService {
 
 
         // 3. getProjectCardList 메서드를 사용하여 ProjectCardResponse 리스트로 변환
-        List<ProjectCardResponse> projectCardResponses = getProjectCardList(sortedProjects,memberId);
+        List<ProjectCardResponse> projectCardResponses = getProjectCardList(sortedProjects, memberId);
 
         return new PageImpl<>(projectCardResponses, pageable, projects.getTotalElements());
     }
@@ -333,7 +332,7 @@ public class ProjectService {
     // 인기 프로젝트 조회
     public List<PopularProjectResponse> getTop10PopularProjects() {
 
-        List<PopularProjectResponse> projects = projectRepository.findPopularProjects(10 );
+        List<PopularProjectResponse> projects = projectRepository.findPopularProjects(10);
         return projectRepository.findPopularProjects(10);
     }
 
@@ -370,5 +369,21 @@ public class ProjectService {
         log.debug("retrospective: {}", retrospective);
 
         retrospectiveRepository.save(retrospective);
+    }
+
+    // 프로젝트 회고 수정
+    public void updateRetrospective(Long retrospectiveId, UpdateRetrospectiveRequest updateRetrospectiveRequest) {
+
+        Retrospective retrospective = retrospectiveRepository.findById(retrospectiveId)
+                .orElseThrow(() -> new CustomBaseException(ErrorCode.NOT_FOUND));
+
+        retrospective.update(updateRetrospectiveRequest.title(), updateRetrospectiveRequest.content());
+
+        retrospectiveRepository.save(retrospective);
+    }
+
+    // 프로젝트 지원 여부 확인
+    public boolean isApplication(Long projectId, Long memberId) {
+        return projectMemberRepository.isApplication(projectId, memberId);
     }
 }

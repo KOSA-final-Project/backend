@@ -21,10 +21,12 @@ import site.hesil.latteve_spring.domains.project.dto.response.ApplicationRespons
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
 import site.hesil.latteve_spring.domains.retrospective.dto.CreateRetrospectiveRequest;
+import site.hesil.latteve_spring.domains.retrospective.dto.UpdateRetrospectiveRequest;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 import site.hesil.latteve_spring.global.security.annotation.LoginFilterMemberId;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.controller
@@ -150,6 +152,16 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    // 프로젝트 회고 수정
+    @PutMapping("/{projectId}/retrospectives/{retrospectiveId}")
+    public ResponseEntity<Void> updateRetrospective(@PathVariable Long projectId,
+                                                    @PathVariable Long retrospectiveId,
+                                                    @RequestBody UpdateRetrospectiveRequest updateRetrospectiveRequest) {
+
+        projectService.updateRetrospective(retrospectiveId, updateRetrospectiveRequest);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @PostMapping("/{projectId}/like")
     public ResponseEntity<Void> registerProjectLike(@PathVariable long projectId, @AuthMemberId Long memberId) {
         projectService.registerProjectLike(projectId,memberId);
@@ -167,5 +179,16 @@ public class ProjectController {
 
         List<PopularProjectResponse> projectList = projectService.getTop10PopularProjects();
         return ResponseEntity.ok(projectList);
+    }
+
+    // 프로젝트 지원 여부 확인
+    @GetMapping("/{projectId}/applications/status")
+    public ResponseEntity<Map<String, Boolean>> isApplication(@PathVariable Long projectId, @AuthMemberId Long memberId) {
+
+        boolean hasApplied = projectService.isApplication(projectId, memberId);
+
+        Map<String, Boolean> response = Map.of("hasApplied", hasApplied);
+
+        return ResponseEntity.ok(response);
     }
 }

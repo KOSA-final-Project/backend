@@ -125,3 +125,5 @@ Content-Type: application/json
 {
   "projectId": {{Project_id}}
 }
+
+### 블루 그린 테스트 6
