@@ -65,7 +65,7 @@ MAX_RETRIES=3
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     echo "$BEFORE_COLOR 컨테이너 종료 시도 중... ($RETRY_COUNT/$MAX_RETRIES)"
-    sudo docker-compose -p ${DOCKER_APP_NAME}-${BEFORE_COLOR} -f docker-compose.${BEFORE_COLOR}.yml down --force
+    sudo docker-compose -p ${DOCKER_APP_NAME}-${BEFORE_COLOR} -f docker-compose.${BEFORE_COLOR}.yml down
     if [ $? -eq 0 ]; then
         echo "$BEFORE_COLOR 컨테이너가 정상적으로 중지되었습니다."
         break
