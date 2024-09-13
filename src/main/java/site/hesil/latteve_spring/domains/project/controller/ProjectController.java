@@ -26,6 +26,7 @@ import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 import site.hesil.latteve_spring.global.security.annotation.LoginFilterMemberId;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.controller
@@ -178,5 +179,16 @@ public class ProjectController {
 
         List<PopularProjectResponse> projectList = projectService.getTop10PopularProjects();
         return ResponseEntity.ok(projectList);
+    }
+
+    // 프로젝트 지원 여부 확인
+    @GetMapping("/{projectId}/applications/status")
+    public ResponseEntity<Map<String, Boolean>> isApplication(@PathVariable Long projectId, @AuthMemberId Long memberId) {
+
+        boolean hasApplied = projectService.isApplication(projectId, memberId);
+
+        Map<String, Boolean> response = Map.of("hasApplied", hasApplied);
+
+        return ResponseEntity.ok(response);
     }
 }
