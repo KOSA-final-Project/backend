@@ -51,6 +51,7 @@ app:
       - http://localhost:3000/oauth2/redirect
       - http://localhost:3001/oauth2/redirect
       - https://latteve.site/oauth2/redirect
+      - https://www.latteve.site/oauth2/redirect
 
 springdoc:
   swagger-ui:
