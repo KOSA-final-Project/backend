@@ -381,4 +381,9 @@ public class ProjectService {
 
         retrospectiveRepository.save(retrospective);
     }
+
+    // 프로젝트 지원 여부 확인
+    public boolean isApplication(Long projectId, Long memberId) {
+        return projectMemberRepository.isApplication(projectId, memberId);
+    }
 }
