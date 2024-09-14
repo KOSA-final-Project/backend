@@ -157,9 +157,11 @@ public class ProjectService {
         projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
         Alarm alarm = alarmRepository.findAlarmByProjectIdAndMemberId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.memberId())
                 .orElseThrow(() -> new NotFoundException("해당 프로젝트ID, memberID로 등록된 지원 알람이 없습니다."));
-        alarm.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
+        int alarmResult = updateAcceptStatusRequest.acceptStatus() == 1 ? 1 : 2;
+        alarm.updateAcceptStatus(alarmResult); // 변경감지 저장
         mqSender.sendMessage(MQExchange.ALARM.getExchange(), "user."+projectMember.getMember().getMemberId(), ProjectApprovalResultAlarm.from(projectMember));
-        //log.info(projectMember.toString());
+        String result = alarmResult == 1 ? "승인" : "거절";
+        log.info("프로젝트 지원 결과 : {}", result);
     }
 
     @Transactional
@@ -170,7 +172,7 @@ public class ProjectService {
                 .orElseThrow(() -> new NotFoundException("프로젝트 시작 : 해당 ProjecetId 와 일치하는 Project 가 없습니다."))
                 .onGoing();
         projectMemberRepository.findByProjectIdAndNotAccept(projectId).forEach(pm->{
-            pm.updateAcceptStatus(1);
+            pm.updateAcceptStatus(2);
             mqSender.sendMessage(MQExchange.ALARM.getExchange(), "user."+pm.getMember().getMemberId(), ProjectApprovalResultAlarm.from(pm));
         });
         /*projectMemberRepository.updateAcceptStatusByProjectId(projectId);*/

@@ -26,13 +26,13 @@ public interface AlarmRepository extends JpaRepository<Alarm, Long> {
     @Query("""
     SELECT a
     FROM Alarm a
-    WHERE a.project.projectId = :projectId AND a.member.memberId = :memberId
+    WHERE a.project.projectId = :projectId AND a.member.memberId = :memberId And a.type = 0
 """)
     Optional<Alarm> findAlarmByProjectIdAndMemberId(@Param("projectId") long projectId, @Param("memberId") long memberId);
 
 
     @Modifying
-    @Query("UPDATE Alarm a SET a.type = 0 WHERE a.project.projectId = :projectId AND a.type = 2")
+    @Query("UPDATE Alarm a SET a.type = 2 WHERE a.project.projectId = :projectId AND a.type = 0")
     void updateTypeByProjectId(@Param("projectId") Long projectId);
 
 }
