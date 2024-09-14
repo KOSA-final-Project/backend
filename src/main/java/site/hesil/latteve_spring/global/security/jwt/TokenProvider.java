@@ -46,6 +46,7 @@ import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_I
  * 2024-09-03           yunbin           토큰에 memberId 추가
  * 2024-09-03           Yeong-Huns       토큰Parser 추가
  * 2024-09-04           yunbin           토큰, 쿠키 만료 시간 수정
+ * 2024-09-14           yunbin           배포 서버에서 쿠키 전달 안되는 문제 수정
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -54,6 +55,8 @@ public class TokenProvider {
     private final MemberRepository memberRepository;
     @Value("${jwt.key}")
     private String key;
+    @Value("${jwt.secure-cookie}")
+    private boolean secureCookie;
     private SecretKey secretKey;
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30L;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;
@@ -169,13 +172,26 @@ public class TokenProvider {
     }
 
     public void addJwtCookieToResponse(HttpServletResponse response, String token) {
-        Cookie cookie = new Cookie("jwt", token);
-        cookie.setHttpOnly(true); // JavaScript를 통해 쿠키에 접근하지 못하도록 설정
-        // cookie.setSecure(true); // HTTPS로 통신할 때만 쿠키가 전송되도록 설정
-        cookie.setPath("/"); // 쿠키의 유효 경로 설정
-        cookie.setMaxAge(60 * 60); // 1시간 동안 쿠키 유효
 
-        response.addCookie(cookie);
+        String cookieString;
+
+        if (secureCookie) { // 배포 환경 (HTTPS)
+            cookieString = String.format(
+                    "jwt=%s; HttpOnly; SameSite=None; Path=/; Max-Age=%d; Secure",
+                    token, 60 * 60
+            );
+        } else { // 로컬 환경 (HTTP)
+            cookieString = String.format(
+                    "jwt=%s; HttpOnly; SameSite=Lax; Path=/; Max-Age=%d",
+                    token, 60 * 60
+            );
+        }
+
+        response.addHeader("Set-Cookie", cookieString);
+
+        // CORS 설정
+        response.setHeader("Access-Control-Allow-Origin", "https://www.latteve.site");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 
     // YH - MemberId 받아오기.
