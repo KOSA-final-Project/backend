@@ -154,7 +154,7 @@ public class ProjectService {
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberIdAndJobId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.jobId(), updateAcceptStatusRequest.memberId())
                 .orElseThrow(() -> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
         projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
-        mqSender.sendMessage(MQExchange.ALARM.getExchange(), MQRouting.APPROVAL_RESULT.getRouting(), ProjectApprovalResultAlarm.from(projectMember));
+        mqSender.sendMessage(MQExchange.ALARM.getExchange(), "user."+projectMember.getMember().getMemberId(), ProjectApprovalResultAlarm.from(projectMember));
         //log.info(projectMember.toString());
     }
 
@@ -200,7 +200,7 @@ public class ProjectService {
                 .projectLeaderId(leaderId)
                 .type("application")
                 .build();
-        mqSender.sendMessage(MQExchange.ALARM.getExchange(), MQRouting.APPLICATION_CREATE.getRouting(), projectApplicationAlarm);
+        mqSender.sendMessage(MQExchange.ALARM.getExchange(), "user."+projectApplicationAlarm.projectLeaderId(), projectApplicationAlarm);
         alarmRepository.save(alarm);
     }
 
