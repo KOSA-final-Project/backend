@@ -183,11 +183,20 @@ public class ProjectController {
 
     // 프로젝트 지원 여부 확인
     @GetMapping("/{projectId}/applications/status")
-    public ResponseEntity<Map<String, Boolean>> isApplication(@PathVariable Long projectId, @AuthMemberId Long memberId) {
+    public ResponseEntity<Map<String, Boolean>> isApplication(@PathVariable Long projectId, @AuthMemberId Long memberId ) {
 
         boolean hasApplied = projectService.isApplication(projectId, memberId);
 
         Map<String, Boolean> response = Map.of("hasApplied", hasApplied);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 프로젝트 참여 여부 확인
+    @GetMapping("/{projectId}/participation")
+    public ResponseEntity<Map<String, Boolean>> isParticipation(@PathVariable Long projectId, @AuthMemberId Long authMemberId, @RequestParam Long selectedMemberId) {
+
+        Map<String, Boolean> response = Map.of("isParticipating", authMemberId.equals(selectedMemberId));
 
         return ResponseEntity.ok(response);
     }
