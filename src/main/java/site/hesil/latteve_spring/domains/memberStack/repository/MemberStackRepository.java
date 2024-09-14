@@ -26,7 +26,7 @@ public interface MemberStackRepository extends JpaRepository<MemberStack, Long> 
     List<MemberStack> findAllByMember_MemberId(Long memberId);
 
     @Query("""
-    SELECT ms 
+    SELECT ms
     FROM MemberStack ms
     JOIN FETCH ms.techStack
     WHERE ms.member.memberId IN :memberIds

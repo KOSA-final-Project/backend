@@ -71,6 +71,7 @@ import java.util.stream.Collectors;
  * 2024-09-08        Yeong-Huns    좋아요, 좋아요 취소
  * 2024-09-11        Yeong-Huns    getApplicationsByProjectId 쿼리 성능개선
  * 2024-09-11        Yeong-Huns    applyProject 이미 지원중인 인원인지 검증로직 추가
+ * 2024-09-14        Yeong-Huns    프로젝트 지원시, 시작시, alarm 테이블 업데이트
  */
 @Slf4j
 @Service
@@ -154,6 +155,9 @@ public class ProjectService {
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberIdAndJobId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.jobId(), updateAcceptStatusRequest.memberId())
                 .orElseThrow(() -> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
         projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
+        Alarm alarm = alarmRepository.findAlarmByProjectIdAndMemberId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.memberId())
+                .orElseThrow(() -> new NotFoundException("해당 프로젝트ID, memberID로 등록된 지원 알람이 없습니다."));
+        alarm.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
         mqSender.sendMessage(MQExchange.ALARM.getExchange(), "user."+projectMember.getMember().getMemberId(), ProjectApprovalResultAlarm.from(projectMember));
         //log.info(projectMember.toString());
     }
@@ -165,7 +169,12 @@ public class ProjectService {
         projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("프로젝트 시작 : 해당 ProjecetId 와 일치하는 Project 가 없습니다."))
                 .onGoing();
-        projectMemberRepository.updateAcceptStatusByProjectId(projectId);
+        projectMemberRepository.findByProjectIdAndNotAccept(projectId).forEach(pm->{
+            pm.updateAcceptStatus(1);
+            mqSender.sendMessage(MQExchange.ALARM.getExchange(), "user."+pm.getMember().getMemberId(), ProjectApprovalResultAlarm.from(pm));
+        });
+        /*projectMemberRepository.updateAcceptStatusByProjectId(projectId);*/
+        alarmRepository.updateTypeByProjectId(projectId);
     }
 
     // 프로젝트 지원
