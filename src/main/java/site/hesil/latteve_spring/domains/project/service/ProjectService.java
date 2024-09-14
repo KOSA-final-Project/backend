@@ -194,9 +194,11 @@ public class ProjectService {
         Alarm alarm = Alarm.of(project, member, job, 0);
         ProjectApplicationAlarm projectApplicationAlarm = ProjectApplicationAlarm.builder()
                 .projectName(project.getName())
+                .memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .jobName(job.getName())
                 .projectLeaderId(leaderId)
+                .type("application")
                 .build();
         mqSender.sendMessage(MQExchange.ALARM.getExchange(), MQRouting.APPLICATION_CREATE.getRouting(), projectApplicationAlarm);
         alarmRepository.save(alarm);
