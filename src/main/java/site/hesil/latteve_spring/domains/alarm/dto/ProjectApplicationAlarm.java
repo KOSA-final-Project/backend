@@ -16,4 +16,4 @@ import lombok.Builder;
 
 // 지원 알람: 프로젝트명, 멤버닉네임, 직무명, 프로젝트리더아이디
 @Builder
-public record ProjectApplicationAlarm(String projectName,long memberId, String nickname, String jobName, Long projectLeaderId, String type) {}
+public record ProjectApplicationAlarm(String projectName,long memberId,String imgUrl, String nickname, String jobName, Long projectLeaderId, String type) {}

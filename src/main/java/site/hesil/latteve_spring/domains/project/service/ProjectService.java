@@ -195,6 +195,7 @@ public class ProjectService {
         ProjectApplicationAlarm projectApplicationAlarm = ProjectApplicationAlarm.builder()
                 .projectName(project.getName())
                 .memberId(member.getMemberId())
+                .imgUrl(member.getImgUrl())
                 .nickname(member.getNickname())
                 .jobName(job.getName())
                 .projectLeaderId(leaderId)
