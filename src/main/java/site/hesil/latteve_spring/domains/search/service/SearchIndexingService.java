@@ -66,7 +66,43 @@ public class SearchIndexingService {
     private final MemberJobRepository memberJobRepository;
     private final JobRepository jobRepository;
     private final ProjectLikeRepository projectLikeRepository;
-
+//
+//    public void indexProject(ProjectDocReq projectDocReq) throws IOException {
+////        Project project = projectRepository.findById(projectId).orElseThrow(() -> new RuntimeException("Project not found"));
+////
+////        ProjectDocReq projectDocument = ProjectDocReq.builder()
+////                .projectId(project.getProjectId())
+////                .name(project.getName())
+////                .imgUrl(project.getImgUrl())
+////                .duration(project.getDuration())
+////                .status(convertStatusToString(project.getStatus()))
+////                .createdAt(formatLocalDateTime(project.getCreatedAt()))
+////                .build();
+//
+//        IndexRequest<ProjectDocReq> indexRequest = new IndexRequest.Builder<ProjectDocReq>()
+//                .index("projects")
+//                .id(projectDocReq.projectId().toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
+//                .document(projectDocReq)
+//                .build();
+//        openSearchClient.index(indexRequest);
+//    }
+//
+//    public void indexProjectLike(ProjectLikeDocReq projectLikeDocReq) throws IOException {
+////        // 프로젝트 좋아요
+////        // 좋아요 수 가져오기
+////        ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
+////                .projectId(projectId)
+////                .likeCount(projectLikeRepository.countProjectLikeByProject_ProjectId(projectId))
+////                .build();
+//
+//        // Elasticsearch에 인덱싱
+//        IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
+//                .index("project_likes")
+//                .id(projectLikeDocReq.projectId().toString())
+//                .document(projectLikeDocReq)
+//                .build();
+//        openSearchClient.index(indexRequest);
+//    }
 
 
     public void indexProject(Long projectId) throws IOException {

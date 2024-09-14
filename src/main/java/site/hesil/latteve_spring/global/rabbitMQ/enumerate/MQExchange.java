@@ -19,7 +19,18 @@ public enum MQExchange {
     DIRECT_MEMBER("memberDirectExchange"),
     DEAD_LETTER("deadLetterExchange"),
     TOPIC_MEMBER("topicMemberExchange"),
-    ALARM("alarmExchange");
+    ALARM("alarmExchange"),
+
+
+    DIRECT_PROJECT("projectDirectExchange"),
+    TOPIC_PROJECT("topicProjectExchange"),
+
+    DIRECT_PROJECT_LIKE("projectLikeDirectExchange"),
+    TOPIC_PROJECT_LIKE("topicProjectLikeExchange"),
+
+    DIRECT_PROJECT_MEMBER("projectMemberDirectExchange"),
+    TOPIC_PROJECT_MEMBER("topicProjectMemberExchange"),
+
     ;
 
 
