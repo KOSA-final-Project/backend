@@ -41,7 +41,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Pr
     List<Long> findProjectIdsByMemberId(@Param("memberId") Long memberId);
 
     @Query("SELECT pm FROM ProjectMember pm WHERE pm.projectMemberId.projectId = :projectId and pm.acceptStatus = 2")
-    List<ProjectMember> findByProjectId(@Param("projectId") Long projectId);
+    List<ProjectMember> findByProjectIdAndNotAccept(@Param("projectId") Long projectId);
 
     @Modifying
     @Query(value = "INSERT INTO project_member (project_id, member_id, job_id, is_leader, accept_status) VALUES (:projectId, :memberId, 1, 1, 1)", nativeQuery = true)
