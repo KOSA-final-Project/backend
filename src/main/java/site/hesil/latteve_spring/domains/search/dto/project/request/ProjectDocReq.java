@@ -1,6 +1,9 @@
 package site.hesil.latteve_spring.domains.search.dto.project.request;
 
 import lombok.Builder;
+import site.hesil.latteve_spring.domains.search.dto.project.response.ProjectSearchResponse;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.search.dto.project.request
@@ -19,7 +22,13 @@ public record ProjectDocReq(
         String name,
         String imgUrl,
         int duration,
+        List<TechStack> projectTechStack,
         String status,
-        String createdAt
+        String createdAt,
+        int teamCnt
 ) {
+    public record TechStack(
+            String name,
+            String imgUrl
+    ){}
 }

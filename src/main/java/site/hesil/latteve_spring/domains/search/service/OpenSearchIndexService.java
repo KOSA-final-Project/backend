@@ -45,12 +45,13 @@ public class OpenSearchIndexService {
 
     // 나중에 삭제 -> 데이터 동기화
 //    @PostConstruct
-    public void init() throws IOException {
-        createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
-        createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
-        searchIndexingService.indexProjectsToOpenSearch();  // 프로젝트 데이터 인덱싱
-        searchIndexingService.indexMembersToOpenSearch(); // 멤버 데이터 인덱싱
-    }
+//    public void init() throws IOException {
+//        createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
+//        createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
+//        searchIndexingService.indexProjectsToOpenSearch();  // 프로젝트 데이터 인덱싱
+//        searchIndexingService.indexMembersToOpenSearch(); // 멤버 데이터 인덱싱
+//
+//    }
     private void createOrRecreateIndexWithMapping(String indexName) throws IOException {
         // 인덱스 존재 여부 확인
         boolean exists = openSearchClient.indices().exists(e -> e.index(indexName)).value();

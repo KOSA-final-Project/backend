@@ -1,5 +1,6 @@
 package site.hesil.latteve_spring.domains.project.domain.projectMember;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -7,6 +8,8 @@ import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.listener.ProjectLikeListener;
+import site.hesil.latteve_spring.domains.project.listener.ProjectMemberListener;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.projectMember.domain
@@ -23,6 +26,7 @@ import site.hesil.latteve_spring.domains.project.domain.Project;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(ProjectMemberListener.class)
 public class ProjectMember {
 
     @EmbeddedId

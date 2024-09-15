@@ -17,6 +17,7 @@ import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQueue;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-09-03        Yeong-Huns       최초 생성
+ * 2024-09-14        Heeseon          프로젝트 관련 메서드 추가
  */
 @Configuration
 public class DirectExchangeConfig {

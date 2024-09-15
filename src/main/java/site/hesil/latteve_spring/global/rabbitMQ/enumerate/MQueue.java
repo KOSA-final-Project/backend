@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-09-03        Yeong-Huns       최초 생성
+ * 2024-09-14        Heeseon          프로젝트 관련 메시지 추가
  */
 @Getter
 @RequiredArgsConstructor
