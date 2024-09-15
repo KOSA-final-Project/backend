@@ -180,14 +180,16 @@ public class TokenProvider {
                     "jwt=%s; HttpOnly; SameSite=None; Path=/; Max-Age=%d; Secure",
                     token, 60 * 60
             );
+            log.info("배포 환경 쿠키: {}", cookieString);
         } else { // 로컬 환경 (HTTP)
             cookieString = String.format(
                     "jwt=%s; HttpOnly; SameSite=Lax; Path=/; Max-Age=%d",
                     token, 60 * 60
             );
+            log.info("로컬 환경 쿠키: {}", cookieString);
         }
 
-        response.addHeader("Set-Cookie", cookieString);
+        response.setHeader("Set-Cookie", cookieString);
 
         // CORS 설정
         response.setHeader("Access-Control-Allow-Origin", "https://www.latteve.site");
