@@ -177,7 +177,7 @@ public class TokenProvider {
 
         if (secureCookie) { // 배포 환경 (HTTPS)
             cookieString = String.format(
-                    "jwt=%s; HttpOnly; SameSite=None; Path=/; Max-Age=%d; Secure",
+                    "jwt=%s; HttpOnly; SameSite=None; Path=/; Max-Age=%d; Domain=.latteve.site; Secure",
                     token, 60 * 60
             );
             log.info("배포 환경 쿠키: {}", cookieString);
