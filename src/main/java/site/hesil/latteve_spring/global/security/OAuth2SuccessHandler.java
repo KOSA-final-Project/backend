@@ -76,10 +76,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             newUser.updateProvider(provider, providerId);
             memberRepository.save(newUser);
-            }
+        }
 
         String targetUrl = determineTargetUrl(request, response, authentication, userExists);
-        // access token query parameter로 전달 
+        // access token query parameter로 전달
         targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("accessToken", accessToken)
                 .build().toUriString();

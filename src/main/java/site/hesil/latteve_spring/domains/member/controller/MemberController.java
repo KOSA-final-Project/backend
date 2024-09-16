@@ -87,12 +87,12 @@ public class MemberController {
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal UserDetails userDetails, HttpServletResponse response) {
         // access token 쿠키 삭제
-        Cookie cookie = new Cookie("jwt", null);
-        cookie.setHttpOnly(true);
-        //cookie.setSecure(true);  // HTTPS를 사용하는 경우
-        cookie.setPath("/");
-        cookie.setMaxAge(0);  // 쿠키를 즉시 만료시킴
-        response.addCookie(cookie);
+//        Cookie cookie = new Cookie("jwt", null);
+//        cookie.setHttpOnly(true);
+//        //cookie.setSecure(true);  // HTTPS를 사용하는 경우
+//        cookie.setPath("/");
+//        cookie.setMaxAge(0);  // 쿠키를 즉시 만료시킴
+//        response.addCookie(cookie);
 
         tokenService.deleteRefreshToken(userDetails.getUsername());
         //redisMessageService.removeSubscribe(userDetails.getUsername());
