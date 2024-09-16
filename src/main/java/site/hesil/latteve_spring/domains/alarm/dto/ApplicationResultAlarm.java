@@ -12,6 +12,7 @@ package site.hesil.latteve_spring.domains.alarm.dto;
  * 2024-09-16        JooYoon       최초 생성
  */
 public record ApplicationResultAlarm(
+        Long alarmId,
         int type,
         Long projectId,
         String projectName
