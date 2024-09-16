@@ -37,7 +37,7 @@ public interface AlarmRepository extends JpaRepository<Alarm, Long> {
     void updateTypeByProjectId(@Param("projectId") Long projectId);
 
     @Query("""
-            select new site.hesil.latteve_spring.domains.alarm.dto.RequestAlarm(p.projectId, p.name, m.nickname)
+            select new site.hesil.latteve_spring.domains.alarm.dto.RequestAlarm(a.alarmId, p.projectId, p.name, m.nickname)
             from Alarm a
             join a.project p
             join a.member m
@@ -48,7 +48,7 @@ public interface AlarmRepository extends JpaRepository<Alarm, Long> {
     List<RequestAlarm> findUnreadRequestAlarms(@Param("memberId") Long memberId);
 
     @Query("""
-            select new site.hesil.latteve_spring.domains.alarm.dto.ApplicationResultAlarm(a.type, a.project.projectId, a.project.name)
+            select new site.hesil.latteve_spring.domains.alarm.dto.ApplicationResultAlarm(a.alarmId, a.type, a.project.projectId, a.project.name)
             from Alarm a
             join a.project p
             where a.member.memberId = :memberId and a.isRead = false and a.type in (1, 2)

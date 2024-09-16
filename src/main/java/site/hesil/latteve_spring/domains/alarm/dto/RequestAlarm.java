@@ -13,6 +13,7 @@ package site.hesil.latteve_spring.domains.alarm.dto;
  */
 
 public record RequestAlarm(
+        Long alarmId,
         Long projectId,
         String projectName,
         String requesterNickname
