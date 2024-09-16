@@ -22,7 +22,7 @@ import site.hesil.latteve_spring.global.amazon.service.S3Service;
  */
 @Log4j2
 @RequiredArgsConstructor
-@RequestMapping("api/file")
+@RequestMapping("/file")
 @RestController
 public class S3Controller {
     private final S3Service s3Service;
