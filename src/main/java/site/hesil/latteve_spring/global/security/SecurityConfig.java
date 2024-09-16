@@ -81,7 +81,7 @@ public class SecurityConfig {
 //                                        new AntPathRequestMatcher("/oauth2/**"),
 //                                        new AntPathRequestMatcher("/login/**"),
 //                                        new AntPathRequestMatcher("/swagger-ui.html/**", " /v3/api-docs/**")
-                                        new AntPathRequestMatcher("HttpMethod.OPTIONS", "/**")
+                                        new AntPathRequestMatcher("/**", "HttpMethod.OPTIONS")
                                 ).permitAll()
                                 .requestMatchers(
                                         new AntPathRequestMatcher("/users/check-nickname"),
