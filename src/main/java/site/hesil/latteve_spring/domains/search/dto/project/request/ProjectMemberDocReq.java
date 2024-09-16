@@ -16,7 +16,7 @@ import lombok.Builder;
 @Builder
 public record ProjectMemberDocReq(
         Long projectId,
-        int currentMemberCount,
-        int requiredMemberCount
+        Long memberId,
+        Long jobId
 ) {
 }

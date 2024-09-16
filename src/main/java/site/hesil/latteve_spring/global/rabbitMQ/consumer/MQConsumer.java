@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
+import site.hesil.latteve_spring.domains.project.dto.project.request.AcceptedProjectMemberRequest;
 import site.hesil.latteve_spring.domains.search.service.SearchIndexingService;
 
 import java.io.IOException;
@@ -38,15 +40,20 @@ public class MQConsumer {
     @RabbitListener(queues = "#{@projectLikeCreateQueue.name}")
     public void receiveCreateLikeMessage(ProjectLike projectLike) throws IOException {
         log.info("rabbit listener : project like 인덱싱");
-        searchIndexingService.indexProjectLike(projectLike.getProject().getProjectId());
+        searchIndexingService.indexProjectLike(projectLike);
+    }
+    @RabbitListener(queues = "#{@projectMemberUpdateQueue.name}")
+    public void receiveUpdateProjectMemberMessage( AcceptedProjectMemberRequest projectMember) throws IOException {
+        log.info("rabbit listener : projectMember_update_인덱싱 : member가 승인되어 currentMember에 들어감");
+        searchIndexingService.indexProjectMember(projectMember);
     }
 
-    @RabbitListener(queues = "#{@projectMemberCreateQueue.name}")
-    public void receiveCreateMemberMessage(ProjectMember projectMember) throws IOException {
-        log.info("rabbit listener : project member 인덱싱");
-        searchIndexingService.indexProjectMember(projectMember.getProject().getProjectId());
-    }
-
+//    @RabbitListener(queues = "#{@memberCreateQueue.name}")
+//    public void receiveCreateMemberMessage(Member member) throws IOException {
+//        log.info("rabbit listener : member_create 인덱싱");
+//        searchIndexingService.indexMember(member);
+//
+//    }
 //    @RabbitListener(queues = "project.update.queue")
 //    public void receiveUpdateMessage(Project project) {
 //        searchIndexingService.updateProject(project);  // 업데이트 메시지 처리

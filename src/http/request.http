@@ -95,29 +95,31 @@ Content-Type: application/json
 
 ### 프로젝트 좋아요
 POST http://localhost:8080/projects/66/like
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDE3NTU2LCJleHAiOjE3MjY0MTkzNTZ9.0cmFN_IOtdOWdRxsFBA_rjN-NaFgAbJ9wibUnDCx5mt8VRNVjIpWtFmuGK8-LVQRmwkwS3AVBzOTp9SJ8AhEiA
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDg2ODg1LCJleHAiOjE3MjY0ODg2ODV9.S7vdYHkn2Zry4WsBf2rA9ypmC20DtYiM2EQNidrbZqrjMfLjfWG1ipDl1aiAzkPwc1KMbPmYl2gspsFnyEKEEg
 #Content-Type: application/json
 
 
 ### 프로젝트 좋아요 취소
 DELETE http://localhost:8080/projects/{{projectId}}/like
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2MzIyODg5LCJleHAiOjE3MjYzMjQ2ODl9.lEI36HJWdCvCHeatbgvm1GixNKYHJtmEgdX6PoJAfXfy3shHDtjmQcBJmzsu3LmNBS_dRtLv8qPLajLmWByrsw
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJxdXh4eGJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MSwiaWF0IjoxNzI2NDY4MDU4LCJleHAiOjE3MjY0Njk4NTh9.FHizQY2VHnEBRNNtGqEzDnvntBRXNJRSmKNJ5YqHAoosLJPHoViXGEUYOtO_c2Ajrj4Os-bCecycGRfCArbQbw
 
 ### 프로젝트 멤버 승인/거절
 @Project_id = 66
-@Project_memberId = 51
+@Project_memberId = 52
+@Project_jobId = 6
 @Project_isAccepted = 1
-@Project_member_jobId = 2
 PUT http://localhost:8080/projects/applications
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDE3NTU2LCJleHAiOjE3MjY0MTkzNTZ9.0cmFN_IOtdOWdRxsFBA_rjN-NaFgAbJ9wibUnDCx5mt8VRNVjIpWtFmuGK8-LVQRmwkwS3AVBzOTp9SJ8AhEiA
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDcyMTY2LCJleHAiOjE3MjY0NzM5NjZ9.oLnCXghrljHSTrOtRv91EBHgTVvEnixKYVkJHHK6XbZkIOk9PKOL2ROAqdCeDZOVTMzsTryyMVB4eG-wjfmM0A
 Content-Type: application/json
 
 {
   "projectId": {{Project_id}},
-  "jobId": {{Project_member_jobId}},
   "memberId": {{Project_memberId}},
+  "jobId": {{Project_jobId}},
   "acceptStatus": {{Project_isAccepted}}
 }
+
+
 
 ### 프로젝트 시작
 

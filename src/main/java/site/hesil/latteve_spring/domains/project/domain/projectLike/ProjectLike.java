@@ -26,7 +26,6 @@ import site.hesil.latteve_spring.domains.project.listener.ProjectLikeListener;
 
 @Getter
 @Entity
-@Slf4j
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(ProjectLikeListener.class)
 public class ProjectLike {

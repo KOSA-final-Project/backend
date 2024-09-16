@@ -16,6 +16,6 @@ import lombok.Builder;
 @Builder
 public record ProjectLikeDocReq(
         Long projectId,
-        Long likeCount
+        Long memberId
 ) {
 }
