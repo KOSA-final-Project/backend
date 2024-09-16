@@ -74,14 +74,15 @@ public class SecurityConfig {
                 // request 인증, 인가 설정
                 .authorizeHttpRequests(request ->
                         request
-//                                .requestMatchers(
+                                .requestMatchers(
 //                                        new AntPathRequestMatcher("/"),
 //                                        new AntPathRequestMatcher("/error"),
 //                                        new AntPathRequestMatcher("/favicon.ico"),
 //                                        new AntPathRequestMatcher("/oauth2/**"),
 //                                        new AntPathRequestMatcher("/login/**"),
 //                                        new AntPathRequestMatcher("/swagger-ui.html/**", " /v3/api-docs/**")
-//                                ).permitAll()
+                                        new AntPathRequestMatcher("HttpMethod.OPTIONS", "/**")
+                                ).permitAll()
                                 .requestMatchers(
                                         new AntPathRequestMatcher("/users/check-nickname"),
                                         new AntPathRequestMatcher("/users/me"),
