@@ -74,18 +74,28 @@ public class SecurityConfig {
                 // request 인증, 인가 설정
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers(
+//                                .requestMatchers(
 //                                        new AntPathRequestMatcher("/"),
 //                                        new AntPathRequestMatcher("/error"),
 //                                        new AntPathRequestMatcher("/favicon.ico"),
 //                                        new AntPathRequestMatcher("/oauth2/**"),
 //                                        new AntPathRequestMatcher("/login/**"),
-                                        new AntPathRequestMatcher("/api/users/check-auth"),
-                                        new AntPathRequestMatcher("/api/users/check-nickname"),
-                                        new AntPathRequestMatcher("/swagger-ui.html/**", " /v3/api-docs/**")
-                                ).permitAll()
+//                                        new AntPathRequestMatcher("/swagger-ui.html/**", " /v3/api-docs/**")
+//                                ).permitAll()
                                 .requestMatchers(
-                                        new AntPathRequestMatcher("/api/users/**")
+                                        new AntPathRequestMatcher("/users/check-nickname"),
+                                        new AntPathRequestMatcher("/users/me"),
+                                        new AntPathRequestMatcher("/projects"),
+                                        new AntPathRequestMatcher("/projects/start"),
+                                        new AntPathRequestMatcher("/projects/my/like"),
+                                        new AntPathRequestMatcher("/projects/*/like"),
+                                        new AntPathRequestMatcher("/projects/my"),
+                                        new AntPathRequestMatcher("/projects/*/participation"),
+                                        new AntPathRequestMatcher("/projects/*/applications"),
+                                        new AntPathRequestMatcher("/projects/*/applications/*"),
+                                        new AntPathRequestMatcher("/projects/*/retrospectives"),
+                                        new AntPathRequestMatcher("/projects/*/retrospectives/*"),
+                                        new AntPathRequestMatcher("/projects/notifications")
                                 ).authenticated()
                                 .requestMatchers(
                                         new AntPathRequestMatcher("/**")                // permitAll fallback

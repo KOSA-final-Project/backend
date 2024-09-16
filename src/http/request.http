@@ -103,16 +103,18 @@ DELETE http://localhost:8080/api/projects/{{projectId}}/like
 Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
 
 ### 프로젝트 멤버 승인/거절
-@Project_id = 0
-@Project_memberId = 0
-@Project_isAccepted = 0
-PUT http://localhost:8080/api/projects/applications
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
+@Project_id = 53
+@Project_memberId = 44
+@Project_jobId = 7
+@Project_isAccepted = 1
+PUT http://localhost:8080/projects/applications
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQG5hdmVyLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6NDgsImlhdCI6MTcyNjQyMDI3MCwiZXhwIjoxNzI2NDIyMDcwfQ.HbvtEfn-xiuQ6_GyyHFhotdcd1bg7ujs3SJXslCo5ShvO6SRySzyE2AS92zBIhs0ZuikX-ddKWWrTwFGi_IMqA
 Content-Type: application/json
 
 {
   "projectId": {{Project_id}},
   "memberId": {{Project_memberId}},
+  "jobId": {{Project_jobId}},
   "acceptStatus": {{Project_isAccepted}}
 }
 

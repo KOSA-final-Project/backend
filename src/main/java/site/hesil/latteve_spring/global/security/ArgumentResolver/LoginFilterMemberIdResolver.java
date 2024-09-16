@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -35,12 +36,14 @@ import java.util.Optional;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-09-08        Heeseon       최초 생성
+ * 2024-09-16        yunbin        쿠키말고 응답 헤더에서 토큰 얻음
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class LoginFilterMemberIdResolver implements HandlerMethodArgumentResolver {
     private final TokenProvider tokenProvider;
+    private static final String TOKEN_PREFIX = "Bearer ";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -73,17 +76,23 @@ public class LoginFilterMemberIdResolver implements HandlerMethodArgumentResolve
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-
-        log.info(Arrays.toString(cookies));
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("jwt".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+//        Cookie[] cookies = request.getCookies();
+//
+//        log.info(Arrays.toString(cookies));
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("jwt".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        log.error("쿠키에서 토큰 추출 중 에러");
+//        return null;
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(TOKEN_PREFIX)) {
+            return bearerToken.substring(TOKEN_PREFIX.length()); // "Bearer " 이후의 토큰 값 반환
         }
-        log.error("쿠키에서 토큰 추출 중 에러");
+        log.info("Authorization 헤더에 토큰 없음");
         return null;
     }
 }

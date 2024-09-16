@@ -6,10 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import site.hesil.latteve_spring.domains.alarm.dto.AlarmExampleResponse;
+import site.hesil.latteve_spring.domains.alarm.dto.AlarmsResponse;
 import site.hesil.latteve_spring.domains.alarm.service.AlarmService;
-
-import java.util.List;
+import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.alarm.controller
@@ -26,9 +25,12 @@ import java.util.List;
 @RequestMapping("/projects")
 @RequiredArgsConstructor
 public class AlarmController {
+
     private final AlarmService alarmService;
+
     @GetMapping("/notifications")
-    public ResponseEntity<List<AlarmExampleResponse>> getNotifications() {
-        return ResponseEntity.ok(alarmService.getNotifications());
+    public ResponseEntity<AlarmsResponse> getNotifications(@AuthMemberId Long memberId) {
+        AlarmsResponse alarmsResponse = alarmService.getNotifications(memberId);
+        return ResponseEntity.ok(alarmsResponse);
     }
 }
