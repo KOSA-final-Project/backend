@@ -91,9 +91,10 @@ public class SecurityConfig {
                                         new AntPathRequestMatcher("/projects/*/like"),
                                         new AntPathRequestMatcher("/projects/my"),
                                         new AntPathRequestMatcher("/projects/*/participation"),
-                                        new AntPathRequestMatcher("/projects/*/applications"),
+                                        new AntPathRequestMatcher("/projects/*/applications", "HttpMethod.POST"),
+                                        new AntPathRequestMatcher("/projects/applications"),
                                         new AntPathRequestMatcher("/projects/*/applications/*"),
-                                        new AntPathRequestMatcher("/projects/*/retrospectives"),
+                                        new AntPathRequestMatcher("/projects/*/retrospectives", "HttpMethod.POST"),
                                         new AntPathRequestMatcher("/projects/*/retrospectives/*"),
                                         new AntPathRequestMatcher("/projects/notifications")
                                 ).authenticated()
