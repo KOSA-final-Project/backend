@@ -58,7 +58,8 @@ public class TokenProvider {
     @Value("${jwt.secure-cookie}")
     private boolean secureCookie;
     private SecretKey secretKey;
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30L;
+    //private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30L;
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60L;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;
     private static final String KEY_ROLE = "role";
     private final TokenService tokenService;
@@ -177,13 +178,13 @@ public class TokenProvider {
 
         if (secureCookie) { // 배포 환경 (HTTPS)
             cookieString = String.format(
-                    "jwt=%s; HttpOnly; SameSite=None; Path=/; Max-Age=%d; Domain=www.latteve.site; Secure",
+                    "jwt=%s; SameSite=None; Path=/; Max-Age=%d; Secure",
                     token, 60 * 60
             );
             log.info("배포 환경 쿠키: {}", cookieString);
         } else { // 로컬 환경 (HTTP)
             cookieString = String.format(
-                    "jwt=%s; HttpOnly; SameSite=Lax; Path=/; Max-Age=%d",
+                    "jwt=%s; SameSite=Lax; Path=/; Max-Age=%d",
                     token, 60 * 60
             );
             log.info("로컬 환경 쿠키: {}", cookieString);
@@ -192,8 +193,8 @@ public class TokenProvider {
         response.setHeader("Set-Cookie", cookieString);
 
         // CORS 설정
-        response.setHeader("Access-Control-Allow-Origin", "https://www.latteve.site");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
+        // response.setHeader("Access-Control-Allow-Origin", "https://www.latteve.site");
+        // response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 
     // YH - MemberId 받아오기.
