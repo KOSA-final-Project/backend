@@ -3,10 +3,13 @@ package site.hesil.latteve_spring.domains.alarm.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import site.hesil.latteve_spring.domains.alarm.dto.AlarmExampleResponse;
+import org.springframework.transaction.annotation.Transactional;
+import site.hesil.latteve_spring.domains.alarm.dto.AlarmsResponse;
+import site.hesil.latteve_spring.domains.alarm.dto.ApplicationResultAlarm;
+import site.hesil.latteve_spring.domains.alarm.dto.RequestAlarm;
+import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.alarm.service
@@ -22,11 +25,15 @@ import java.util.stream.IntStream;
 @Service
 @RequiredArgsConstructor
 public class AlarmService {
-    //private final AlarmRepository alarmRepository;
 
-    public List<AlarmExampleResponse> getNotifications() {
-        return IntStream.range(0, 10)
-                .mapToObj(i -> new AlarmExampleResponse(i,i + " 번 프로젝트에 참가 승인 되었습니다. 더 긴 메세지 테스트입니다.", Math.random() < 0.5))
-                .toList();
+    private final AlarmRepository alarmRepository;
+
+    @Transactional(readOnly = true)
+    public AlarmsResponse getNotifications(Long memberId) {
+
+        List<RequestAlarm> requestAlarms = alarmRepository.findUnreadRequestAlarms(memberId);
+        List<ApplicationResultAlarm> applicationResultAlarms = alarmRepository.findUnreadResponseAlarms(memberId);
+
+        return new AlarmsResponse(requestAlarms, applicationResultAlarms);
     }
 }
