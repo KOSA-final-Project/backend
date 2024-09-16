@@ -62,6 +62,10 @@ public class Alarm {
         isRead = false;
     }
 
+    public void read() {
+        isRead = true;
+    }
+
     public static Alarm of(Project project, Member member, Job job, Integer type) {
         return new Alarm(project, member, job, type);
     }
