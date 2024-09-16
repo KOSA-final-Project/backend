@@ -28,6 +28,7 @@ public class AlarmService {
 
     private final AlarmRepository alarmRepository;
 
+    // 알람 목록 조회
     @Transactional(readOnly = true)
     public AlarmsResponse getNotifications(Long memberId) {
 
@@ -35,5 +36,13 @@ public class AlarmService {
         List<ApplicationResultAlarm> applicationResultAlarms = alarmRepository.findUnreadResponseAlarms(memberId);
 
         return new AlarmsResponse(requestAlarms, applicationResultAlarms);
+    }
+
+    // 알람 읽음 처리
+    public void readNotification(Long alarmId) {
+        alarmRepository.findById(alarmId).ifPresent(alarm -> {
+            alarm.read();
+            alarmRepository.save(alarm);
+        });
     }
 }
