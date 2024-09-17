@@ -44,7 +44,6 @@ public class SearchService {
     private final ProjectLikeRepository projectLikeRepository;
 
     /** project search */
-
     public List<ProjectCardResponse> searchProjectsByKeyword(Long memberId, String keyword, String status, String sort, int from, int size) throws IOException {
 
         // keyword로 검색
@@ -109,7 +108,8 @@ public class SearchService {
                 .collect(Collectors.toMap(ProjectLikeDocReq::projectId, ProjectLikeDocReq::likeCount));
 
 
-        log.info("project_likes" + "좋아요 조회");
+        log.info("project_likes 좋아요 조회");
+
 // project_members 인덱스에서 현재 팀원 수를 projectId로 가져오기
         SearchResponse<ProjectMemberDocReq> membersResponse = openSearchClient.search(s -> s
                 .index("project_members")
@@ -120,7 +120,9 @@ public class SearchService {
         Map<Long, Integer> memberCountMap = membersResponse.hits().hits().stream()
                 .map(Hit::source)
                 .collect(Collectors.toMap(projectMemberDocReq -> projectMemberDocReq != null ? projectMemberDocReq.projectId() : null, ProjectMemberDocReq::currentMemberCount));
-        log.info("project_members" + "memberCountMap");
+
+        log.info("project_members 참여 팀원수 조회");
+
 // ProjectSearchResponse 리스트에 좋아요 수와 팀원 수 매핑
         List<ProjectSearchResponse> updatedProjects = new ArrayList<>(projects.stream()
                 .map(project -> {

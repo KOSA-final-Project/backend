@@ -295,11 +295,12 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QProject project = QProject.project;
         QProjectMember projectMember = QProjectMember.projectMember;
 
-        Long count = queryFactory.select(project.count())
+        Long count = queryFactory.select(project.projectId.countDistinct())
                 .from(projectMember)
                 .join(projectMember.project, project)
                 .where(projectMember.member.memberId.eq(memberId)
-                        .and(project.status.eq(status)))
+                        .and(project.status.eq(status))
+                        .and(projectMember.acceptStatus.eq(1)))
                 .fetchOne();
 
 
@@ -344,17 +345,16 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QJob job = QJob.job;
 
 
-        // 지원자 비율 계산 (승인된 멤버만 필터링)
+        // 지원자 비율 계산  (승인된 멤버만 필터링하지 않고 모든 멤버를 포함)
         NumberExpression<Double> applicantsRatio =
                 Expressions.cases()
                         .when(recruitment.count.sum().gt(0))
                         .then(
                                 Expressions.asNumber(
                                         queryFactory
-                                                .select(projectMember.count())  // 승인된 멤버 수를 카운트
+                                                .select(projectMember.count())
                                                 .from(projectMember)
-                                                .where(projectMember.project.projectId.eq(project.projectId)
-                                                        .and(projectMember.acceptStatus.eq(1))) // 승인된 멤버만 카운트
+                                                .where(projectMember.project.projectId.eq(project.projectId))
                                 ).doubleValue().divide(recruitment.count.sum())
                         )
                         .otherwise(0.0);
@@ -373,13 +373,15 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                         project.duration,
                         project.createdAt,
                         projectLike.countDistinct(),  // 각 프로젝트에 대한 좋아요 수
-                        projectMember.countDistinct(),  // 각 프로젝트에 대한 멤버 수
+                        projectMember.projectMemberId.countDistinct(), // 각 프로젝트에 대한 참여 멤버 수
                         recruitment.countDistinct(),  // 각 프로젝트에 대한 모집 팀원 수
                         basePopularityScore
                 )
                 .from(project)
                 .leftJoin(recruitment).on(project.projectId.eq(recruitment.project.projectId))
-                .leftJoin(projectMember).on(project.projectId.eq(projectMember.project.projectId))
+                .leftJoin(projectMember) .on(project.projectId.eq(projectMember.project.projectId)
+                        .and(projectMember.acceptStatus.eq(1))
+                        .and(projectMember.isLeader.eq(false)))     // 리더가 아닌 멤버만 카운트)
                 .leftJoin(projectLike).on(project.projectId.eq(projectLike.project.projectId))
                 .groupBy(project.projectId)
                 .orderBy(basePopularityScore.desc())
@@ -461,7 +463,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                     int duration = tuple.get(project.duration);
                     LocalDateTime createdAt = tuple.get(project.createdAt);
                     Long cntLike = tuple.get(projectLike.countDistinct());  // 좋아요 수
-                    Long currentCnt = tuple.get(projectMember.countDistinct());  // 현재 모인 팀원 수
+                    Long currentCnt = tuple.get(projectMember.projectMemberId.countDistinct());  // 현재 모인 팀원 수
                     Long teamCnt = tuple.get(recruitment.countDistinct());  // 팀원 총 모집 수
                     double baseScore = tuple.get(basePopularityScore);
 
