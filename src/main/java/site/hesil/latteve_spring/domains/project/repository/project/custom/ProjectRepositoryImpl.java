@@ -104,6 +104,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                         projectMember.member.nickname,
                         projectMember.member.imgUrl,
                         projectMember.member.github,
+                        projectMember.member.career,
                         JPAExpressions.select(subProjectMember.count())
                                 .from(subProjectMember)
                                 .where(subProjectMember.member.memberId.eq(projectMember.member.memberId)
@@ -150,8 +151,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 leaderInfo.get(projectMember.member.nickname),
                 leaderInfo.get(projectMember.member.imgUrl),
                 leaderInfo.get(projectMember.member.github),
-                Optional.ofNullable(leaderInfo.get(4, Long.class)).orElse(0L).intValue(),
+                leaderInfo.get(projectMember.member.career),
                 Optional.ofNullable(leaderInfo.get(5, Long.class)).orElse(0L).intValue(),
+                Optional.ofNullable(leaderInfo.get(6, Long.class)).orElse(0L).intValue(),
                 leaderTechStacks
         );
         log.debug("leader: {}", leader);
@@ -183,6 +185,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                             projectMember.member.nickname,
                             projectMember.member.imgUrl,
                             projectMember.member.github,
+                            projectMember.member.career,
                             JPAExpressions.select(subProjectMember.count())
                                     .from(subProjectMember)
                                     .where(subProjectMember.member.memberId.eq(projectMember.member.memberId)
@@ -215,8 +218,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                 String nickname = memberTuple.get(projectMember.member.nickname);
                 String imgUrl = memberTuple.get(projectMember.member.imgUrl);
                 String github = memberTuple.get(projectMember.member.github);
-                int ongoingProjectCount = Optional.ofNullable(memberTuple.get(4, Long.class)).orElse(0L).intValue();
-                int completedProjectCount = Optional.ofNullable(memberTuple.get(5, Long.class)).orElse(0L).intValue();
+                String career = memberTuple.get(projectMember.member.career);
+                int ongoingProjectCount = Optional.ofNullable(memberTuple.get(5, Long.class)).orElse(0L).intValue();
+                int completedProjectCount = Optional.ofNullable(memberTuple.get(6, Long.class)).orElse(0L).intValue();
 
                 List<ProjectDetailResponse.TechStack> memberTechStacks = new ArrayList<>();
                 List<Tuple> memberTechStackTuples = queryFactory
@@ -236,7 +240,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                     memberTechStacks.add(new ProjectDetailResponse.TechStack(techStackName, techStackImg));
                 }
 
-                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, ongoingProjectCount, completedProjectCount, memberTechStacks));
+                members.add(new ProjectDetailResponse.Member(memberId, nickname, imgUrl, github, career, ongoingProjectCount, completedProjectCount, memberTechStacks));
             }
             log.debug("members: {}", members);
 
