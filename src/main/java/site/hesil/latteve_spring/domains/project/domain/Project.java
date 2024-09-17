@@ -1,11 +1,13 @@
 package site.hesil.latteve_spring.domains.project.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
+import site.hesil.latteve_spring.domains.project.listener.ProjectListener;
 import site.hesil.latteve_spring.global.audit.entity.BaseTimeEntity;
 
 import java.time.LocalDateTime;
@@ -23,6 +25,7 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(ProjectListener.class)
 @SQLDelete(sql = "UPDATE project SET deleted_at = NOW() where project_id = ?")
 public class Project extends BaseTimeEntity {
     @Id
@@ -48,7 +51,7 @@ public class Project extends BaseTimeEntity {
         this.duration = duration;
         this.cycle = cycle;
     }
-  
+    @JsonIgnore
     // 마감일을 계산하는 메서드
     public LocalDateTime getDeadline() {
         if (this.startedAt != null && this.duration > 0) {

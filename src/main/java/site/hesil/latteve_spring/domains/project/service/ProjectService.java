@@ -4,6 +4,7 @@ package site.hesil.latteve_spring.domains.project.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.dto.response.MemberStackResponse;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
 import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
 import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAcceptStatusRequest;
 import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
@@ -30,6 +32,7 @@ import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectMem
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
+import site.hesil.latteve_spring.domains.project.listener.ProjectLikeListener;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
@@ -90,6 +93,7 @@ public class ProjectService {
     private final ProjectLikeRepository projectLikeRepository;
     private final RetrospectiveRepository retrospectiveRepository;
     private final MQSender mqSender;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 프로젝트 상세 페이지 정보
     @Transactional(readOnly = true)
@@ -154,7 +158,11 @@ public class ProjectService {
         if (!isLeader) throw new CustomBaseException(ErrorCode.UNAUTHORIZED_ACTION);
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndMemberIdAndJobId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.jobId(), updateAcceptStatusRequest.memberId())
                 .orElseThrow(() -> new NotFoundException("프로젝트 승인/거절 : 해당 유저를 찾을수 없습니다!"));
+
+        log.info("==============================projectService:  member update before");
         projectMember.updateAcceptStatus(updateAcceptStatusRequest.acceptStatus()); // 변경감지 저장
+
+        log.info("==============================projectService:  member update after");
         Alarm alarm = alarmRepository.findAlarmByProjectIdAndMemberId(updateAcceptStatusRequest.projectId(), updateAcceptStatusRequest.memberId())
                 .orElseThrow(() -> new NotFoundException("해당 프로젝트ID, memberID로 등록된 지원 알람이 없습니다."));
         int alarmResult = updateAcceptStatusRequest.acceptStatus() == 1 ? 1 : 2;
@@ -163,6 +171,7 @@ public class ProjectService {
         String result = alarmResult == 1 ? "승인" : "거절";
         log.info("프로젝트 지원 결과 : {}", result);
     }
+
 
     @Transactional
     public void projectStart(long projectId, Long memberId) {
@@ -317,7 +326,19 @@ public class ProjectService {
 
     @Transactional
     public void registerProjectLike(long projectId, long memberId) {
-        projectLikeRepository.registerProjectLike(projectId, memberId);
+        // 프로젝트와 멤버를 각각 찾아서 ProjectLike를 생성
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+
+        ProjectLike projectLike = ProjectLike.builder()
+                .project(project)
+                .member(member).build();
+
+        // JPA의 save() 메서드로 저장
+        projectLikeRepository.save(projectLike);
+//        projectLikeRepository.registerProjectLike(projectId, memberId);
     }
 
     @Transactional

@@ -2,9 +2,11 @@ package site.hesil.latteve_spring.domains.search.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch.core.DeleteRequest;
 import org.opensearch.client.opensearch.core.IndexRequest;
-import org.opensearch.client.opensearch.core.UpdateRequest;
+import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.job.repository.JobRepository;
@@ -15,6 +17,9 @@ import site.hesil.latteve_spring.domains.member.repository.memberJob.MemberJobRe
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.domains.memberStack.repository.MemberStackRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.domain.projectLike.ProjectLike;
+import site.hesil.latteve_spring.domains.project.domain.projectMember.ProjectMember;
+import site.hesil.latteve_spring.domains.project.dto.project.request.AcceptedProjectMemberRequest;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.project.repository.projectMember.ProjectMemberRepository;
@@ -22,7 +27,11 @@ import site.hesil.latteve_spring.domains.project.repository.recruitment.Recruitm
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
-import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocumentReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectLikeDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectMemberDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectStackDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.response.ProjectSearchResponse;
 import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 
@@ -33,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import static site.hesil.latteve_spring.domains.project.domain.QProject.project;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.search.service
@@ -45,6 +56,7 @@ import java.util.Optional;
  * -----------------------------------------------------------
  * 2024-08-30        Heeseon       최초 생성
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchIndexingService {
@@ -61,17 +73,156 @@ public class SearchIndexingService {
     private final JobRepository jobRepository;
     private final ProjectLikeRepository projectLikeRepository;
 
-    @Transactional
+
     public void indexProject(Long projectId) throws IOException {
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // 프로젝트에 연관된 기술 스택  정보 가져옴
+        List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(projectId);
+
+        // techStack list로 저장
+        List<ProjectDocReq.TechStack> techStackList= new ArrayList<>();
+        for (ProjectStack projectStack : projectTechStacks) {
+            Long techStackId = projectStack.getTechStack().getTechStackId();
+            if(techStackId == 1){
+                techStackList.add(new ProjectDocReq.TechStack(projectStack.getCustomStack(), null));
+            }else{
+                Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
+                if (techStackOpt.isPresent()) {
+                    TechStack techStack = techStackOpt.get();
+                    String name = techStack.getName();
+                    String imgUrl = techStack.getImgUrl();
+                    techStackList.add(new ProjectDocReq.TechStack(name, imgUrl));
+                }
+            }
+
+        }
+        // 프로젝트에 필요한 인원
+        Integer requiredMemberCount = recruitmentRepository.findMemberCountByProject_ProjectId(projectId);
+
+        ProjectDocReq projectDocument = ProjectDocReq.builder()
+                .projectId(project.getProjectId())
+                .name(project.getName())
+                .imgUrl(project.getImgUrl())
+                .duration(project.getDuration())
+                .projectTechStack(techStackList)
+                .teamCnt(requiredMemberCount)
+                .status(convertStatusToString(project.getStatus()))
+                .createdAt(formatLocalDateTime(project.getCreatedAt()))
+                .build();
+    IndexRequest<ProjectDocReq> indexRequest = new IndexRequest.Builder<ProjectDocReq>()
+            .index("projects")
+            .id(project.getProjectId().toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
+            .document(projectDocument)
+            .build();
+        openSearchClient.index(indexRequest);
+
+        log.info("project 인덱싱");
+    }
+
+//    public void indexProjectLike(ProjectLike projectLike) throws IOException {
+//        Long projectId = projectLike.getProjectLikeId().getProjectId();
+//        Long memberId =projectLike.getProjectLikeId().getMemberId();
+//        // 좋아요 수 가져오기
+//        ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
+//                .projectId(projectId)
+//                .memberId(memberId)
+//                .build();
+//
+//        // Elasticsearch에 인덱싱
+//        IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
+//                .index("project_likes")
+//                .id(projectId + "-" + memberId)
+//                .document(projectLikeDocReq)
+//                .build();
+//        openSearchClient.index(indexRequest);
+//
+//        log.info("project like 인덱싱");
+//    }
+//
+//    public void deleteProjectLike(ProjectLike projectLike) throws IOException {
+//        String docId = projectLike.getProjectLikeId().getProjectId() + "-" + projectLike.getProjectLikeId().getMemberId();
+//
+//        DeleteRequest deleteRequest = new DeleteRequest.Builder()
+//                .index("project_likes")
+//                .id(docId)
+//                .build();
+//
+//        openSearchClient.delete(deleteRequest);
+//        log.info("ProjectLike 삭제 완료: Project ID = {}, Member ID = {}", projectLike.getProjectLikeId().getProjectId(), projectLike.getProjectLikeId().getMemberId());
+//    }
+
+
+    public void indexProjectLike(Long projectId) throws IOException {
+        // 좋아요 수 가져오기
+        ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
+                .projectId(projectId)
+                .likeCount(projectLikeRepository.countProjectLikeByProject_ProjectId(projectId))
+                .build();
+
+        // Elasticsearch에 인덱싱
+        IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
+                .index("project_likes")
+                .id(projectId.toString())
+                .document(projectLikeDocReq)
+                .build();
+        openSearchClient.index(indexRequest);
+
+        log.info("project like 인덱싱");
+    }
+
+
+//    public void indexProjectMember(AcceptedProjectMemberRequest acceptedProjectMemberRequest) throws IOException{
+//        Long projectId = acceptedProjectMemberRequest.projectId();
+//        Long memberId = acceptedProjectMemberRequest.memberId();
+//
+//        String docId = projectId + "-" + memberId;
+//
+//        ProjectMemberDocReq projectMemberDocReq = ProjectMemberDocReq.builder()
+//                .projectId(projectId)
+//                .memberId(memberId)
+//                .jobId(acceptedProjectMemberRequest.jobId())
+//                .build();
+//
+//        IndexRequest<ProjectMemberDocReq> indexRequest = new IndexRequest.Builder<ProjectMemberDocReq>()
+//                .index("project_members")
+//                .id(docId)
+//                .document(projectMemberDocReq)
+//                .build();
+//        openSearchClient.index(indexRequest);
+//
+//        log.info("project member 인덱싱");
+//    }
+
+    public void indexProjectMember(Long projectId ) throws IOException{
+
+        // 프로젝트에 지원한 인원
+        Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(projectId);
+
+        ProjectMemberDocReq projectMemberDocReq = ProjectMemberDocReq.builder()
+                .projectId(projectId)
+                .currentMemberCount(currentMemberCount)
+                .build();
+
+        IndexRequest<ProjectMemberDocReq> indexRequest = new IndexRequest.Builder<ProjectMemberDocReq>()
+                .index("project_members")
+                .id(projectId.toString())
+                .document(projectMemberDocReq)
+                .build();
+        openSearchClient.index(indexRequest);
+
+        log.info("project member 인덱싱");
+    }
+    public void indexProjectWith(Long projectId) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         // 프로젝트 기술 스택 리스트 가져옴
         List<ProjectStack> projectStacks = projectStackRepository.findAllByProject_ProjectId(projectId);
-        List<ProjectDocumentReq.TechStack> techStackList = new ArrayList<>();
+        List<ProjectSearchResponse.TechStack> techStackList = new ArrayList<>();
         for (ProjectStack stack : projectStacks) {
             TechStack techStack = stack.getTechStack();
-            techStackList.add(new ProjectDocumentReq.TechStack(techStack.getName(), techStack.getImgUrl()));
+            techStackList.add(new ProjectSearchResponse.TechStack(techStack.getName(), techStack.getImgUrl()));
         }
 
         // 좋아요 수
@@ -83,7 +234,7 @@ public class SearchIndexingService {
         Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
 
         // ProjectDocumentReq 생성
-        ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
+        ProjectSearchResponse projectDocumentReq = ProjectSearchResponse.builder()
                 .projectId(project.getProjectId())
                 .name(project.getName())
                 .imgUrl(project.getImgUrl())
@@ -97,7 +248,7 @@ public class SearchIndexingService {
                 .build();
 
         // Elasticsearch에 인덱싱
-        IndexRequest<ProjectDocumentReq> indexRequest = new IndexRequest.Builder<ProjectDocumentReq>()
+        IndexRequest<ProjectSearchResponse> indexRequest = new IndexRequest.Builder<ProjectSearchResponse>()
                 .index("projects")
                 .id(project.getProjectId().toString()) // 동일한 ID를 가진 문서가 있으면 업데이트
                 .document(projectDocumentReq)
@@ -115,18 +266,18 @@ public class SearchIndexingService {
             List<ProjectStack> projectTechStacks = projectStackRepository.findAllByProject_ProjectId(project.getProjectId());
 
             // techStack list로 저장
-            List<ProjectDocumentReq.TechStack> techStackList= new ArrayList<>();
+            List<ProjectSearchResponse.TechStack> techStackList= new ArrayList<>();
             for (ProjectStack projectStack : projectTechStacks) {
                 Long techStackId = projectStack.getTechStack().getTechStackId();
                 if(techStackId == 1){
-                   techStackList.add(new ProjectDocumentReq.TechStack(projectStack.getCustomStack(), null));
+                   techStackList.add(new ProjectSearchResponse.TechStack(projectStack.getCustomStack(), null));
                 }else{
                     Optional<TechStack> techStackOpt = techStackRepository.findById(projectStack.getTechStack().getTechStackId());
                     if (techStackOpt.isPresent()) {
                         TechStack techStack = techStackOpt.get();
                         String name = techStack.getName();
                         String imgUrl = techStack.getImgUrl();
-                        techStackList.add(new ProjectDocumentReq.TechStack(name, imgUrl));
+                        techStackList.add(new ProjectSearchResponse.TechStack(name, imgUrl));
                     }
                 }
 
@@ -144,7 +295,7 @@ public class SearchIndexingService {
             Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(project.getProjectId());
 
             // ProjectDocumentReq 생성
-            ProjectDocumentReq projectDocumentReq = ProjectDocumentReq.builder()
+            ProjectSearchResponse projectDocumentReq = ProjectSearchResponse.builder()
                     .projectId(project.getProjectId())
                     .name(project.getName())
                     .imgUrl(project.getImgUrl())
@@ -158,7 +309,7 @@ public class SearchIndexingService {
                     .build();
 
             // Elasticsearch에 인덱싱
-            IndexRequest<ProjectDocumentReq> indexRequest = new IndexRequest.Builder<ProjectDocumentReq>()
+            IndexRequest<ProjectSearchResponse> indexRequest = new IndexRequest.Builder<ProjectSearchResponse>()
                     .index("projects")
                     .id(project.getProjectId().toString())
                     .document(projectDocumentReq)
@@ -263,5 +414,67 @@ public class SearchIndexingService {
         return 0; // 기타 또는 알 수 없는 경우
     }
 
+    public void deleteAllIndex() throws IOException {
+        DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest.Builder()
+                .index("projects")  // 삭제할 인덱스 이름
+                .build();
+        openSearchClient.indices().delete(deleteIndexRequest);
+    }
+
+    // 프로젝트 전체 인덱싱
+    public void reindexAllProjects() throws IOException {
+        // 프로젝트 전체 조회
+        List<Project> projects = projectRepository.findAll();
+
+        for (Project project : projects) {
+            indexProject(project.getProjectId());
+        }
+
+        log.info("모든 프로젝트 인덱싱 완료");
+    }
+
+    // 좋아요 전체 인덱싱
+    public void reindexAllProjectLikes() throws IOException {
+        // 모든 좋아요 조회
+        List<ProjectLike> projectLikes = projectLikeRepository.findAll();
+
+        for (ProjectLike projectLike : projectLikes) {
+            indexProjectLike(projectLike.getProjectLikeId().getProjectId());
+        }
+
+        log.info("모든 프로젝트 좋아요 인덱싱 완료");
+    }
+
+    // 프로젝트 멤버 전체 인덱싱
+    public void reindexAllProjectMembers() throws IOException {
+        // 모든 프로젝트 멤버 조회
+        List<ProjectMember> projectMembers = projectMemberRepository.findAll();
+
+        for (ProjectMember projectMember : projectMembers) {
+//            AcceptedProjectMemberRequest request = new AcceptedProjectMemberRequest(
+//                    projectMember.getProject().getProjectId(),
+//                    projectMember.getMember().getMemberId(),
+//                    projectMember.getJob().getJobId()
+//            );
+//            indexProjectMember(request);
+            indexProjectMember(projectMember.getProjectMemberId().getProjectId());
+        }
+
+        log.info("모든 프로젝트 멤버 인덱싱 완료");
+    }
+
+    // 전체 데이터 인덱싱 초기화
+    public void reindexAllData() throws IOException {
+        // 모든 프로젝트 인덱싱
+        reindexAllProjects();
+
+        // 모든 좋아요 인덱싱
+        reindexAllProjectLikes();
+
+        // 모든 프로젝트 멤버 인덱싱
+        reindexAllProjectMembers();
+
+        log.info("모든 프로젝트 관련 데이터 인덱싱 초기화 완료");
+    }
 
 }

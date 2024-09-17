@@ -1,9 +1,10 @@
 ### 프로젝트 생성 요청
-POST http://localhost:8080/api/projects
+POST http://localhost:8080/projects
+cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDEwMDAxLCJleHAiOjE3MjY0MTE4MDF9.zwGhkqqC1ZA6HDTUnD7iHaYxoJABswiewb3XoSKzJK3UV1Rig5PEGfrFjbAddpL1UBCde8YJYZv2yA-icrx61Q
 Content-Type: application/json
 
 {
-  "projectName": "테스트3",
+  "projectName": "테스트 프로젝트, 기술스택, 모집인원",
   "projectImage": "https://image.yes24.com/goods/110126993/XL",
   "recruitmentRoles": [
     {
@@ -47,8 +48,8 @@ client.test("프로젝트 생성에 성공한다.", function() {
 
 
 ### 프로젝트 요청 목록 조회
-@projectId = 1
-GET http://localhost:8080/api/projects/{{projectId}}/applications
+@projectId = 66
+GET http://localhost:8080/projects/{{projectId}}/applications
 
 
 
@@ -93,22 +94,21 @@ Content-Type: application/json
 
 
 ### 프로젝트 좋아요
-POST http://localhost:8080/api/projects/{{projectId}}/like
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
-Content-Type: application/json
-
+POST http://localhost:8080/projects/53/like
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJxdXh4eGJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MSwiaWF0IjoxNzI2NTMxNDUwLCJleHAiOjE3MjY1MzMyNTB9.nJ3epe93DG64Zo_URY8TWL3m03dAmFYYcWmdCHbUhUb_cM6HenUZV9e_A9TJezVKf9hcHySoqK8FkkFvB51DJA
 
 ### 프로젝트 좋아요 취소
-DELETE http://localhost:8080/api/projects/{{projectId}}/like
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
+DELETE http://localhost:8080/projects/{{projectId}}/like
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJxdXh4eGJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MSwiaWF0IjoxNzI2NDY4MDU4LCJleHAiOjE3MjY0Njk4NTh9.FHizQY2VHnEBRNNtGqEzDnvntBRXNJRSmKNJ5YqHAoosLJPHoViXGEUYOtO_c2Ajrj4Os-bCecycGRfCArbQbw
 
 ### 프로젝트 멤버 승인/거절
-@Project_id = 53
-@Project_memberId = 44
-@Project_jobId = 7
+@Project_id = 66
+@Project_memberId = 52
+@Project_jobId = 6
 @Project_isAccepted = 1
 PUT http://localhost:8080/projects/applications
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQG5hdmVyLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6NDgsImlhdCI6MTcyNjQyMDI3MCwiZXhwIjoxNzI2NDIyMDcwfQ.HbvtEfn-xiuQ6_GyyHFhotdcd1bg7ujs3SJXslCo5ShvO6SRySzyE2AS92zBIhs0ZuikX-ddKWWrTwFGi_IMqA
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDcyMTY2LCJleHAiOjE3MjY0NzM5NjZ9.oLnCXghrljHSTrOtRv91EBHgTVvEnixKYVkJHHK6XbZkIOk9PKOL2ROAqdCeDZOVTMzsTryyMVB4eG-wjfmM0A
+
 Content-Type: application/json
 
 {
@@ -118,14 +118,13 @@ Content-Type: application/json
   "acceptStatus": {{Project_isAccepted}}
 }
 
+
+
 ### 프로젝트 시작
 
 POST http://localhost:8080/api/projects/start
 Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2b3N4amExQGdtYWlsLmNvbSIsInJvbGUiOiJST0xFX1VTRVIiLCJtZW1iZXJJZCI6MTYsImlhdCI6MTcyNTc1MTE1NywiZXhwIjoxNzI1NzUyOTU3fQ._ZMJm-9zsaxnInBVe4Rk1taH59t9gox3unLdkVLaYbC7sVN68ihMMNITCF7jj-KgLxY4ukf6Z8an3ZEoIZ3J5g
 Content-Type: application/json
 
-{
-  "projectId": {{Project_id}}
-}
 
 ### 블루 그린 테스트 6
