@@ -295,11 +295,12 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         QProject project = QProject.project;
         QProjectMember projectMember = QProjectMember.projectMember;
 
-        Long count = queryFactory.select(project.count())
+        Long count = queryFactory.select(project.projectId.countDistinct())
                 .from(projectMember)
                 .join(projectMember.project, project)
                 .where(projectMember.member.memberId.eq(memberId)
-                        .and(project.status.eq(status)))
+                        .and(project.status.eq(status))
+                        .and(projectMember.acceptStatus.eq(1)))
                 .fetchOne();
 
 
