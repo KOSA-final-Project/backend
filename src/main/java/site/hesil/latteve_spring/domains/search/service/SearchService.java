@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
+import org.opensearch.client.opensearch._types.aggregations.LongTermsBucket;
 import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch._types.query_dsl.*;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import site.hesil.latteve_spring.domains.project.repository.projectLike.ProjectLikeRepository;
 import site.hesil.latteve_spring.domains.search.dto.member.request.MemberDocumentReq;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectLikeDocReq;
+import site.hesil.latteve_spring.domains.search.dto.project.request.ProjectMemberDocReq;
 import site.hesil.latteve_spring.domains.search.dto.project.response.ProjectSearchResponse;
 
 import java.io.IOException;
@@ -78,94 +81,95 @@ public class SearchService {
                 .index("projects")  // 검색할 인덱스 이름
                 .query(boolQuery._toQuery())
                 .from(from * size)  // 시작 인덱스 (예: 첫 번째 페이지)
-                .size(size)  // 페이지 당 size 만큼 반환
-                .aggregations("likeCount", likeAgg -> likeAgg
-                        .terms(t -> t.field("projectId"))  // projectId로 그룹화
-                        .aggregations("cntLike", cntLikeAgg -> cntLikeAgg
-                                .valueCount(v -> v.field("projectId"))  // 각 projectId에 해당하는 좋아요 수 집계
-                        )
-                )
-                // 승인된 멤버 수 집계 (project_members 인덱스에서 가져오기)
-                .aggregations("currentCnt", memberAgg -> memberAgg
-                        .terms(t -> t.field("projectId"))  // projectId로 그룹화
-                        .aggregations("currentCnt", currentCntAgg -> currentCntAgg
-                                .valueCount(v -> v.field("projectId"))  // 각 projectId에 해당하는 승인된 멤버 수 집계
-                        )
-                );
+                .size(size);  // 페이지 당 size 만큼 반환
 
-        // 정렬 기준 설정 (createdAt or 좋아요 수)
-        if (sort != null && !sort.isEmpty()) {
-            if ("createdAt".equalsIgnoreCase(sort)) {
-                // 생성일자 기준으로 정렬
-                searchRequest.sort(SortOptions.of(s -> s
-                        .field(f -> f
-                                .field("createdAt")  // 프로젝트 생성일자 기준 정렬
-                                .order(SortOrder.Desc)  // 내림차순 정렬 (최신 프로젝트가 먼저)
-                        )
-                ));
-            } else if ("cntLike".equalsIgnoreCase(sort)) {
-                // 좋아요 수 기준으로 정렬
-                searchRequest.sort(SortOptions.of(s -> s
-                        .field(f -> f
-                                .field("cntLike")  // 좋아요 수 기준 정렬 (project_likes의 집계 값 사용)
-                                .order(SortOrder.Desc)  // 내림차순 정렬 (좋아요 많은 순)
-                        )
-                ));
-            }
-        }
-
-        // OpenSearch 클라이언트를 사용하여 검색 요청 실행
-        SearchResponse<ProjectSearchResponse> response = openSearchClient.search(searchRequest.build(), ProjectSearchResponse.class);
+        // 프로젝트 기본 검색 실행
+        SearchResponse<ProjectSearchResponse> projectResponse = openSearchClient.search(searchRequest.build(), ProjectSearchResponse.class);
 
         // 검색된 프로젝트 리스트 가져오기
-        List<ProjectSearchResponse> projects = response.hits().hits().stream()
+        List<ProjectSearchResponse> projects = projectResponse.hits().hits().stream()
                 .map(Hit::source)
                 .toList();
 
+        // 프로젝트 IDs 수집
+        List<Long> projectIds = projects.stream()
+                .map(ProjectSearchResponse::projectId)
+                .toList();
 
-        // 집계된 좋아요 수 및 승인된 멤버 수 가져오기
-        Map<Long, Long> likeCounts = new HashMap<>();
-        Map<Long, Long> currentCounts = new HashMap<>();
+// project_likes 인덱스에서 좋아요 수를 projectId로 가져오기
+        SearchResponse<ProjectLikeDocReq> likesResponse = openSearchClient.search(s -> s
+                .index("project_likes")
+                .query(q -> q.terms(t -> t.field("projectId").terms(v -> v.value(projectIds.stream().map(FieldValue::of).toList()))))
+                .size(size), ProjectLikeDocReq.class);
 
-        // likeCount 집계 결과 처리
-        List<StringTermsBucket> likeBuckets = response.aggregations().get("likeCount").sterms().buckets().array();
 
-        for (StringTermsBucket bucket : likeBuckets) {
-            Long projectId = Long.valueOf(bucket.key().toString());
-            long cntLike = (long) bucket.aggregations().get("cntLike").valueCount().value();
-            likeCounts.put(projectId, cntLike);  // 각 프로젝트별 좋아요 수 저장
+// 프로젝트 ID별로 좋아요 수를 매핑
+        Map<Long, Long> likeCountMap = likesResponse.hits().hits().stream()
+                .map(Hit::source)
+                .collect(Collectors.toMap(ProjectLikeDocReq::projectId, ProjectLikeDocReq::likeCount));
+
+
+        log.info("project_likes" + "좋아요 조회");
+// project_members 인덱스에서 현재 팀원 수를 projectId로 가져오기
+        SearchResponse<ProjectMemberDocReq> membersResponse = openSearchClient.search(s -> s
+                .index("project_members")
+                .query(q -> q.terms(t -> t.field("projectId").terms(v -> v.value(projectIds.stream().map(FieldValue::of).toList()))))
+                .size(size), ProjectMemberDocReq.class);
+
+// 프로젝트 ID별로 현재 팀원 수 매핑
+        Map<Long, Integer> memberCountMap = membersResponse.hits().hits().stream()
+                .map(Hit::source)
+                .collect(Collectors.toMap(projectMemberDocReq -> projectMemberDocReq != null ? projectMemberDocReq.projectId() : null, ProjectMemberDocReq::currentMemberCount));
+        log.info("project_members" + "memberCountMap");
+// ProjectSearchResponse 리스트에 좋아요 수와 팀원 수 매핑
+        List<ProjectSearchResponse> updatedProjects = new ArrayList<>(projects.stream()
+                .map(project -> {
+                    Long likeCount = likeCountMap.getOrDefault(project.projectId(), 0L);
+                    Integer memberCount = memberCountMap.getOrDefault(project.projectId(), 0);
+                    log.info("likeCount: {}, memberCount: {} " , likeCount , memberCount);
+                    // 기존 필드 값을 사용하면서 cntLike와 currentMemberCount만 수정
+                    return ProjectSearchResponse.builder()
+                            .projectId(project.projectId())
+                            .name(project.name())
+                            .imgUrl(project.imgUrl())
+                            .duration(project.duration())
+                            .projectTechStack(project.projectTechStack().stream()
+                                    .map(tech -> new ProjectSearchResponse.TechStack(tech.name(), tech.imgUrl()))
+                                    .collect(Collectors.toList()))
+                            .cntLike(likeCount)  // 새로운 cntLike 값 설정
+                            .currentCnt(memberCount)  // 현재 팀원 수 값 설정
+                            .teamCnt(project.teamCnt())
+                            .createdAt(project.createdAt())
+                            .build();
+                })
+                .toList());
+
+        // 정렬 기준 설정: cntLike로 정렬할 경우 좋아요 수로, createdAt으로 정렬할 경우 생성일자로 정렬
+        if (sort != null && !sort.isEmpty()) {
+            if ("cntLike".equalsIgnoreCase(sort)) {
+                updatedProjects .sort(Comparator.comparingLong(ProjectSearchResponse::cntLike).reversed());  // 좋아요 수 내림차순
+            } else if ("createdAt".equalsIgnoreCase(sort)) {
+                updatedProjects .sort(Comparator.comparing(ProjectSearchResponse::createdAt).reversed());  // 생성일자 내림차순
+            }
         }
 
-    // currentCnt 집계 결과 처리
-        List<StringTermsBucket> currentCntBuckets = response.aggregations().get("currentCnt").sterms().buckets().array();
-
-        for (StringTermsBucket bucket : currentCntBuckets) {
-            Long projectId = Long.valueOf(bucket.key().toString());
-            long currentCnt = (long) bucket.aggregations().get("currentCnt").valueCount().value();
-            currentCounts.put(projectId, currentCnt);  // 각 프로젝트별 승인된 멤버 수 저장
-        }
-
-        // 로그인된 상태일 때, 각 프로젝트의 좋아요 여부를 확인
+        // 로그인된 상태일 때, 각 프로젝트의 좋아요 여부를 한 번에 확인
         if (memberId != null) {
-            List<Long> projectIds = projects.stream()
-                    .map(ProjectSearchResponse::projectId)
-                    .collect(Collectors.toList());
-
             // 사용자가 좋아요한 프로젝트 ID 조회
             Set<Long> likedProjectIds = new HashSet<>(projectLikeRepository.findLikedProjectIdsByMemberIdAndProjectIds(memberId, projectIds));
 
-            // 좋아요 여부와 집계 값들을 반영하여 ProjectCardResponse로 변환
-            return projects.stream()
-                    .map(project -> mapToProjectCardResponse(project, likedProjectIds.contains(project.projectId()), likeCounts.getOrDefault(project.projectId(), 0L), currentCounts.getOrDefault(project.projectId(), 0L)))
+            // 좋아요 여부를 반영하여 ProjectCardResponse로 변환
+            return  updatedProjects.stream()
+                    .map(project -> mapToProjectCardResponse(project, likedProjectIds.contains(project.projectId())))
                     .collect(Collectors.toList());
         }
 
-        // 최종 결과 리스트 반환 (ProjectCardResponse로 변환)
         // 로그인되지 않은 경우 좋아요 여부 없이 ProjectCardResponse 반환
-        return projects.stream()
-                .map(project -> mapToProjectCardResponse(project, false, likeCounts.getOrDefault(project.projectId(), 0L), currentCounts.getOrDefault(project.projectId(), 0L)))
+        return  updatedProjects.stream()
+                .map(project ->  mapToProjectCardResponse(project, false))
                 .collect(Collectors.toList());
     }
+
 
     // ProjectCardResponse에 집계된 좋아요 수와 팀원 수를 반영하는 메서드
     private ProjectCardResponse mapToProjectCardResponse(ProjectSearchResponse project, boolean isLiked, long cntLike, long currentCnt) {
@@ -270,22 +274,22 @@ public class SearchService {
 //                .collect(Collectors.toList());
 //
 //    }
-//    // ProjectDocumentReq를 ProjectCardResponse로 변환하는 메서드
-//    public static ProjectCardResponse mapToProjectCardResponse(ProjectSearchResponse project, boolean isLiked) {
-//        return ProjectCardResponse.builder()
-//                .projectId(project.projectId())
-//                .name(project.name())
-//                .imgUrl(project.imgUrl())
-//                .duration(project.duration())
-//                .projectTechStack(project.projectTechStack().stream()
-//                        .map(tech -> new ProjectCardResponse.TechStack(tech.name(), tech.imgUrl()))
-//                        .collect(Collectors.toList()))
-//                .isLiked(isLiked)  // 좋아요 여부 추가
-//                .cntLike(project.cntLike())  // 좋아요 수
-//                .currentCnt(project.currentCnt())
-//                .teamCnt(project.teamCnt())
-//                .build();
-//    }
+    // ProjectDocumentReq를 ProjectCardResponse로 변환하는 메서드
+    public static ProjectCardResponse mapToProjectCardResponse(ProjectSearchResponse project, boolean isLiked) {
+        return ProjectCardResponse.builder()
+                .projectId(project.projectId())
+                .name(project.name())
+                .imgUrl(project.imgUrl())
+                .duration(project.duration())
+                .projectTechStack(project.projectTechStack().stream()
+                        .map(tech -> new ProjectCardResponse.TechStack(tech.name(), tech.imgUrl()))
+                        .collect(Collectors.toList()))
+                .isLiked(isLiked)  // 좋아요 여부 추가
+                .cntLike(project.cntLike())  // 좋아요 수
+                .currentCnt(project.currentCnt())
+                .teamCnt(project.teamCnt())
+                .build();
+    }
 
 
     /**Member search */

@@ -42,7 +42,19 @@ public class OpenSearchIndexService {
             return "Failed to connect to OpenSearch: " + e.getMessage();
         }
     }
-    
+
+    // 나중에 삭제 -> 데이터 동기화
+    @PostConstruct
+    public void init() throws IOException {
+        createOrRecreateIndexWithMapping("projects"); // projects 인덱스 생성 또는 재생성
+        createOrRecreateIndexWithMapping("project_members"); // project_members 인덱스 생성 또는 재생성
+        createOrRecreateIndexWithMapping("project_likes"); // project_likes 인덱스 생성 또는 재생성
+        createOrRecreateIndexWithMapping("members");  // members 인덱스 생성 또는 재생성
+//        searchIndexingService.indexProjectsToOpenSearch();  // 프로젝트 데이터 인덱싱
+        searchIndexingService.indexMembersToOpenSearch(); // 멤버 데이터 인덱싱
+        searchIndexingService.reindexAllData(); // 모든 데이터 재인덱싱
+
+    }
     private void createOrRecreateIndexWithMapping(String indexName) throws IOException {
         // 인덱스 존재 여부 확인
         boolean exists = openSearchClient.indices().exists(e -> e.index(indexName)).value();
@@ -53,9 +65,17 @@ public class OpenSearchIndexService {
         }
 
         // 인덱스별 techStack 매핑 설정
-        TypeMapping mapping = createMapping(indexName);
+        TypeMapping mapping = null;
 
         // 인덱스 생성 요청
+
+        if (indexName.equals("projects") || indexName.equals("members")) {
+            mapping = createMapping(indexName);
+        } else {
+            // For other indices, create a default or empty mapping
+            mapping = createDefaultMapping();
+        }
+
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
                 .index(indexName)
                 .mappings(mapping)
@@ -93,6 +113,11 @@ public class OpenSearchIndexService {
                 .properties(properties)
         );
     }
+
+    private TypeMapping createDefaultMapping() {
+        return new TypeMapping.Builder().build(); // No specific mappings needed
+    }
+
 
     // text 타입인 필드에 keyword 서브 필드 추가
     private Property createTextFieldWithKeyword(){

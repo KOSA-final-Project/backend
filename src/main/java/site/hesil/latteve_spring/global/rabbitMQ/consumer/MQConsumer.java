@@ -37,28 +37,35 @@ public class MQConsumer {
         searchIndexingService.indexProject(project.getProjectId());
     }
 
+    @RabbitListener(queues = "#{@projectUpdateQueue.name}")
+    public void receiveUpdateProjectMessage(Project project) throws IOException {
+        log.info("rabbit listener : project update 됨");
+        searchIndexingService.indexProject(project.getProjectId());
+        searchIndexingService.indexMembersToOpenSearch();
+    }
+
     @RabbitListener(queues = "#{@projectLikeCreateQueue.name}")
     public void receiveCreateLikeMessage(ProjectLike projectLike) throws IOException {
         log.info("rabbit listener : project like 인덱싱");
-        searchIndexingService.indexProjectLike(projectLike);
+        searchIndexingService.indexProjectLike(projectLike.getProjectLikeId().getProjectId());
     }
     @RabbitListener(queues = "#{@projectMemberUpdateQueue.name}")
     public void receiveUpdateProjectMemberMessage( AcceptedProjectMemberRequest projectMember) throws IOException {
         log.info("rabbit listener : projectMember_update_인덱싱 : member가 승인되어 currentMember에 들어감");
-        searchIndexingService.indexProjectMember(projectMember);
+        searchIndexingService.indexProjectMember(projectMember.projectId());
     }
 
-//    @RabbitListener(queues = "#{@memberCreateQueue.name}")
-//    public void receiveCreateMemberMessage(Member member) throws IOException {
-//        log.info("rabbit listener : member_create 인덱싱");
-//        searchIndexingService.indexMember(member);
-//
-//    }
-//    @RabbitListener(queues = "project.update.queue")
-//    public void receiveUpdateMessage(Project project) {
-//        searchIndexingService.updateProject(project);  // 업데이트 메시지 처리
-//    }
-//
+    @RabbitListener(queues = "#{@memberCreateQueue.name}")
+    public void receiveCreateMemberMessage(Member member) throws IOException {
+        log.info("rabbit listener : member_create 인덱싱");
+        searchIndexingService.indexMembersToOpenSearch();
+
+    }
+    @RabbitListener(queues = "#{@memberUpdateQueue.name}")
+    public void receiveUpdateMessage(Member member) throws IOException {
+        searchIndexingService.indexMembersToOpenSearch(); // 업데이트 메시지 처리
+    }
+
 //    @RabbitListener(queues = "project.delete.queue")
 //    public void receiveDeleteMessage(Project project) {
 //        searchIndexingService.deleteProject(project.getId());  // 삭제 메시지 처리

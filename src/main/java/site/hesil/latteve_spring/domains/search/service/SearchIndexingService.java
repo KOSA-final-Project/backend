@@ -120,19 +120,50 @@ public class SearchIndexingService {
         log.info("project 인덱싱");
     }
 
-    public void indexProjectLike(ProjectLike projectLike) throws IOException {
-        Long projectId = projectLike.getProjectLikeId().getProjectId();
-        Long memberId =projectLike.getProjectLikeId().getMemberId();
+//    public void indexProjectLike(ProjectLike projectLike) throws IOException {
+//        Long projectId = projectLike.getProjectLikeId().getProjectId();
+//        Long memberId =projectLike.getProjectLikeId().getMemberId();
+//        // 좋아요 수 가져오기
+//        ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
+//                .projectId(projectId)
+//                .memberId(memberId)
+//                .build();
+//
+//        // Elasticsearch에 인덱싱
+//        IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
+//                .index("project_likes")
+//                .id(projectId + "-" + memberId)
+//                .document(projectLikeDocReq)
+//                .build();
+//        openSearchClient.index(indexRequest);
+//
+//        log.info("project like 인덱싱");
+//    }
+//
+//    public void deleteProjectLike(ProjectLike projectLike) throws IOException {
+//        String docId = projectLike.getProjectLikeId().getProjectId() + "-" + projectLike.getProjectLikeId().getMemberId();
+//
+//        DeleteRequest deleteRequest = new DeleteRequest.Builder()
+//                .index("project_likes")
+//                .id(docId)
+//                .build();
+//
+//        openSearchClient.delete(deleteRequest);
+//        log.info("ProjectLike 삭제 완료: Project ID = {}, Member ID = {}", projectLike.getProjectLikeId().getProjectId(), projectLike.getProjectLikeId().getMemberId());
+//    }
+
+
+    public void indexProjectLike(Long projectId) throws IOException {
         // 좋아요 수 가져오기
         ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
                 .projectId(projectId)
-                .memberId(memberId)
+                .likeCount(projectLikeRepository.countProjectLikeByProject_ProjectId(projectId))
                 .build();
 
         // Elasticsearch에 인덱싱
         IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
                 .index("project_likes")
-                .id(projectId + "-" + memberId)
+                .id(projectId.toString())
                 .document(projectLikeDocReq)
                 .build();
         openSearchClient.index(indexRequest);
@@ -140,79 +171,48 @@ public class SearchIndexingService {
         log.info("project like 인덱싱");
     }
 
-    public void deleteProjectLike(ProjectLike projectLike) throws IOException {
-        String docId = projectLike.getProjectLikeId().getProjectId() + "-" + projectLike.getProjectLikeId().getMemberId();
 
-        DeleteRequest deleteRequest = new DeleteRequest.Builder()
-                .index("project_likes")
-                .id(docId)
-                .build();
-
-        openSearchClient.delete(deleteRequest);
-        log.info("ProjectLike 삭제 완료: Project ID = {}, Member ID = {}", projectLike.getProjectLikeId().getProjectId(), projectLike.getProjectLikeId().getMemberId());
-    }
-
-
-//    public void indexProjectLike(Long projectId) throws IOException {
-//        // 좋아요 수 가져오기
-//        ProjectLikeDocReq projectLikeDocReq = ProjectLikeDocReq.builder()
-//                .projectId(projectId)
-//                .likeCount(projectLikeRepository.countProjectLikeByProject_ProjectId(projectId))
-//                .build();
+//    public void indexProjectMember(AcceptedProjectMemberRequest acceptedProjectMemberRequest) throws IOException{
+//        Long projectId = acceptedProjectMemberRequest.projectId();
+//        Long memberId = acceptedProjectMemberRequest.memberId();
 //
-//        // Elasticsearch에 인덱싱
-//        IndexRequest<ProjectLikeDocReq> indexRequest = new IndexRequest.Builder<ProjectLikeDocReq>()
-//                .index("project_likes")
-//                .id(projectId.toString())
-//                .document(projectLikeDocReq)
-//                .build();
-//        openSearchClient.index(indexRequest);
-//
-//        log.info("project like 인덱싱");
-//    }
-
-
-    public void indexProjectMember(AcceptedProjectMemberRequest acceptedProjectMemberRequest) throws IOException{
-        Long projectId = acceptedProjectMemberRequest.projectId();
-        Long memberId = acceptedProjectMemberRequest.memberId();
-
-        String docId = projectId + "-" + memberId;
-
-        ProjectMemberDocReq projectMemberDocReq = ProjectMemberDocReq.builder()
-                .projectId(projectId)
-                .memberId(memberId)
-                .jobId(acceptedProjectMemberRequest.jobId())
-                .build();
-
-        IndexRequest<ProjectMemberDocReq> indexRequest = new IndexRequest.Builder<ProjectMemberDocReq>()
-                .index("project_members")
-                .id(docId)
-                .document(projectMemberDocReq)
-                .build();
-        openSearchClient.index(indexRequest);
-
-        log.info("project member 인덱싱");
-    }
-
-//    public void indexProjectMember(Long projectId ) throws IOException{
-//
-//        // 프로젝트에 지원한 인원
-//        Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(projectId);
+//        String docId = projectId + "-" + memberId;
 //
 //        ProjectMemberDocReq projectMemberDocReq = ProjectMemberDocReq.builder()
 //                .projectId(projectId)
-//                .currentMemberCount(currentMemberCount)
+//                .memberId(memberId)
+//                .jobId(acceptedProjectMemberRequest.jobId())
 //                .build();
 //
 //        IndexRequest<ProjectMemberDocReq> indexRequest = new IndexRequest.Builder<ProjectMemberDocReq>()
 //                .index("project_members")
-//                .id(projectId.toString())
+//                .id(docId)
 //                .document(projectMemberDocReq)
 //                .build();
 //        openSearchClient.index(indexRequest);
 //
 //        log.info("project member 인덱싱");
 //    }
+
+    public void indexProjectMember(Long projectId ) throws IOException{
+
+        // 프로젝트에 지원한 인원
+        Integer currentMemberCount = projectMemberRepository.findApprovedMemberCountByProject_ProjectId(projectId);
+
+        ProjectMemberDocReq projectMemberDocReq = ProjectMemberDocReq.builder()
+                .projectId(projectId)
+                .currentMemberCount(currentMemberCount)
+                .build();
+
+        IndexRequest<ProjectMemberDocReq> indexRequest = new IndexRequest.Builder<ProjectMemberDocReq>()
+                .index("project_members")
+                .id(projectId.toString())
+                .document(projectMemberDocReq)
+                .build();
+        openSearchClient.index(indexRequest);
+
+        log.info("project member 인덱싱");
+    }
     public void indexProjectWith(Long projectId) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -421,6 +421,60 @@ public class SearchIndexingService {
         openSearchClient.indices().delete(deleteIndexRequest);
     }
 
+    // 프로젝트 전체 인덱싱
+    public void reindexAllProjects() throws IOException {
+        // 프로젝트 전체 조회
+        List<Project> projects = projectRepository.findAll();
 
+        for (Project project : projects) {
+            indexProject(project.getProjectId());
+        }
+
+        log.info("모든 프로젝트 인덱싱 완료");
+    }
+
+    // 좋아요 전체 인덱싱
+    public void reindexAllProjectLikes() throws IOException {
+        // 모든 좋아요 조회
+        List<ProjectLike> projectLikes = projectLikeRepository.findAll();
+
+        for (ProjectLike projectLike : projectLikes) {
+            indexProjectLike(projectLike.getProjectLikeId().getProjectId());
+        }
+
+        log.info("모든 프로젝트 좋아요 인덱싱 완료");
+    }
+
+    // 프로젝트 멤버 전체 인덱싱
+    public void reindexAllProjectMembers() throws IOException {
+        // 모든 프로젝트 멤버 조회
+        List<ProjectMember> projectMembers = projectMemberRepository.findAll();
+
+        for (ProjectMember projectMember : projectMembers) {
+//            AcceptedProjectMemberRequest request = new AcceptedProjectMemberRequest(
+//                    projectMember.getProject().getProjectId(),
+//                    projectMember.getMember().getMemberId(),
+//                    projectMember.getJob().getJobId()
+//            );
+//            indexProjectMember(request);
+            indexProjectMember(projectMember.getProjectMemberId().getProjectId());
+        }
+
+        log.info("모든 프로젝트 멤버 인덱싱 완료");
+    }
+
+    // 전체 데이터 인덱싱 초기화
+    public void reindexAllData() throws IOException {
+        // 모든 프로젝트 인덱싱
+        reindexAllProjects();
+
+        // 모든 좋아요 인덱싱
+        reindexAllProjectLikes();
+
+        // 모든 프로젝트 멤버 인덱싱
+        reindexAllProjectMembers();
+
+        log.info("모든 프로젝트 관련 데이터 인덱싱 초기화 완료");
+    }
 
 }

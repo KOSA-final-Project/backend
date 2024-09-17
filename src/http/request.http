@@ -94,10 +94,8 @@ Content-Type: application/json
 
 
 ### 프로젝트 좋아요
-POST http://localhost:8080/projects/66/like
-Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDg2ODg1LCJleHAiOjE3MjY0ODg2ODV9.S7vdYHkn2Zry4WsBf2rA9ypmC20DtYiM2EQNidrbZqrjMfLjfWG1ipDl1aiAzkPwc1KMbPmYl2gspsFnyEKEEg
-#Content-Type: application/json
-
+POST http://localhost:8080/projects/53/like
+Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJxdXh4eGJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MSwiaWF0IjoxNzI2NTMxNDUwLCJleHAiOjE3MjY1MzMyNTB9.nJ3epe93DG64Zo_URY8TWL3m03dAmFYYcWmdCHbUhUb_cM6HenUZV9e_A9TJezVKf9hcHySoqK8FkkFvB51DJA
 
 ### 프로젝트 좋아요 취소
 DELETE http://localhost:8080/projects/{{projectId}}/like
