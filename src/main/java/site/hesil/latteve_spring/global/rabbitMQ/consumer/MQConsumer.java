@@ -49,6 +49,7 @@ public class MQConsumer {
         log.info("rabbit listener : project like 인덱싱");
         searchIndexingService.indexProjectLike(projectLike.getProjectLikeId().getProjectId());
     }
+
     @RabbitListener(queues = "#{@projectMemberUpdateQueue.name}")
     public void receiveUpdateProjectMemberMessage( AcceptedProjectMemberRequest projectMember) throws IOException {
         log.info("rabbit listener : projectMember_update_인덱싱 : member가 승인되어 currentMember에 들어감");
@@ -58,16 +59,12 @@ public class MQConsumer {
     @RabbitListener(queues = "#{@memberCreateQueue.name}")
     public void receiveCreateMemberMessage(Member member) throws IOException {
         log.info("rabbit listener : member_create 인덱싱");
-        searchIndexingService.indexMembersToOpenSearch();
+        searchIndexingService.indexMember(member);
 
     }
     @RabbitListener(queues = "#{@memberUpdateQueue.name}")
     public void receiveUpdateMessage(Member member) throws IOException {
-        searchIndexingService.indexMembersToOpenSearch(); // 업데이트 메시지 처리
+        searchIndexingService.indexMember(member); // 업데이트 메시지 처리
     }
 
-//    @RabbitListener(queues = "project.delete.queue")
-//    public void receiveDeleteMessage(Project project) {
-//        searchIndexingService.deleteProject(project.getId());  // 삭제 메시지 처리
-//    }
 }
