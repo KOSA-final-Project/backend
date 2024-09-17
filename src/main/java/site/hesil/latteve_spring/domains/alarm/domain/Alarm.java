@@ -59,6 +59,11 @@ public class Alarm {
 
     public void updateAcceptStatus(int acceptStatus){
         type = acceptStatus;
+        isRead = false;
+    }
+
+    public void read() {
+        isRead = true;
     }
 
     public static Alarm of(Project project, Member member, Job job, Integer type) {

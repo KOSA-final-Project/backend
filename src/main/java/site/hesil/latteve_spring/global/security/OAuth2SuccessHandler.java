@@ -35,6 +35,7 @@ import static site.hesil.latteve_spring.global.security.HttpCookieOAuth2Authoriz
  * 2024-08-27           yunbin           redirect uri 검증 추가
  * 2024-08-28           yunbin           신규 유저 추가 정보 입력
  * 2024-08-29           yunbin           토큰 발급
+ * 2024-09-16           yunbin           쿠키 전달 방식에서 쿼리 파라미터로 변경
  */
 @RequiredArgsConstructor
 @Component
@@ -54,7 +55,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
          tokenProvider.generateRefreshToken(authentication, accessToken);
 
         // JWT 토큰을 쿠키에 저장
-        tokenProvider.addJwtCookieToResponse(response, accessToken);
+        //tokenProvider.addJwtCookieToResponse(response, accessToken);
 
         // 사용자 정보 가져오기 (Authentication 객체에서 사용자 정보를 얻음)
         PrincipalDetails oauthUser = (PrincipalDetails)authentication.getPrincipal();
@@ -75,9 +76,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             newUser.updateProvider(provider, providerId);
             memberRepository.save(newUser);
-            }
+        }
 
         String targetUrl = determineTargetUrl(request, response, authentication, userExists);
+        // access token query parameter로 전달
+        targetUrl = UriComponentsBuilder.fromUriString(targetUrl)
+                .queryParam("accessToken", accessToken)
+                .build().toUriString();
+
         log.info("targetUrl: {}", targetUrl);
 
         // 응답이 commit 됐으면

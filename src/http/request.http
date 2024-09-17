@@ -108,6 +108,7 @@ Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJxdXh4eGJAZ21haWwuY29tIiwicm9sZSI6IlJ
 @Project_isAccepted = 1
 PUT http://localhost:8080/projects/applications
 Cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDcyMTY2LCJleHAiOjE3MjY0NzM5NjZ9.oLnCXghrljHSTrOtRv91EBHgTVvEnixKYVkJHHK6XbZkIOk9PKOL2ROAqdCeDZOVTMzsTryyMVB4eG-wjfmM0A
+
 Content-Type: application/json
 
 {
