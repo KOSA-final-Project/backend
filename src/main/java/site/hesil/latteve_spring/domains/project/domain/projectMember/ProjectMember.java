@@ -1,12 +1,16 @@
 package site.hesil.latteve_spring.domains.project.domain.projectMember;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.member.domain.Member;
 import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.listener.ProjectLikeListener;
+import site.hesil.latteve_spring.domains.project.listener.ProjectMemberListener;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.projectMember.domain
@@ -18,11 +22,13 @@ import site.hesil.latteve_spring.domains.project.domain.Project;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-26        JooYoon       최초 생성
+ * 2024-09-16        Heeseon       Builder 추가
  */
 
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(ProjectMemberListener.class)
 public class ProjectMember {
 
     @EmbeddedId
@@ -64,5 +70,14 @@ public class ProjectMember {
 
     public void updateAcceptStatus(int status) {
         this.acceptStatus = status;
+    }
+
+    @Builder
+    public ProjectMember(Project project, Member member, Job job, int acceptStatus) {
+        this.project = project;
+        this.member = member;
+        this.job = job;
+        this.acceptStatus = acceptStatus;
+        this.projectMemberId = new ProjectMemberId(project.getProjectId(), member.getMemberId(), job.getJobId());
     }
 }

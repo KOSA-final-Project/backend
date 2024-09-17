@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.hesil.latteve_spring.domains.member.listener.MemberListener;
 import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.global.audit.entity.BaseTimeEntity;
 
@@ -28,6 +29,7 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+//@EntityListeners(MemberListener.class)
 public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -60,4 +60,4 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: method
   paths-to-match:
-    - /api/**
+    - /**

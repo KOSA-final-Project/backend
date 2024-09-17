@@ -35,7 +35,7 @@ public interface ProjectLikeRepository extends JpaRepository<ProjectLike, Projec
     void registerProjectLike(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 
     @Modifying
-    @Query(value = "DELETE FROM project_like WHERE project_id = :projectId AND member_id = :memberId", nativeQuery = true)
+    @Query(value = "DELETE FROM projectLike p WHERE p.project.projectId = :projectId AND p.member.memberId = :memberId", nativeQuery = true)
     void deleteProjectLike(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 
 

@@ -24,7 +24,7 @@ import java.util.Optional;
  * 2024-08-28        Heeseon       최초 생성
  * 2024-09-02        Yeong-Huns    projectId 를 통한 조회
  * 2024-09-02        Yeong-Huns    Project 생성시에 자동 리더 등록
- * 2024-09-09        Yeong-Huns    프로젝트 ID 를 통해 해당 PRoject 의 리더 Id 를 찾음
+ * 2024-09-09        Yeong-Huns    프로젝트 ID 를 통해 해당 Project 의 리더 Id 를 찾음
  */
 @Repository
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, ProjectMemberId> {
