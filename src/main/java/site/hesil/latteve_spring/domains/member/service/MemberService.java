@@ -20,6 +20,9 @@ import site.hesil.latteve_spring.domains.techStack.domain.TechStack;
 import site.hesil.latteve_spring.domains.techStack.repository.TechStackRepository;
 import site.hesil.latteve_spring.global.amazon.service.S3Service;
 import site.hesil.latteve_spring.global.error.exception.CustomBaseException;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQExchange;
+import site.hesil.latteve_spring.global.rabbitMQ.enumerate.MQRouting;
+import site.hesil.latteve_spring.global.rabbitMQ.publisher.MQSender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +54,7 @@ public class MemberService {
     private final JobRepository jobRepository;
     private final TechStackRepository techStackRepository;
     private final S3Service s3Service;
+    private final MQSender mqSender;
 
     @Transactional
     public void registerAdditionalMemberInfo(Long memberId, RequestMember requestMember) {
@@ -59,7 +63,7 @@ public class MemberService {
 
         member.updateProfile(requestMember.nickname(), requestMember.career(), requestMember.github());
         memberRepository.save(member);
-
+        mqSender.sendMessage(MQExchange.DIRECT_MEMBER.getExchange(), MQRouting.MEMBER_CREATE.getRouting(), member);
         int i = 0;
         for (Long techStackId : requestMember.techStackIds()) {
             TechStack techStack = techStackRepository.findById(techStackId)
