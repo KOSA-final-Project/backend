@@ -331,6 +331,73 @@ public class SearchIndexingService {
         }
     }
 
+    @Transactional
+    public void indexMember(Member member) throws IOException {
+
+        // 멤버에 연관된 기술 스택 정보 가져옴
+        List<MemberStack> memberStacks = memberStackRepository.findAllByMember_MemberId(member.getMemberId());
+        // techStack list로 저장
+        List<MemberDocumentReq.TechStack> techStackList = new ArrayList<>();
+        for (MemberStack memberStack : memberStacks) {
+            Long techStackId = memberStack.getTechStack().getTechStackId();
+            if(techStackId == 1){
+                techStackList.add(new MemberDocumentReq.TechStack(memberStack.getCustomStack(), null));
+            }else{
+                Optional<TechStack> techStackOpt = techStackRepository.findById(memberStack.getTechStack().getTechStackId());
+                if (techStackOpt.isPresent()) {
+                    TechStack techStack = techStackOpt.get();
+                    String name = techStack.getName();
+                    String imgUrl = techStack.getImgUrl();
+
+                    // TechStack 객체를 리스트에 추가
+                    techStackList.add(new MemberDocumentReq.TechStack(name, imgUrl));
+                }
+            }
+
+            // 멤버의 직무 정보 가져옴
+            List<MemberJob> memberJobs = memberJobRepository.findAllByMember_MemberId(member.getMemberId());
+
+
+            List<String> jobList = new ArrayList<>();
+            // 멤버의 직무 이름 list로 저장
+            for(MemberJob memberJob : memberJobs) {
+                Optional<Job> jobOpt = jobRepository.findById(memberJob.getJob().getJobId());
+                jobOpt.ifPresent(job -> jobList.add(job.getName()));
+
+            }
+
+            // Member가 참여한 프로젝트 개수
+            int ongoingProjectCount = projectRepository.countProjectsByMemberIdAndStatus(member.getMemberId(), 1);
+            int completedProjectCount = projectRepository.countProjectsByMemberIdAndStatus(member.getMemberId(), 2);
+
+            // careerSortValue 계산
+            int careerSortValue = calculateCareerSortValue(Collections.singletonList(member.getCareer()));
+
+            // MemberDocumentReq 생성
+            MemberDocumentReq memberDocumentReq = MemberDocumentReq.builder()
+                    .memberId(member.getMemberId())
+                    .memberNickname(member.getNickname())
+                    .memberImg(member.getImgUrl())
+                    .memberGithub(member.getGithub())
+                    .techStack(techStackList)  // TechStack 리스트 전달
+                    .ongoingProjectCount(ongoingProjectCount)
+                    .completedProjectCount(completedProjectCount)
+                    .memberJob(jobList)
+                    .career(member.getCareer())
+                    .careerSortValue(careerSortValue)
+                    .createdAt(formatLocalDateTime(member.getCreatedAt()))
+                    .build();
+
+            // Elasticsearch에 인덱싱
+            IndexRequest<MemberDocumentReq> indexRequest = new IndexRequest.Builder<MemberDocumentReq>()
+                    .index("members")
+                    .id(member.getMemberId().toString())
+                    .document(memberDocumentReq)
+                    .build();
+            openSearchClient.index(indexRequest);
+        }
+    }
+
 
     @Transactional
     public void indexMembersToOpenSearch() throws IOException {
