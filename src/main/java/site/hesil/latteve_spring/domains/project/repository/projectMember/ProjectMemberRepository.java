@@ -29,7 +29,7 @@ import java.util.Optional;
 @Repository
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, ProjectMemberId> {
 
-    @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.acceptStatus = 1 And pm.isLeader = false")
+    @Query("SELECT COUNT(DISTINCT pm.member.memberId) FROM ProjectMember pm WHERE pm.project.projectId = :projectId AND pm.acceptStatus = 1 And pm.isLeader = false")
     Integer findApprovedMemberCountByProject_ProjectId(@Param("projectId") Long projectId);
 
 
