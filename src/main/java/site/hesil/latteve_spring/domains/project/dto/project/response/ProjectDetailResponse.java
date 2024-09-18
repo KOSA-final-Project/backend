@@ -26,6 +26,7 @@ public record ProjectDetailResponse(
         int status,
         LocalDate createdAt,
         LocalDate startedAt,
+        LocalDate updatedAt,
         int duration,
         int cycle,
         List<TechStack> projectTechStack,

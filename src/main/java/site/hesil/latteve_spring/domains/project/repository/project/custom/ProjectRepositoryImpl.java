@@ -69,7 +69,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         // 프로젝트 기본 정보 조회
         Tuple projectInfo = queryFactory
                 .select(project.projectId, project.name, project.description, project.imgUrl,
-                        project.status, project.createdAt, project.startedAt, project.duration, project.cycle)
+                        project.status, project.createdAt, project.startedAt, project.updatedAt, project.duration, project.cycle)
                 .from(project)
                 .where(project.projectId.eq(projectId))
                 .fetchOne();
@@ -259,6 +259,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                         .map(LocalDateTime::toLocalDate)
                         .orElse(null))
                 .startedAt(Optional.ofNullable(projectInfo.get(project.startedAt))
+                        .map(LocalDateTime::toLocalDate)
+                        .orElse(null))
+                .updatedAt(Optional.ofNullable(projectInfo.get(project.updatedAt))
                         .map(LocalDateTime::toLocalDate)
                         .orElse(null))
                 .duration(Optional.ofNullable(projectInfo.get(project.duration)).orElse(-1))
