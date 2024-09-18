@@ -16,6 +16,7 @@ import site.hesil.latteve_spring.domains.project.dto.project.request.UpdateAccep
 import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
+import site.hesil.latteve_spring.domains.project.dto.request.isLeader.IsLeaderRequest;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.dto.response.ApplicationResponse;
 import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
@@ -199,5 +200,10 @@ public class ProjectController {
         Map<String, Boolean> response = Map.of("isParticipating", authMemberId.equals(selectedMemberId));
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/isLeader")
+    public ResponseEntity<Boolean> isLeader(@RequestBody IsLeaderRequest isLeaderRequest, @AuthMemberId Long memberId) {
+        return ResponseEntity.ok(isLeaderRequest.memberId() == memberId);
     }
 }
