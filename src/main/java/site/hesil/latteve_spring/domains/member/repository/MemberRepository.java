@@ -18,8 +18,8 @@ import java.util.Optional;
  * 2024-08-29           yunbin           findByProviderAndProviderId() 추가
  */
 public interface MemberRepository extends JpaRepository<Member, Long> {
-    Optional<Member> findByEmail(String email);
-    boolean existsByEmail(String email);
-    Optional<Member> findByProviderAndProviderId(String provider, String providerId);
-    boolean existsByNickname(String nickname);
+//Optional<Member> findByEmail(String email);
+//    boolean existsByEmail(String email);
+//    Optional<Member> findByProviderAndProviderId(String provider, String providerId);
+//    boolean existsByNickname(String nickname);
 }

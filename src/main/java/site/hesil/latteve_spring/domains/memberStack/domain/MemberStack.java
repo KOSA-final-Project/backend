@@ -27,7 +27,7 @@ public class MemberStack {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long memberStackId;
+    private Long memberStackId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")

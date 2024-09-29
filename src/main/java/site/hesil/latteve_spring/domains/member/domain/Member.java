@@ -1,16 +1,14 @@
 package site.hesil.latteve_spring.domains.member.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import site.hesil.latteve_spring.domains.member.listener.MemberListener;
-import site.hesil.latteve_spring.domains.memberStack.domain.MemberStack;
 import site.hesil.latteve_spring.global.audit.entity.BaseTimeEntity;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.member.domain
@@ -29,7 +27,6 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(MemberListener.class)
 public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,19 +37,19 @@ public class Member extends BaseTimeEntity {
     private String imgUrl;
     private String career;
     private String pr;
-    private LocalDateTime deletedAt;
+    private String isDeleted; // default "n"
     private String provider; //어떤 OAuth인지(google, naver 등)
     private String providerId; // 해당 OAuth 의 key(id)
 
     @Builder
-    public Member(String email, String nickname, String github, String imgUrl, String career, String pr, LocalDateTime deletedAt, String provider, String providerId) {
+    public Member(String email, String nickname, String github, String imgUrl, String career, String pr,  String provider, String providerId) {
         this.email = email;
         this.nickname = nickname != null ? nickname : "";
         this.github = github;
         this.imgUrl = imgUrl;
         this.career = career != null ? career : "";
         this.pr = pr;
-        this.deletedAt = deletedAt;
+        this.isDeleted = "n";
         this.provider = provider;
         this.providerId = providerId;
     }
@@ -95,4 +92,9 @@ public class Member extends BaseTimeEntity {
             this.providerId = providerId;
         }
     }
+
+    public void deleteMember(){
+        this.isDeleted = "y";
+    }
+
 }

@@ -27,7 +27,7 @@ public class TechStack {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long techStackId;
+    private Long techStackId;
     private String name;
     private String imgUrl;
 }

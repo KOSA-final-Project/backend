@@ -25,20 +25,20 @@ import site.hesil.latteve_spring.domains.project.domain.Project;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Recruitment {
 
-    @EmbeddedId
-    private RecruitmentId recruitmentId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long recruitmentId;
 
-    @MapsId("projectId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @MapsId("jobId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
 
     private int count;
+
     @Builder
     public Recruitment(Project project, Job job, int count) {
         this.project = project;

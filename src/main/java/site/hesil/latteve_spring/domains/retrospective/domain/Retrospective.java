@@ -2,11 +2,10 @@ package site.hesil.latteve_spring.domains.retrospective.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import site.hesil.latteve_spring.domains.job.domain.Job;
-import site.hesil.latteve_spring.domains.member.domain.Member;
-import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
 import site.hesil.latteve_spring.global.audit.entity.BaseTimeEntity;
 
 /**
@@ -28,35 +27,27 @@ public class Retrospective extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long retId;
+    private Long retId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id")
-    private Project project;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private Job job;
+    @JoinColumn(name = "recruitment_id")
+    private Recruitment recruitment;
 
     private String title;
     private String content;
     private int week;
+    private String isDeleted;
 
-    private Retrospective(Project project, Member member, Job job, String title, String content, int week) {
-        this.project = project;
-        this.member = member;
-        this.job = job;
+    @Builder
+    private Retrospective(String title, String content, int week) {
         this.title = title;
         this.content = content;
         this.week = week;
+        this.isDeleted = "n";
     }
 
-    public static Retrospective of(Project project, Member member, Job job, String title, String content, int week) {
-        return new Retrospective(project, member, job, title, content, week);
+    public static Retrospective of(String title, String content, int week) {
+        return new Retrospective(title, content, week);
     }
 
     public void update(String title, String content) {

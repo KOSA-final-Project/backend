@@ -24,10 +24,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/jobs")
 public class JobController {
-    private final JobService jobService;
-
-    @GetMapping
-    public ResponseEntity<List<GetAllJobResponse>> getAllJobs() {
-        return ResponseEntity.ok(jobService.getAllJobs());
-    }
+//    private final JobService jobService;
+//
+//    @GetMapping
+//    public ResponseEntity<List<GetAllJobResponse>> getAllJobs() {
+//        return ResponseEntity.ok(jobService.getAllJobs());
+//    }
 }

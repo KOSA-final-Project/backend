@@ -25,10 +25,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/tech-stacks")
 public class TechStackController {
-    private final TechStackService techStackService;
-
-    @GetMapping
-    public ResponseEntity<List<GetAllTechStackResponse>> getAllTechStacks(){
-        return ResponseEntity.ok(techStackService.getAllTechStack());
-    }
+//    private final TechStackService techStackService;
+//
+//    @GetMapping
+//    public ResponseEntity<List<GetAllTechStackResponse>> getAllTechStacks(){
+//        return ResponseEntity.ok(techStackService.getAllTechStack());
+//    }
 }

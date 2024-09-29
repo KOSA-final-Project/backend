@@ -19,6 +19,5 @@ import java.util.Optional;
  */
 @Repository
 public interface TechStackRepository extends JpaRepository<TechStack, Long> {
-    Optional<TechStack> findTechStackByTechStackId(Long techStackId);
-
+    //Optional<TechStack> findTechStackByTechStackId(Long techStackId);
 }

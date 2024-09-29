@@ -1,13 +1,14 @@
 package site.hesil.latteve_spring.domains.project.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-import site.hesil.latteve_spring.domains.project.listener.ProjectListener;
 import site.hesil.latteve_spring.global.audit.entity.BaseTimeEntity;
 
 import java.time.LocalDateTime;
@@ -25,8 +26,6 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(ProjectListener.class)
-@SQLDelete(sql = "UPDATE project SET deleted_at = NOW() where project_id = ?")
 public class Project extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +38,6 @@ public class Project extends BaseTimeEntity {
 
     private int duration;
     private int cycle;
-    private LocalDateTime deletedAt;
     private LocalDateTime startedAt;
 
     @Builder

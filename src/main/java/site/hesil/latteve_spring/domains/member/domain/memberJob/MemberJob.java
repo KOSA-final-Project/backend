@@ -25,15 +25,14 @@ import site.hesil.latteve_spring.domains.member.domain.Member;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberJob {
 
-    @EmbeddedId
-    private MemberJobId memberJobId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long memberJobId;
 
-    @MapsId("memberId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @MapsId("jobId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
@@ -42,6 +41,5 @@ public class MemberJob {
     public MemberJob(Member member, Job job) {
         this.member = member;
         this.job = job;
-        this.memberJobId = new MemberJobId(member.getMemberId(), job.getJobId());
     }
 }

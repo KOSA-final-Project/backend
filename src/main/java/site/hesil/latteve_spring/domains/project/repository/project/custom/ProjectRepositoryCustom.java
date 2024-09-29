@@ -1,16 +1,5 @@
 package site.hesil.latteve_spring.domains.project.repository.project.custom;
 
-import com.querydsl.core.Tuple;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import site.hesil.latteve_spring.domains.project.domain.Project;
-import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
-import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectDetailResponse;
-import site.hesil.latteve_spring.domains.project.dto.response.RetrospectiveResponse;
-
-import java.util.List;
-import java.util.Optional;
-
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.custom
  * fileName       : ProjectRepositoryCustom
@@ -28,13 +17,4 @@ import java.util.Optional;
 
 public interface ProjectRepositoryCustom {
 
-    Optional<ProjectDetailResponse> getProjectDetail_deprecated(Long projectId);
-
-    int countProjectsByMemberIdAndStatus(Long memberId, int status);
-
-    Page<Project> findProjectsByMemberIdAndStatus(Long memberId, int status, Pageable pageable);
-
-    Optional<RetrospectiveResponse> getRetrospective(Long projectId, Long memberId, int week);
-
-    List<PopularProjectResponse> findPopularProjects(int limit );
 }

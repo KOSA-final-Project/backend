@@ -4,8 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.member.domain.memberJob.MemberJob;
 
-import java.util.List;
-
 /**
  * packageName    : site.hesil.latteve_spring.domains.member.repository.memberJob
  * fileName       : MemberJobRepository
@@ -19,5 +17,5 @@ import java.util.List;
  */
 @Repository
 public interface MemberJobRepository extends JpaRepository<MemberJob, Long> {
-    List<MemberJob> findAllByMember_MemberId(Long memberId);
+//    List<MemberJob> findAllByMember_MemberId(Long memberId);
 }

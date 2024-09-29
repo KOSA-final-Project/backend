@@ -2,13 +2,6 @@ package site.hesil.latteve_spring.global.security.jwt;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import site.hesil.latteve_spring.domains.member.domain.Member;
-import site.hesil.latteve_spring.domains.member.repository.MemberRepository;
-import site.hesil.latteve_spring.global.error.exception.NotFoundException;
-import site.hesil.latteve_spring.global.error.exception.TokenException;
-
-import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_EXPIRED;
 
 /**
  * packageName    : site.hesil.latteve_spring.global.security
@@ -26,32 +19,32 @@ import static site.hesil.latteve_spring.global.error.errorcode.ErrorCode.TOKEN_E
 @Service
 public class TokenService {
 
-    private final TokenRepository tokenRepository;
-    private final MemberRepository memberRepository;
-
-    public void deleteRefreshToken(String memberKey) {
-        tokenRepository.deleteById(memberKey);
-    }
-
-    @Transactional
-    public void saveOrUpdate(String email, String refreshToken, String accessToken) {
-        Member member = memberRepository.findByEmail(email).orElseThrow(NotFoundException::new);
-
-        Token token = tokenRepository.findByAccessToken(accessToken)
-                .map(o -> o.updateRefreshToken(refreshToken))
-                .orElseGet(() -> new Token(email, member.getMemberId(), refreshToken, accessToken));
-
-        tokenRepository.save(token);
-    }
-
-    public Token findByAccessTokenOrThrow(String accessToken) {
-        return tokenRepository.findByAccessToken(accessToken)
-                .orElseThrow(() -> new TokenException(TOKEN_EXPIRED));
-    }
-
-    @Transactional
-    public void updateToken(String accessToken, Token token) {
-        token.updateAccessToken(accessToken);
-        tokenRepository.save(token);
-    }
+//    private final TokenRepository tokenRepository;
+//    private final MemberRepository memberRepository;
+//
+//    public void deleteRefreshToken(String memberKey) {
+//        tokenRepository.deleteById(memberKey);
+//    }
+//
+//    @Transactional
+//    public void saveOrUpdate(String email, String refreshToken, String accessToken) {
+//        Member member = memberRepository.findByEmail(email).orElseThrow(NotFoundException::new);
+//
+//        Token token = tokenRepository.findByAccessToken(accessToken)
+//                .map(o -> o.updateRefreshToken(refreshToken))
+//                .orElseGet(() -> new Token(email, member.getMemberId(), refreshToken, accessToken));
+//
+//        tokenRepository.save(token);
+//    }
+//
+//    public Token findByAccessTokenOrThrow(String accessToken) {
+//        return tokenRepository.findByAccessToken(accessToken)
+//                .orElseThrow(() -> new TokenException(TOKEN_EXPIRED));
+//    }
+//
+//    @Transactional
+//    public void updateToken(String accessToken, Token token) {
+//        token.updateAccessToken(accessToken);
+//        tokenRepository.save(token);
+//    }
 }

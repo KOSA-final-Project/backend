@@ -2,12 +2,10 @@ package site.hesil.latteve_spring.domains.alarm.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import site.hesil.latteve_spring.domains.job.domain.Job;
 import site.hesil.latteve_spring.domains.member.domain.Member;
-import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.alarm.domain
@@ -31,31 +29,26 @@ public class Alarm {
     private Long alarmId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id")
-    private Project project;
+    @JoinColumn(name = "recruitment_id")
+    private Recruitment recruitment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private Job job;
+    @Column(columnDefinition = "TINYINT")
+    private int type;
 
-    @Column(columnDefinition = "TINYINT(1)")
-    private Integer type;
-
-    @Column(columnDefinition = "TINYINT(1)")
+    @Column(columnDefinition = "TINYINT")
     private boolean isRead;
 
-    @Builder
-    private Alarm(Project project, Member member, Job job, Integer type) {
-        this.project = project;
-        this.member = member;
-        this.job = job;
-        this.type = type;
-        this.isRead = false;
-    }
+//    @Builder
+//    private Alarm(Member member, Job job, Integer type) {
+//        this.member = member;
+//        this.job = job;
+//        this.type = type;
+//        this.isRead = false;
+//    }
 
     public void updateAcceptStatus(int acceptStatus){
         type = acceptStatus;
@@ -66,7 +59,7 @@ public class Alarm {
         isRead = true;
     }
 
-    public static Alarm of(Project project, Member member, Job job, Integer type) {
-        return new Alarm(project, member, job, type);
-    }
+//    public static Alarm of(Project project, Member member, Job job, Integer type) {
+//        return new Alarm(project, member, job, type);
+//    }
 }
