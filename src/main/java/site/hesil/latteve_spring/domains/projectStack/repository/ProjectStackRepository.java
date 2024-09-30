@@ -1,7 +1,11 @@
 package site.hesil.latteve_spring.domains.projectStack.repository;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import site.hesil.latteve_spring.domains.project.dto.request.projectSave.TechStack;
 import site.hesil.latteve_spring.domains.projectStack.domain.ProjectStack;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.projectStack.repository
@@ -19,9 +23,9 @@ public interface ProjectStackRepository extends JpaRepository<ProjectStack, Long
     // 프로젝트 ID로 ProjectStack을 조회
 //    List<ProjectStack> findAllByProject_ProjectId(Long projectId);
 //
-//    void saveProjectStack(@Param("projectId") Long projectId, @Param("techStackId") Long techStackId, @Param("customStack") String customStack);
-//
-//    default void saveAllProjectStacks(List<TechStack> techStacks, Long projectId) {
-//        techStacks.forEach(i->saveProjectStack(projectId,i.techStackId(),i.name()));
-//    }
+    void saveProjectStack(@Param("projectId") Long projectId, @Param("techStackId") Long techStackId, @Param("customStack") String customStack);
+
+    default void saveAllProjectStacks(List<TechStack> techStacks, Long projectId) {
+        techStacks.forEach(i->saveProjectStack(projectId,i.techStackId(),i.name()));
+    }
 }
