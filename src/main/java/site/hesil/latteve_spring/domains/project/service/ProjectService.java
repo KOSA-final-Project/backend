@@ -4,6 +4,12 @@ package site.hesil.latteve_spring.domains.project.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
+import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
+import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
+import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
+import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.service
@@ -29,13 +35,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ProjectService {
 //
-//    private final ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
 //    private final ProjectMemberRepository projectMemberRepository;
 //    private final MemberRepository memberRepository;
 //    private final JobRepository jobRepository;
-//    private final AlarmRepository alarmRepository;
-//    private final ProjectStackRepository projectStackRepository;
-//    private final RecruitmentRepository recruitmentRepository;
+    private final AlarmRepository alarmRepository;
+    private final ProjectStackRepository projectStackRepository;
+    private final RecruitmentRepository recruitmentRepository;
 //    private final MemberStackRepository memberStackRepository;
 //    private final TechStackRepository techStackRepository;
 //    private final ProjectLikeRepository projectLikeRepository;
@@ -54,14 +60,14 @@ public class ProjectService {
 //        return result;
 //    }
 //
-//    @Transactional
-//    public long saveProject(ProjectSaveRequest projectSaveRequest, long memberId) {
-//        long projectId = projectRepository.save(projectSaveRequest.toEntity()).getProjectId();
-//        recruitmentRepository.saveAllRecruitments(projectSaveRequest.recruitmentRoles(), projectId);
-//        projectStackRepository.saveAllProjectStacks(projectSaveRequest.techStack(), projectId);
-//        projectMemberRepository.registerProjectLeader(projectId, memberId);
-//        return projectId;
-//    }
+    @Transactional
+    public long saveProject(ProjectSaveRequest projectSaveRequest, long memberId) {
+        long projectId = projectRepository.save(projectSaveRequest.toEntity()).getProjectId();
+        recruitmentRepository.saveAllRecruitments(projectSaveRequest.recruitmentRoles(), projectId);
+        projectStackRepository.saveAllProjectStacks(projectSaveRequest.techStack(), projectId);
+        alarmRepository.registerProjectLeader(projectId ,memberId);
+        return projectId;
+    }
 //
 //
 //    @Transactional(readOnly = true)

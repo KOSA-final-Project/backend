@@ -1,7 +1,9 @@
 package site.hesil.latteve_spring.domains.alarm.repository;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.hesil.latteve_spring.domains.alarm.domain.Alarm;
 import site.hesil.latteve_spring.domains.alarm.dto.ApplicationResultAlarm;
@@ -30,4 +32,9 @@ public interface AlarmRepository extends JpaRepository<Alarm, Long> {
 //    List<RequestAlarm> findUnreadRequestAlarms(@Param("memberId") Long memberId);
 //
 //    List<ApplicationResultAlarm> findUnreadResponseAlarms(@Param("memberId") Long memberId);
+
+    @Modifying
+    @Query(value = "INSERT INTO alarm (recruitment_id, member_id, type, is_read) VALUES ((SELECT r.recruitment_id FROM recruitment r WHERE r.project_id = :projectId AND r.job_id = 1), :memberId, 1, 1)",
+            nativeQuery = true)
+    void registerProjectLeader(@Param("projectId") Long projectId, @Param("memberId") Long memberId);
 }

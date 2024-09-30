@@ -1,7 +1,13 @@
 package site.hesil.latteve_spring.domains.project.repository.recruitment;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
+import site.hesil.latteve_spring.domains.project.dto.request.projectSave.RecruitmentRoles;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.recruitment
@@ -18,5 +24,9 @@ import site.hesil.latteve_spring.domains.project.domain.recruitment.Recruitment;
  */
 public interface RecruitmentRepository extends JpaRepository <Recruitment, Long> {
 
+    @Modifying
+    @Query(value = "INSERT INTO recruitment (project_id, job_id, count) VALUES (:projectId, :jobId, :count)", nativeQuery = true)
+    void saveRecruitment(@Param("projectId") Long projectId, @Param("jobId") Long jobId, @Param("count") int count);
 
+    default void saveAllRecruitments(List<RecruitmentRoles> roles, Long projectId) {roles.forEach(i->saveRecruitment(projectId, i.jobId(), i.count()));}
 }

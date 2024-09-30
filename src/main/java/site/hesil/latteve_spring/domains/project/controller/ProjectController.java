@@ -2,8 +2,15 @@ package site.hesil.latteve_spring.domains.project.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
+import site.hesil.latteve_spring.domains.project.service.ProjectService;
+import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.controller
@@ -26,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProjectController {
 
-//    private final ProjectService projectService;
+    private final ProjectService projectService;
 //    private final MemberController memberController;
 //
 //    // 프로젝트 상세 정보 조회
@@ -47,10 +54,10 @@ public class ProjectController {
 //        return ResponseEntity.status(HttpStatus.CREATED).build();
 //    }
 //
-//    @PostMapping
-//    public ResponseEntity<Long> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest, @AuthMemberId Long memberId) {
-//        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.saveProject(projectSaveRequest, memberId));
-//    }
+    @PostMapping
+    public ResponseEntity<Long> projectSave(@RequestBody ProjectSaveRequest projectSaveRequest, Long memberId) { // 추후 @AuthMembers 로 변경
+        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.saveProject(projectSaveRequest, memberId));
+    }
 //
 //    @GetMapping("/{projectId}/applications")
 //    public ResponseEntity<List<ApplicationResponse>> projectRecruit(@PathVariable Long projectId) {
