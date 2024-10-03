@@ -1,5 +1,9 @@
 package site.hesil.latteve_spring.domains.project.repository.project.custom;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
+
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.custom
  * fileName       : ProjectRepositoryCustom
@@ -16,5 +20,5 @@ package site.hesil.latteve_spring.domains.project.repository.project.custom;
  */
 
 public interface ProjectRepositoryCustom {
-
+    //Page<ProjectCardResponse> findProjectsOrderByCreatedAtDesc(Pageable pageable);
 }

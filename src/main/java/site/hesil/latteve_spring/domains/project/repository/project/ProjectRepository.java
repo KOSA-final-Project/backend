@@ -1,5 +1,7 @@
 package site.hesil.latteve_spring.domains.project.repository.project;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import site.hesil.latteve_spring.domains.project.domain.Project;
 import site.hesil.latteve_spring.domains.project.repository.project.custom.ProjectRepositoryCustom;
@@ -26,12 +28,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 //                                                        @Param("status") Integer status,
 //                                                        Pageable pageable);
 //
-//    // 신규순으로 조회하는 쿼리
-//    Page<Project> findAllByStatusOrderByCreatedAtDesc(int status, Pageable pageable);
-//
-//
-//    // 종료된 프로젝트 조회
-//    Page<Project> findAllCompletedProjects(Pageable pageable);
+
 //
 //    /*// ProjectDetail ===================================
 //    @Query("""

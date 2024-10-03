@@ -299,9 +299,9 @@ public class ProjectService {
 //    public void deleteProjectLike(long projectId, long memberId) {
 //        projectLikeRepository.deleteProjectLike(projectId, memberId);
 //    }
-//
-//
-//    // 최근 종료된 순으로 조회
+
+
+    // 최근 종료된 순으로 조회
 //    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable, Long memberId) {
 //        // 1. 프로젝트 목록 가져오기
 //        Page<Project> projects = projectRepository.findAllCompletedProjects(pageable);
@@ -317,24 +317,15 @@ public class ProjectService {
 //
 //        return new PageImpl<>(projectCardResponses, pageable, projects.getTotalElements());
 //    }
-//
+
 //    // 인기 프로젝트 조회
 //    public List<PopularProjectResponse> getTop10PopularProjects() {
 //
 //        List<PopularProjectResponse> projects = projectRepository.findPopularProjects(10);
 //        return projectRepository.findPopularProjects(10);
 //    }
-//
-//
-//    // 시간 가중치 계산 (최근 5일을 1로 설정하고 점점 감소)
-//    private double calculateTimeWeight(LocalDate createdDate) {
-//        long daysSinceCreation = ChronoUnit.DAYS.between(createdDate, LocalDate.now());
-//        if (daysSinceCreation <= 5) {
-//            return 1.0; // 최근 5일 이내면 가중치 1
-//        }
-//        return Math.max(0.1, 1 - (double) daysSinceCreation / 30); // 30일 이후로 서서히 가중치 감소
-//    }
-//
+
+
 //
 //    // 프로젝트 회고 등록
 //    public void saveRetrospective(Long projectId, Long memberId, CreateRetrospectiveRequest createRetrospectiveRequest) {
