@@ -2,6 +2,10 @@ package site.hesil.latteve_spring.domains.job.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import site.hesil.latteve_spring.domains.job.dto.response.GetAllJobResponse;
+import site.hesil.latteve_spring.domains.job.repository.JobRepository;
+
+import java.util.List;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.job.service
@@ -16,11 +20,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class JobService {
-//    private final JobRepository jobRepository;
-//
-//    public List<GetAllJobResponse> getAllJobs() {
-//        return jobRepository.findAll().stream()
-//                .map(GetAllJobResponse::from)
-//                .toList();
-//    }
+    private final JobRepository jobRepository;
+
+    public List<GetAllJobResponse> getAllJobs() {
+        return jobRepository.findAll().stream()
+                .map(GetAllJobResponse::from)
+                .toList();
+    }
 }
