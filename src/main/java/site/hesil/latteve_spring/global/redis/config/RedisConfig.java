@@ -3,7 +3,9 @@ package site.hesil.latteve_spring.global.redis.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -17,10 +19,13 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
  * 2024-08-22        Yeong-Huns       최초 생성
+ * 2024-10-08        yunbin           @EnableRedisRepositories 추가
  */
 @Configuration
+@EnableRedisRepositories(enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP)
 public class RedisConfig {
-   /* @Bean
+
+    /* @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();// hashmap
         template.setConnectionFactory(factory);

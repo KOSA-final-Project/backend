@@ -20,12 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class TechStackService {
-//    private final TechStackRepository techStackRepository;
-//
-//    public List<GetAllTechStackResponse> getAllTechStack(){
-//        return techStackRepository.findAll()
-//                .stream()
-//                .map(GetAllTechStackResponse::from)
-//                .toList();
-//    }
+    private final TechStackRepository techStackRepository;
+
+    public List<GetAllTechStackResponse> getAllTechStack(){
+        return techStackRepository.findAll()
+                .stream()
+                .map(GetAllTechStackResponse::from)
+                .toList();
+    }
 }

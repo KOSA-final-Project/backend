@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.index.Indexed;
  * 2024-08-29           yunbin           최초 생성
  * 2024-09-03           yunbin           memberId 추가
  * 2024-09-04           yunbin           ttl 수정
+ * 2024-10-07           yunbin           memberId 제거
  */
 @Getter
 @AllArgsConstructor
@@ -26,8 +27,6 @@ public class Token {
 
     @Id
     private String id;
-
-    private Long memberId;
 
     private String refreshToken;
 
