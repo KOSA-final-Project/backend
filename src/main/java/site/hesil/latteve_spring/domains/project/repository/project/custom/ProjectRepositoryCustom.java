@@ -2,6 +2,7 @@ package site.hesil.latteve_spring.domains.project.repository.project.custom;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 
 /**
@@ -20,5 +21,13 @@ import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCar
  */
 
 public interface ProjectRepositoryCustom {
-    //Page<ProjectCardResponse> findProjectsOrderByCreatedAtDesc(Pageable pageable);
+    /*홈페이지 - 프로젝트 조회 */
+    // 신규순 조회
+    Page<ProjectCardResponse> getNewProjects(Pageable pageable);
+
+    // 최근 종료된 프로젝트
+    Page<ProjectCardResponse> getProjectsSortedByRecentlyConcluded(Pageable pageable);
+
+    // 인기 프로젝트
+    Page<PopularProjectResponse> getPopularProjects(Pageable pageable);
 }

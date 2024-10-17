@@ -3,11 +3,18 @@ package site.hesil.latteve_spring.domains.project.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.hesil.latteve_spring.domains.alarm.repository.AlarmRepository;
+import site.hesil.latteve_spring.domains.project.domain.Project;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.repository.project.ProjectRepository;
+import site.hesil.latteve_spring.domains.project.repository.project.custom.ProjectRepositoryImpl;
 import site.hesil.latteve_spring.domains.project.repository.recruitment.RecruitmentRepository;
 import site.hesil.latteve_spring.domains.projectStack.repository.ProjectStackRepository;
 
@@ -42,7 +49,9 @@ public class ProjectService {
     private final AlarmRepository alarmRepository;
     private final ProjectStackRepository projectStackRepository;
     private final RecruitmentRepository recruitmentRepository;
-//    private final MemberStackRepository memberStackRepository;
+    private final ProjectRepositoryImpl projectRepositoryImpl;
+
+    //    private final MemberStackRepository memberStackRepository;
 //    private final TechStackRepository techStackRepository;
 //    private final ProjectLikeRepository projectLikeRepository;
 //    private final RetrospectiveRepository retrospectiveRepository;
@@ -68,6 +77,8 @@ public class ProjectService {
         alarmRepository.registerProjectLeader(projectId ,memberId);
         return projectId;
     }
+
+
 //
 //
 //    @Transactional(readOnly = true)
@@ -263,13 +274,6 @@ public class ProjectService {
 //
 //    }
 //
-//    // 신규순으로 조회 (모집중, 진행중)
-//    public Page<ProjectCardResponse> getProjectsOrderedByCreatedAt(Pageable pageable, Long memberId) {
-//
-//        Page<Project> projectPage = projectRepository.findAllByStatusOrderByCreatedAtDesc(0, pageable);
-//        List<ProjectCardResponse> projectCardList = getProjectCardList(projectPage.getContent(), memberId);
-//        return new PageImpl<>(projectCardList, pageable, projectPage.getTotalElements());
-//    }
 //
 //    // 회고 조회
 //    public RetrospectiveResponse getRetrospective(Long projectId, Long memberId, int week) {
@@ -300,6 +304,13 @@ public class ProjectService {
 //        projectLikeRepository.deleteProjectLike(projectId, memberId);
 //    }
 
+    // 최근 생성된 순으로 조회
+    public Page<ProjectCardResponse> getNewProjects(Pageable pageable, Long memberId) {
+
+        Page<ProjectCardResponse> projectCardResponses = projectRepositoryImpl.getNewProjects(pageable);
+
+        return projectCardResponses;
+    }
 
     // 최근 종료된 순으로 조회
 //    public Page<ProjectCardResponse> getProjectsByDeadline(Pageable pageable, Long memberId) {
@@ -317,7 +328,7 @@ public class ProjectService {
 //
 //        return new PageImpl<>(projectCardResponses, pageable, projects.getTotalElements());
 //    }
-
+//
 //    // 인기 프로젝트 조회
 //    public List<PopularProjectResponse> getTop10PopularProjects() {
 //

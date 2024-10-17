@@ -1,16 +1,18 @@
 package site.hesil.latteve_spring.domains.project.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 import site.hesil.latteve_spring.domains.project.dto.request.projectSave.ProjectSaveRequest;
 import site.hesil.latteve_spring.domains.project.service.ProjectService;
 import site.hesil.latteve_spring.global.security.annotation.AuthMemberId;
+import site.hesil.latteve_spring.global.security.annotation.LoginFilterMemberId;
 
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.controller
@@ -97,16 +99,16 @@ public class ProjectController {
 //        return ResponseEntity.ok(projectPage);
 //    }
 //
-//    //최근에 생성된 프로젝트 조회
-//    @GetMapping("/new")
-//    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(
-//             @LoginFilterMemberId(required = false) @Parameter(required = false) Long memberId,
-//                                                                          @RequestParam(defaultValue = "0") int page,
-//                                                                          @RequestParam(defaultValue = "4") int size) {
-//        Page<ProjectCardResponse> projectPage = projectService.getProjectsOrderedByCreatedAt(PageRequest.of(page, size),memberId);
-//        return ResponseEntity.ok(projectPage);
-//    }
-//
+    //최근에 생성된 프로젝트 조회
+    @GetMapping("/new")
+    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsByNewest(
+             @LoginFilterMemberId(required = false) @Parameter(required = false) Long memberId,
+                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "4") int size) {
+        Page<ProjectCardResponse> projectPage = projectService.getNewProjects(PageRequest.of(page, size),memberId);
+        return ResponseEntity.ok(projectPage);
+    }
+
 //    //최근에 종료된 프로젝트 조회
 //    @GetMapping("/done")
 //    public ResponseEntity<Page<ProjectCardResponse>>  getProjectsRecentlyDone(@LoginFilterMemberId(required = false) Long memberId,

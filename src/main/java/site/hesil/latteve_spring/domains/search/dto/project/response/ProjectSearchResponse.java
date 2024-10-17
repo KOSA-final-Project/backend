@@ -1,6 +1,7 @@
 package site.hesil.latteve_spring.domains.search.dto.project.response;
 
 import lombok.Builder;
+import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
 
 import java.util.List;
 
@@ -21,15 +22,11 @@ public record ProjectSearchResponse(
         String name,
         String imgUrl,
         int duration,
-        List<TechStack> projectTechStack,
+        List<ProjectCardResponse.TechStack> projectTechStack,
         Long cntLike, // 좋아요 수
         int currentCnt, // 현재 모인 팀원 수
         int teamCnt, // 모집 인원
         String status,
         String createdAt
 ){
-    public record TechStack(
-            String name,
-            String imgUrl
-    ){}
 }
