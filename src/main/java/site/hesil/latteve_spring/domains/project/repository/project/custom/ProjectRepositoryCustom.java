@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import site.hesil.latteve_spring.domains.project.dto.project.response.PopularProjectResponse;
 import site.hesil.latteve_spring.domains.project.dto.project.response.ProjectCardResponse;
-
+import java.util.*;
 /**
  * packageName    : site.hesil.latteve_spring.domains.project.repository.custom
  * fileName       : ProjectRepositoryCustom
@@ -26,8 +26,8 @@ public interface ProjectRepositoryCustom {
     Page<ProjectCardResponse> getNewProjects(Pageable pageable);
 
     // 최근 종료된 프로젝트
-    Page<ProjectCardResponse> getProjectsSortedByRecentlyConcluded(Pageable pageable);
+    Page<ProjectCardResponse> getProjectsRecentlyDone(Pageable pageable);
 
     // 인기 프로젝트
-    Page<PopularProjectResponse> getPopularProjects(Pageable pageable);
+    List<PopularProjectResponse> getPopularProjects(int limit);
 }

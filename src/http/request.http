@@ -1,6 +1,6 @@
 ### 프로젝트 생성 요청
 POST http://localhost:8080/projects
-cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJsb2VkeTExMjNAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo1MCwiaWF0IjoxNzI2NDEwMDAxLCJleHAiOjE3MjY0MTE4MDF9.zwGhkqqC1ZA6HDTUnD7iHaYxoJABswiewb3XoSKzJK3UV1Rig5PEGfrFjbAddpL1UBCde8YJYZv2yA-icrx61Q
+cookie: jwt=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJxdXh4eGJAZ21haWwuY29tIiwicm9sZSI6IlJPTEVfVVNFUiIsIm1lbWJlcklkIjo0LCJpYXQiOjE3MjkyMzc4NDksImV4cCI6MTcyOTIzOTY0OX0.J_Hd4dvWM8jufDMw4iuZJSEtU7Y52d4Nc-IKRsfXXOlGZg0yIAlL6n1vyZJEydQBX8FUBB3JFqf2CWjCYWvs4A
 Content-Type: application/json
 
 {
@@ -16,7 +16,7 @@ Content-Type: application/json
       "count": 3
     },
     {
-      "jobId": 6,
+      "jobId": 3,
       "count": 4
     }
   ],

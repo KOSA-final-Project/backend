@@ -115,7 +115,7 @@ public class ProjectController {
 //                                                                              @RequestParam(defaultValue = "0") int page,
 //                                                                              @RequestParam(defaultValue = "4") int size) {
 //
-//        Page<ProjectCardResponse> projectPage = projectService.getProjectsByDeadline(PageRequest.of(page, size),memberId);
+//        Page<ProjectCardResponse> projectPage = projectService.getProjectsRecentlyDone(PageRequest.of(page, size),memberId);
 //        return ResponseEntity.ok(projectPage);
 //    }
 //
